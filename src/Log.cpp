@@ -12,6 +12,7 @@ Log::Log(int level) {
 	level_ = level;
 }
 
+// TODO: Add functionality for writing to file, etc.
 Log::~Log() {
 	lock_guard<mutex> guard(print_mutex_);
 	
@@ -19,13 +20,16 @@ Log::~Log() {
 		case NONE:
 			break;
 			
-		case DEBUG: cout << "[DEBUG]";
+		case DEBUG: PRINT_STREAM << "[DEBUG]";
 			break;
 			
-		case INFORMATION: cout << "[INFORMATION]";
+		case INFORMATION: PRINT_STREAM << "[INFORMATION]";
 			break;
 			
-		default: cout << "[UNKNOWN ENUM]";
+		case ERROR: PRINT_STREAM << "[ERROR]";
+			break;
+			
+		default: PRINT_STREAM << "[UNKNOWN ENUM]";
 	}
 	
 	PRINT_STREAM << " " << str();
