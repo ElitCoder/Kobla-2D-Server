@@ -21,7 +21,7 @@ public:
 		this->online = true;
 		this->setTimer = false;
 
-		strcpy_s(this->name, "");
+		name_ = "";
 	}
 
 	Client *mb;
@@ -30,7 +30,7 @@ public:
 	bool online;
 	bool setTimer;
 
-	char name[20];
+	std::string name_;
 };
 
 class Party
@@ -152,10 +152,11 @@ class MenuButton
 public:
 	MenuButton()
 	{
-		strcpy_s(this->text, "");
+		text_ = "";//strcpy_s(this->text, "");
 	}
 
-	char text[80];
+	std::string text_;
+	//char text[80];
 };
 
 class TeleportObject
@@ -190,8 +191,11 @@ public:
 
 		this->id = 0;
 
-		strcpy_s(this->dialog, "");
-		strcpy_s(this->name, "");
+		dialog = "";
+		name = "";
+		
+		//strcpy_s(this->dialog, "");
+		//strcpy_s(this->name, "");
 
 		this->nextChat = 0;
 		this->enableChat = false;
@@ -210,8 +214,11 @@ public:
 
 	int id;
 
-	char dialog[1000];
-	char name[100];
+	//char dialog[1000];
+	//char name[100];
+
+	std::string dialog;
+	std::string name;
 
 	std::vector<MenuButton> menu;
 	std::vector<MenuButton> diab;
@@ -324,11 +331,11 @@ public:
 
 		this->mapId = NULL;
 
-		this->respawnTime = (GetTickCount() + 30000);
+		this->respawnTime = (getTimestamp() + 30000);
 		this->respawnDelayMonster = 14000;
 		this->spawned = true;
 
-		this->nextRefresh = (GetTickCount() + 3000);
+		this->nextRefresh = (getTimestamp() + 3000);
 		this->freeAttack = 0;
 		this->nextAttack = 0;
 
@@ -519,7 +526,8 @@ struct SkillName
 	std::string name;
 };
 
-DWORD WINAPI PLAYERHANDLE(LPVOID lpParam);
+// Wtf is this?
+//DWORD WINAPI PLAYERHANDLE(LPVOID lpParam);
 
 int Random(int lowest, int highest);
 float RandomFloat(float a, float b);

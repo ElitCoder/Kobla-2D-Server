@@ -2,9 +2,19 @@
 #include <iostream>
 #include <time.h>
 #include <string>
+#include <chrono>
+#include <cstdarg>
+
+// Network
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netinet/tcp.h>
+#include <unistd.h>
 
 #include "Main.h"
-#include "Console.h"
+//#include "Console.h"
 #include "World.h"
 #include "Load.h"
 #include "Handle.h"
@@ -13,14 +23,16 @@
 #include "BufferCheck.h"
 #include "RenderWorld.h"
 
-namespace col = JadedHoboConsole;
+using namespace std;
+
+//namespace col = JadedHoboConsole;
 
 long starttime = 0;
 
 fd_set f_readset, f_writeset, f_exset;
-SOCKET server;
+int server;
 
-SOCKET forum;
+int forum;
 char *temp;
 
 char ISCIP[16] = "127.0.0.1";
@@ -72,8 +84,44 @@ bool enableLD = true;
 int serverError = 0;
 int version = 41;
 
-void log(int logmsg, char *message, ...)
+void log(int logmsg, const string& message, ...)
 { 
+	va_list args;
+	char buf[1024];
+	
+	va_start(args, message.c_str());
+	snprintf(buf, 1024, message.c_str(), args);
+	//vsnprintf_s(buf, 1024, 1024, message.c_str(), args);
+	va_end(args);
+	
+	if (logmsg == 4) {
+		ErrorLog(buf);
+		serverError++;
+	}
+	
+	switch (logmsg) {
+		case 1: cout << "[INFO]";
+			break;
+			
+		case 3:	cout << "[LOADING]";
+			break;
+			
+		case 5:	cout << "[DEBUG]";
+			break;
+			
+		case 7: cout << "[NETWORK]";
+			break;
+			
+		case 8: cout << "[SEND]";
+			break;
+			
+		case 9: cout << "[RECV]";
+			break;
+	}
+	
+	cout << " " << buf;
+	
+	/*
 	va_list args;
 	char buf[1024];
 
@@ -105,16 +153,21 @@ void log(int logmsg, char *message, ...)
 		case 9: std::cout << col::fg_gray << "[RECV] " << col::fg_white << buf;
 			break;
 	}
+	*/
 }
 
-void LD(int logmsg, char *message, ...)
-{ 
+void LD(int logmsg, const string& message, ...)
+{
+	//if (enableLD)
+	//	log(logmsg, message, ...);
+	
+	/*
 	if(enableLD)
 	{
 		va_list args;
 		char buf[1024];
 
-		va_start(args, message);
+		va_start(args, message.c_str());
 		vsnprintf_s(buf, 1024, 1024, message, args);
 		va_end(args);
 
@@ -140,6 +193,7 @@ void LD(int logmsg, char *message, ...)
 				break;
 		}
 	}
+	*/
 }
 
 int ConnectForum()
@@ -151,10 +205,10 @@ int ConnectForum()
 	server.sin_port = htons(ISCPort);
 	server.sin_addr.s_addr = inet_addr(ISCIP);
 
-	memcpy(&addr, &server, sizeof(SOCKADDR_IN));
+	memcpy(&addr, &server, sizeof server);
 
 	forum = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if(forum == INVALID_SOCKET)
+	if(forum < 0)
 		return 1;
 
 	if(connect(forum, &addr, sizeof(addr)) != 0)
@@ -180,16 +234,16 @@ int ConnectForum()
 	return 0;
 }
 
-void main()
+int main()
 {
-	WSADATA wsadata;
+	//WSADATA wsadata;
 
 	struct sockaddr_in addr;
 
 	int result;
 	int portn = 2400;
 
-	SetConsoleTitleA("Kobla - 0");
+	//SetConsoleTitleA("Kobla - 0");
 
 	temp = new char[2048];
 
@@ -199,24 +253,26 @@ void main()
 
 	Config(portn);
 
+/*
 	result = WSAStartup(MAKEWORD(2, 2), &wsadata);
 	if(result != 0)
 		log(ERR, "[void main()] [Unable to start Winsock]\n");
+*/
 
 	server = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if(server == INVALID_SOCKET)
+	if(server < 0)
 		log(ERR, "[void main()] [Could not create master socket]\n");
 
-	ZeroMemory((char*)&addr, sizeof(addr));
+	memset((char*)&addr, 0, sizeof(addr));
 
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(portn);
 
-	if(bind(server, (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
+	if(bind(server, (struct sockaddr*)&addr, sizeof(addr)) < 0)
 		log(ERR, "[void main()] [Binding failed] [%d]\n", portn);
 
-	if(listen(server, SOMAXCONN) == SOCKET_ERROR)
+	if(listen(server, SOMAXCONN) < 0)
 		log(ERR, "[void main()] [Listening failed]\n");
 
 	log(0, "[done]\n");
@@ -250,7 +306,7 @@ void main()
 
 	FixFriends();
 
-	starttime = GetTickCount();
+	starttime = getTimestamp();
 	nextStatusCheck = (starttime + statusDelay);
 
 	log(LOAD, "Connecting to ISC.. ");
@@ -276,8 +332,8 @@ void main()
 
 	packetmain();
 
-	closesocket(server);
-	WSACleanup();
+	close(server);
+	//WSACleanup();
 }
 
 int HandlePackets(unsigned char *buf, int by, Client *u, int &worldPackets)
@@ -445,11 +501,11 @@ void initfd()
 	{
 		if(!ac.at(i)->disconnect)
 		{
-			FD_SET(ac.at(i)->GetSocket(), &f_readset);
-			FD_SET(ac.at(i)->GetSocket(), &f_exset);
+			FD_SET(ac.at(i)->getConnection().getSocket(), &f_readset);
+			FD_SET(ac.at(i)->getConnection().getSocket(), &f_exset);
 
 			if(ac.at(i)->sps.size() > 0)
-				FD_SET(ac.at(i)->GetSocket(), &f_writeset);
+				FD_SET(ac.at(i)->getConnection().getSocket(), &f_writeset);
 		}
 	}
 }
@@ -464,7 +520,7 @@ void packetmain()
 	{
 		initfd();
 
-		TIMEVAL timeOut;
+		timeval timeOut;
 
 		timeOut.tv_sec = 0;
 		timeOut.tv_usec = 1;
@@ -482,8 +538,8 @@ void packetmain()
 				u_long nob = 1;
 				int tcp = 1;
 				sockaddr_in clientaddr;
-				int len = sizeof(clientaddr);
-				SOCKET clients = accept(server, (sockaddr*)&clientaddr, &len);
+				auto len = sizeof(clientaddr);
+				int clients = accept(server, (sockaddr*)&clientaddr, (socklen_t*)&len);
 
 				if(strcmp(inet_ntoa(clientaddr.sin_addr), "127.0.0.1") != 0 && enableClientText)
 					log(INFO, "Client connected [IP: %s] [SOCKET: %d].\n", inet_ntoa(clientaddr.sin_addr), clients);
@@ -491,7 +547,8 @@ void packetmain()
 				setsockopt(clients, IPPROTO_TCP, TCP_NODELAY, (char*)&tcp, sizeof(int));
 
 				Client *client = new Client();
-				client->SetSocket(clients);
+				client->setConnection(Connection(clients));
+				//client->SetSocket(clients);
 				client->SetIP(inet_ntoa(clientaddr.sin_addr));
 
 				ac.push_back(client);
@@ -499,11 +556,10 @@ void packetmain()
 				char buff[10] = "";
 				std::string programString = "Kobla - ";
 
-				_itoa_s(ac.size(), buff, 10, 10);
+				
+				//_itoa_s(ac.size(), buff, 10, 10);
 
-				programString += buff;
-
-				SetConsoleTitleA(programString.c_str());
+				programString += to_string(ac.size());//buff;
 
 				worldPackets++;
 
@@ -528,16 +584,16 @@ void packetmain()
 
 				if(!tryClient->disconnect)
 				{
-					if(FD_ISSET(tryClient->GetSocket(), &f_readset))
+					if(FD_ISSET(tryClient->getConnection().getSocket(), &f_readset))
 					{
 						int bufsize = 1000000;
 
 						if(tryClient->cp.waiting)
 							bufsize = tryClient->cp.iwant;
 
-						int by = recv(tryClient->GetSocket(), (char*)buf, bufsize, 0);
+						int by = recv(tryClient->getConnection().getSocket(), (char*)buf, bufsize, 0);
 
-						if(by == 0 || by == SOCKET_ERROR)
+						if(by == 0 || by < 0)
 						{
 							tryClient->disconnect = true;
 							continue;
@@ -561,7 +617,7 @@ void packetmain()
 							tryClient->cp.eraseme();
 					}
 
-					if(FD_ISSET(tryClient->GetSocket(), &f_writeset))
+					if(FD_ISSET(tryClient->getConnection().getSocket(), &f_writeset))
 					{
 						if(tryClient->donecsp)
 						{
@@ -601,7 +657,7 @@ void packetmain()
 							{
 								int sendlen = (sp->len - sp->cp);
 
-								int s = send(tryClient->GetSocket(), (const char*)sp->bu + sp->cp, sendlen, 0);
+								int s = send(tryClient->getConnection().getSocket(), (const char*)sp->bu + sp->cp, sendlen, 0);
 
 								if(worldPackets >= 50)
 								{
@@ -618,7 +674,7 @@ void packetmain()
 
 								else if(s < 0)
 								{
-									log(DEBUG, "Senddata error %d\n", WSAGetLastError());
+									//log(DEBUG, "Senddata error %d\n", WSAGetLastError());
 									delete[] sp->bu;
 									tryClient->donecsp = true;
 									tryClient->disconnect = true;
@@ -638,10 +694,10 @@ void packetmain()
 						}
 					}
 
-					if(FD_ISSET(tryClient->GetSocket(), &f_exset))
+					if(FD_ISSET(tryClient->getConnection().getSocket(), &f_exset))
 					{
 						currentClient = tryClient;
-						log(ERR, "[void packetmain()] [Client-socket error] [%d]\n", tryClient->GetSocket());
+						log(ERR, "[void packetmain()] [Client-socket error] [%d]\n", tryClient->getConnection().getSocket());
 						currentClient = NULL;
 
 						tryClient->disconnect = true;
@@ -654,9 +710,15 @@ void packetmain()
 	}
 }
 
-void Uptime(bool eText)
+unsigned long long getTimestamp() {
+	using namespace chrono;
+	
+	return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
+
+void Uptime(/*bool eText*/)
 {
-	unsigned long upTime = ((GetTickCount() - starttime) / 1000);
+	unsigned long upTime = ((getTimestamp() - starttime) / 1000);
 
     int hours = (upTime / 3600);
     upTime %= 3600;

@@ -1,4 +1,6 @@
 #include <string>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #include "Main.h"
 #include "BufferCheck.h"
@@ -7,7 +9,7 @@ using namespace std;
 
 extern int version;
 
-extern SOCKET forum;
+extern int forum;
 extern char *temp;
 
 extern bool debugs;
@@ -35,7 +37,7 @@ void Client::Login(char *b, int len)
 
 	if(len >= 6)
 	{
-		if((unsigned)this->nextLogin <= GetTickCount())
+		if((unsigned)this->nextLogin <= getTimestamp())
 		{
 			if(this->loginTries == 5)
 				this->loginTries = 0;
@@ -91,7 +93,7 @@ void Client::Login(char *b, int len)
 					this->loginTries++;
 
 					if(this->loginTries >= 5)
-						this->nextLogin = (GetTickCount() + 15000);
+						this->nextLogin = (getTimestamp() + 15000);
 
 					switch(temp[3])
 					{
@@ -120,7 +122,7 @@ void Client::Login(char *b, int len)
 
 			pak.addHeader(0x2);
 			pak.addInt(7);
-			pak.addLongInt((this->nextLogin - GetTickCount()));
+			pak.addLongInt((this->nextLogin - getTimestamp()));
 
 			pak.ready();
 			this->AddPacket(pak, 0);
@@ -138,7 +140,7 @@ void Client::Register(char *b, int len)
 
 	if(len >= 6)
 	{
-		if((unsigned)this->nextRegister <= GetTickCount())
+		if((unsigned)this->nextRegister <= getTimestamp())
 		{
 			if(this->registerTries == 5)
 				this->registerTries = 0;
@@ -179,7 +181,7 @@ void Client::Register(char *b, int len)
 					this->registerTries++;
 
 					if(this->registerTries >= 5)
-						this->nextRegister = (GetTickCount() + 15000);
+						this->nextRegister = (getTimestamp() + 15000);
 				}
 
 				switch(temp[3])
@@ -208,7 +210,7 @@ void Client::Register(char *b, int len)
 
 			pak.addHeader(0x3);
 			pak.addInt(7);
-			pak.addLongInt((this->nextRegister - GetTickCount()));
+			pak.addLongInt((this->nextRegister - getTimestamp()));
 
 			pak.ready();
 			this->AddPacket(pak, 0);

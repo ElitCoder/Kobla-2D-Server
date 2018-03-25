@@ -1,10 +1,13 @@
 #ifndef PACKET_H
 #define PACKET_H
 
+#include "Connection.h"
+
 #include <iostream>
-#include <winsock2.h>
-#include <windows.h>
+//#include <winsock2.h>
+//#include <windows.h>
 #include <vector>
+#include <cstring>
 
 class Client;
 class Party;
@@ -152,8 +155,8 @@ public:
 	void addHeader(int header);
 	void addInt(int what);
 	void addLongInt(int add);
-	void addString(char add[]);
-	void addLongString(char add[]);
+	void addString(const std::string& message);
+	void addLongString(const char* add);
 	void addBool(bool a);
 	void addFloat(float add);
 
@@ -170,7 +173,7 @@ private:
 };
 
 void SendAllOnline(Packet pak, long delay);
-void SendAllOnMap(Packet pak, long delay, int mId, SOCKET sock);
-void SendAllInParty(Packet pak, Party *pt, Map *map, SOCKET sock);
+void SendAllOnMap(Packet pak, long delay, int mId, const Connection& connection);
+void SendAllInParty(Packet pak, Party *pt, Map *map, const Connection& connection);
 
 #endif

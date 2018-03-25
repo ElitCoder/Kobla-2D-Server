@@ -132,14 +132,14 @@ Player *GetPlayerById(int id);
 Player *GetPlayerByName(const char *name);
 Client *GetClientByPlayerId(int id);
 Client *GetClientByName(char *name, int &result);
-Client *GetClientByPlayerName(char *name);
+Client *GetClientByPlayerName(const std::string& name);
 Monster *GetMonsterById(int id);
 Client *GetClientByPlayerIdInMap(int id, int mapid);
 Client *GetClientByPlayerIdStatus(int id, int &res);
 
 NPC *GetNPCById(int id);
 
-void SystemChat(Client *_Client, int _Param, Client *_Client2, char *_Custom);
+void SystemChat(Client *_Client, int _Param, Client *_Client2, const std::string& custom);
 
 std::vector<Monster*> GetMonstersInRange(int mapid, int x, int y, int w, int h, int xRange, int yRange);
 std::vector<Player*> GetPlayersInRange(int mapid, int x, int y, int w, int h, int xRange, int yRange, int self);
@@ -157,7 +157,7 @@ long GetSkillCooldown(int id);
 
 void MoveToPlayer(Client *c1, Client *c2);
 
-Packet CreatePacketChat(const char *msg, const char *name, bool ispro, bool isnpc, int col);
+Packet CreatePacketChat(const char *msg, const std::string& name, bool ispro, bool isnpc, int col);
 
 bool Area(int myx, int myy, int myw, int myh, int buttonx, int buttony, int buttonw, int buttonh);
 

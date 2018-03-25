@@ -26,7 +26,7 @@ void Command::setAttackTimer(int del)
 		return;
 
 	this->p->attacked = true;
-	this->p->atkTimer = (GetTickCount() + del);
+	this->p->atkTimer = (getTimestamp() + del);
 }
 
 void Command::setFoodCoolDown(int del)
@@ -34,7 +34,7 @@ void Command::setFoodCoolDown(int del)
 	if(!this->checkInfo())
 		return;
 
-	this->p->foodCoolDown = (GetTickCount() + del);
+	this->p->foodCoolDown = (getTimestamp() + del);
 }
 
 void Command::setPillCoolDown(int del)
@@ -42,7 +42,7 @@ void Command::setPillCoolDown(int del)
 	if(!this->checkInfo())
 		return;
 
-	this->p->pillCoolDown = (GetTickCount() + del);
+	this->p->pillCoolDown = (getTimestamp() + del);
 }
 
 void Command::setBulletCoolDown(int del)
@@ -61,7 +61,7 @@ void Command::setPosCoolDown(int del)
 	if(!this->checkInfo())
 		return;
 
-	this->p->posCoolDown = (GetTickCount() + del);
+	this->p->posCoolDown = (getTimestamp() + del);
 }
 
 void Command::setChatCoolDown(int del)
@@ -69,7 +69,7 @@ void Command::setChatCoolDown(int del)
 	if(!this->checkInfo())
 		return;
 
-	this->p->chatCoolDown = (GetTickCount() + del);
+	this->p->chatCoolDown = (getTimestamp() + del);
 }
 
 void Command::setExtraCoolDown(int del)
@@ -77,7 +77,7 @@ void Command::setExtraCoolDown(int del)
 	if(!this->checkInfo())
 		return;
 
-	this->p->extraCoolDown = (GetTickCount() + del);
+	this->p->extraCoolDown = (getTimestamp() + del);
 }
 
 void Command::sendUpdate(int up)
@@ -166,7 +166,7 @@ void Command::sendUpdate(int up)
 	pak.ready();
 
 	if(up == HPPROCENT)
-		SendAllOnMap(pak, 0, this->p->mapId->id, this->c->GetSocket());
+		SendAllOnMap(pak, 0, this->p->mapId->id, this->c->getConnection());
 	else
 		this->c->AddPacket(pak, 0);
 }
@@ -207,7 +207,7 @@ int WorldCommand::killPlayer(Client *c)
 	c->p->energy = 0;
 
 	c->p->dead = true;
-	c->p->reviveTime = (GetTickCount() + reviveDelay);
+	c->p->reviveTime = (getTimestamp() + reviveDelay);
 
 	c->RemoveAllBuffs();
 	c->RemoveAllFollowers();
@@ -230,7 +230,7 @@ int WorldCommand::killPlayer(Client *c)
 	p3.addLongInt(c->p->getId());
 
 	p3.ready();
-	SendAllOnMap(p3, 0, c->p->mapId->id, c->GetSocket());
+	SendAllOnMap(p3, 0, c->p->mapId->id, c->getConnection());
 
 	if(c->p->moving)
 	{
@@ -246,7 +246,7 @@ int WorldCommand::killPlayer(Client *c)
 		pak.addLongInt((int)c->p->y);
 
 		pak.ready();
-		SendAllOnMap(pak, 0, c->p->mapId->id, c->GetSocket());
+		SendAllOnMap(pak, 0, c->p->mapId->id, c->getConnection());
 	}
 
 	c->com->sendUpdate(HP);
@@ -299,9 +299,9 @@ void WorldCommand::createMonster(int mId, int mapId, float x, float y, bool aggr
 		m->moving = false;
 		m->x = x;
 		m->y = y;
-		m->nextMove = (GetTickCount() + r);
+		m->nextMove = (getTimestamp() + r);
 		m->spawned = true;
-		m->respawnTime = (GetTickCount() + monsterRespawnDelay);
+		m->respawnTime = (getTimestamp() + monsterRespawnDelay);
 		m->minY = 16;
 		m->maxY = (m->mapId->ySize - m->monH);
 		m->minX = 0;
@@ -342,7 +342,7 @@ int WorldCommand::killMonster(Client *attacker, Monster *target, bool smite)
 
 	target->chp = 0;
 	target->spawned = false;
-	target->respawnTime = (GetTickCount() + target->respawnDelayMonster);
+	target->respawnTime = (getTimestamp() + target->respawnDelayMonster);
 
 	if(attacker == NULL)
 		target->attackerId = 0;

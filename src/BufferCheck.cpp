@@ -2,9 +2,12 @@
 #include <string>
 #include <fstream>
 #include <time.h>
+#include <cstdarg>
 
 #include "Main.h"
 #include "BufferCheck.h"
+
+using namespace std;
 
 extern Client *currentClient;
 
@@ -65,13 +68,13 @@ bool PacketBufferCheck(char *b, int len)
 	return true;
 }
 
-void ErrorLog(char *message, ...)
+void ErrorLog(const string& message, ...)
 { 
 	va_list args;
 	char buf[1024];
 
-	va_start(args, message);
-	vsnprintf_s(buf, 1024, 1024, message, args);
+	va_start(args, message.c_str());
+	snprintf(buf, 1024, message.c_str(), args);
 	va_end(args);
 
 	std::string ip = "127.0.0.1";
@@ -98,6 +101,7 @@ void ErrorLog(char *message, ...)
 		}
 	}
 
+/*
 	time_t t = time(0);
 	tm *lt = new tm();
 	int res = localtime_s(lt, &t);
@@ -116,6 +120,7 @@ void ErrorLog(char *message, ...)
 	else
 		sprintf_s(dates, "[%02d/%02d/%04d - %02d:%02d:%02d] [IP: %s] ", lt->tm_mday, (lt->tm_mon + 1), (lt->tm_year + 1900), lt->tm_hour, lt->tm_min, lt->tm_sec, ip.c_str());	
 
+*/
 	std::ofstream openMe;
 
 	openMe.open("Error.txt", std::fstream::app);
@@ -124,22 +129,23 @@ void ErrorLog(char *message, ...)
 
 	else
 	{
-		openMe << dates;
-		openMe << buf;
+		//openMe << dates;
+		//openMe << buf;
 	}
 
-	delete lt;
+	//delete lt;
 
 	openMe.close();
 }
 
-void PlayerLog(char *message, ...)
+void PlayerLog(const string& message, ...)
 { 
 	va_list args;
 	char buf[1024];
 
-	va_start(args, message);
-	vsnprintf_s(buf, 1024, 1024, message, args);
+	va_start(args, message.c_str());
+	snprintf(buf, 1024, message.c_str(), args);
+	//vsnprintf_s(buf, 1024, 1024, message.c_str(), args);
 	va_end(args);
 
 	std::string ip = "127.0.0.1";
@@ -166,6 +172,7 @@ void PlayerLog(char *message, ...)
 		}
 	}
 
+	/*
 	time_t t = time(0);
 	tm *lt = new tm();
 	int res = localtime_s(lt, &t);
@@ -199,4 +206,5 @@ void PlayerLog(char *message, ...)
 	delete lt;
 
 	openMe.close();
+	*/
 }

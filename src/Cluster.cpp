@@ -62,7 +62,7 @@ bool Client::SlotFree(int slot)
 {
 	for(unsigned int i = 0; i < pvector.size(); i++)
 	{
-		if(strcmp(this->username.c_str(), pvector.at(i)->owner) == 0)
+		if(strcmp(this->username.c_str(), pvector.at(i)->owner.c_str()) == 0)
 		{
 			if(pvector.at(i)->slot == slot)
 				return false;
@@ -80,7 +80,7 @@ int Client::GetFirstFreeCharacterSlot()
 
 	for(unsigned int i = 0; i < pvector.size(); i++)
 	{
-		if(strcmp(this->username.c_str(), pvector.at(i)->owner) == 0)
+		if(strcmp(this->username.c_str(), pvector.at(i)->owner.c_str()) == 0)
 		{
 			switch(pvector.at(i)->slot)
 			{
@@ -116,7 +116,7 @@ std::vector<Player*> Client::GetCharacterVector()
 
 	for(unsigned int i = 0; i < pvector.size(); i++)
 	{
-		if(strcmp(this->username.c_str(), pvector.at(i)->owner) == 0)
+		if(strcmp(this->username.c_str(), pvector.at(i)->owner.c_str()) == 0)
 		{
 			switch(pvector.at(i)->slot)
 			{
@@ -132,17 +132,17 @@ std::vector<Player*> Client::GetCharacterVector()
 		}
 	}
 
-	if(strcmp(p1->name, "") != 0)
+	if(strcmp(p1->name.c_str(), "") != 0)
 		cp.push_back(p1);
 	else
 		delete p1;
 
-	if(strcmp(p2->name, "") != 0)
+	if(strcmp(p2->name.c_str(), "") != 0)
 		cp.push_back(p2);
 	else
 		delete p2;
 
-	if(strcmp(p3->name, "") != 0)
+	if(strcmp(p3->name.c_str(), "") != 0)
 		cp.push_back(p3);
 	else
 		delete p3;
@@ -156,7 +156,7 @@ Player *Client::GetThisPlayer(int id)
 
 	for(unsigned int i = 0; i < pvector.size(); i++)
 	{
-		if(strcmp(this->username.c_str(), pvector.at(i)->owner) == 0 && pvector.at(i)->slot == id)
+		if(strcmp(this->username.c_str(), pvector.at(i)->owner.c_str()) == 0 && pvector.at(i)->slot == id)
 		{
 			ret = pvector.at(i);
 
@@ -249,8 +249,10 @@ void Client::EditCharacter(int b, char *paks)
 											play->agility = 2;
 											play->job = job;
 
-											strcpy_s(play->owner, this->username.c_str());
-											strcpy_s(play->name, cname.c_str());
+											play->owner = this->username;
+											play->name = cname;	
+											//strcpy(play->owner, this->username.c_str());
+											//strcpy(play->name, cname.c_str());
 
 											play->setId(playPuhId);
 											playPuhId += 1;
@@ -290,12 +292,12 @@ void Client::EditCharacter(int b, char *paks)
 
 											pvector.push_back(play);
 
-											char slots[10];
-											_itoa_s(play->slot, slots, 10);
+											//char slots[10];
+											//_itoa_s(play->slot, slots, 10);
 
 											string charp = "Data/Character/";
 											charp += play->owner;
-											charp += slots;
+											charp += to_string(play->slot);
 											charp += ".txt";
 
 											ofstream o(charp.c_str());
@@ -417,12 +419,13 @@ void Client::EditCharacter(int b, char *paks)
 				{
 					if(!CreateOK(dname))
 					{
-						char slots[10];
-						_itoa_s(DeleteSlot((char*)dname.c_str()), slots, 10, 10);
+						string slots = to_string(DeleteSlot((char*)dname.c_str()));
+						//char slots[10];
+						//_itoa_s(DeleteSlot((char*)dname.c_str()), slots, 10, 10);
 
 						for(unsigned int i = 0; i < pvector.size(); i++)
 						{
-							if(strcmp(pvector.at(i)->name, dname.c_str()) == 0)
+							if(strcmp(pvector.at(i)->name.c_str(), dname.c_str()) == 0)
 							{
 								for(unsigned int y = 0; y < pvector.size(); y++)
 								{
@@ -431,9 +434,9 @@ void Client::EditCharacter(int b, char *paks)
 
 									for(unsigned int z = 0; z < pvector.at(y)->friends.size(); z++)
 									{
-										if(strcmp(pvector.at(y)->friends.at(z).name.c_str(), pvector.at(i)->name) == 0)
+										if(strcmp(pvector.at(y)->friends.at(z).name.c_str(), pvector.at(i)->name.c_str()) == 0)
 										{
-											Client *plas = GetClientByPlayerName(pvector.at(y)->name);
+											Client *plas = GetClientByPlayerName(pvector.at(y)->name.c_str());
 
 											if(plas == NULL)
 												pvector.at(y)->friends.erase(pvector.at(y)->friends.begin() + z);
@@ -557,7 +560,7 @@ bool CreateOK(std::string name)
 
 	for(unsigned int i = 0; i < pvector.size(); i++)
 	{
-		if(strcmp(name.c_str(), pvector.at(i)->name) == 0)
+		if(strcmp(name.c_str(), pvector.at(i)->name.c_str()) == 0)
 		{
 			val = false;
 			break;
@@ -568,7 +571,7 @@ bool CreateOK(std::string name)
 	{
 		for(unsigned int i = 0; i < npcs.size(); i++)
 		{
-			if(strcmp(name.c_str(), npcs.at(i)->name) == 0)
+			if(strcmp(name.c_str(), npcs.at(i)->name.c_str()) == 0)
 			{
 				val = false;
 				break;
@@ -594,7 +597,7 @@ int DeleteSlot(char *name)
 
 	for(unsigned int i = 0; i < pvector.size(); i++)
 	{
-		if(strcmp(name, pvector.at(i)->name) == 0)
+		if(strcmp(name, pvector.at(i)->name.c_str()) == 0)
 		{
 			slot = pvector.at(i)->slot;
 			break;

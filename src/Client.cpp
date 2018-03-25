@@ -64,7 +64,7 @@ void Client::AddPacket(Packet pak, long delay)
 
 void Client::SetIP(char *_ip)
 {
-	strcpy_s(this->ip, _ip);
+	strcpy(this->ip, _ip);
 }
 
 char *Client::GetIP()
@@ -72,6 +72,19 @@ char *Client::GetIP()
 	return this->ip;
 }
 
+void Client::setConnection(const Connection& connection) {
+	connection_ = connection;
+}
+
+Connection& Client::getConnection() {
+	return connection_;
+}
+
+const Connection& Client::getConnection() const {
+	return connection_;
+}
+
+/*
 void Client::SetSocket(SOCKET s)
 {
 	this->sock = s;
@@ -81,6 +94,7 @@ SOCKET Client::GetSocket()
 {
 	return this->sock;
 }
+*/
 
 void Player::setId(int id)
 {

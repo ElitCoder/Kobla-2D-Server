@@ -33,8 +33,10 @@ void Packet::addInt(int what)
 	this->pos++;
 }
 
-void Packet::addString(char add[])
+void Packet::addString(const string& message)
 {
+	const char* add = message.c_str();
+	
 	int length = strlen(add);
 
 	if((unsigned)this->packetlen <= ((this->pos + strlen(add) + 1)))
@@ -50,7 +52,7 @@ void Packet::addString(char add[])
 	}
 }
 
-void Packet::addLongString(char add[])
+void Packet::addLongString(const char* add)
 {
 	int strleng = strlen(add);
 	char buf[20] = "";
@@ -157,7 +159,7 @@ void SendAllOnline(Packet pak, long delay)
 	}
 }
 
-void SendAllInParty(Packet pak, Party *pt, Map *map, SOCKET sock)
+void SendAllInParty(Packet pak, Party *pt, Map *map, const Connection& connection)
 {
 	bool doTo = true;
 	bool doMap = true;
@@ -227,7 +229,7 @@ void SendAllInParty(Packet pak, Party *pt, Map *map, SOCKET sock)
 	}
 }
 
-void SendAllOnMap(Packet pak, long delay, int mId, SOCKET sock)
+void SendAllOnMap(Packet pak, long delay, int mId, const Connection& connection)
 {
 	bool doTo = true;
 

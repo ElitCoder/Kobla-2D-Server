@@ -3,7 +3,7 @@
 
 bool PacketBufferCheck(char *b, int len);
 
-void ErrorLog(char *message, ...);
-void PlayerLog(char *message, ...);
+void ErrorLog(const std::string& message, ...);
+void PlayerLog(const std::string& message, ...);
 
 #endif

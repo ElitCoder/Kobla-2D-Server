@@ -5,6 +5,7 @@
 #include "Item.h"
 #include "Handle.h"
 #include "Command.h"
+#include "Connection.h"
 
 using namespace std;
 
@@ -684,7 +685,7 @@ bool Client::UseItem(int slot)
 			{
 				case FOOD:
 					{
-						if((unsigned)this->p->foodCoolDown <= GetTickCount())
+						if((unsigned)this->p->foodCoolDown <= getTimestamp())
 						{
 							this->p->chp += tar->value;
 
@@ -792,7 +793,7 @@ bool Client::UseItem(int slot)
 							pak2.addLongInt(this->p->getId());
 
 							pak2.ready();
-							SendAllOnMap(pak2, 0, this->p->mapId->id, this->sock);
+							SendAllOnMap(pak2, 0, this->p->mapId->id, getConnection());
 
 							if(slotEquip == 1 && !this->p->equipped)
 								this->EquipWeapon(true);
@@ -819,7 +820,7 @@ bool Client::UseItem(int slot)
 
 				case FOODPILL:
 					{
-						if((unsigned)this->p->pillCoolDown <= GetTickCount())
+						if((unsigned)this->p->pillCoolDown <= getTimestamp())
 						{
 							this->p->chp += tar->value;
 
@@ -1025,11 +1026,11 @@ bool Client::PickUpDrop(int id)
 
 					else
 					{
-						if((unsigned)this->p->nextItemPick <= GetTickCount())
+						if((unsigned)this->p->nextItemPick <= getTimestamp())
 						{
 							SystemChat(this, CUSTOM, NULL, "Your inventory is full!");
 
-							this->p->nextItemPick = (GetTickCount() + 3000);
+							this->p->nextItemPick = (getTimestamp() + 3000);
 						}
 					}
 				}
@@ -1037,14 +1038,14 @@ bool Client::PickUpDrop(int id)
 
 			else
 			{
-				if((unsigned)this->p->nextItemPick <= GetTickCount())
+				if((unsigned)this->p->nextItemPick <= getTimestamp())
 				{
 					SystemChat(this, CUSTOM, NULL, "That item belongs to another player.");
 
 					if(debugs)
 						log(DEBUG, "Drop owner: %d my ID: %d.\n", drops.at(i)->owner, this->p->getId());
 
-					this->p->nextItemPick = (GetTickCount() + 3000);
+					this->p->nextItemPick = (getTimestamp() + 3000);
 				}
 			}
 
@@ -1163,8 +1164,8 @@ std::vector<Drop*> DropPacket(Monster *th)
 					drop->map = th->mapId->id;
 					drop->x = dropx;
 					drop->y = dropy;
-					drop->autodelete = (GetTickCount() + deleteDropDelay);
-					drop->loottimer = (GetTickCount() + 60000);
+					drop->autodelete = (getTimestamp() + deleteDropDelay);
+					drop->loottimer = (getTimestamp() + 60000);
 					drop->lootEnable = false;
 
 					drop->id = dropCId;
@@ -1189,8 +1190,8 @@ void DropItem(Item *item, int owner, int map, int x, int y, bool noChangePenya)
 	drop->map = map;
 	drop->x = x;
 	drop->y = y;
-	drop->autodelete = (GetTickCount() + deleteDropDelay);
-	drop->loottimer = (GetTickCount() + 60000);
+	drop->autodelete = (getTimestamp() + deleteDropDelay);
+	drop->loottimer = (getTimestamp() + 60000);
 	drop->lootEnable = false;
 	drop->noChangePenya = noChangePenya;
 
@@ -1211,7 +1212,7 @@ void DropItem(Item *item, int owner, int map, int x, int y, bool noChangePenya)
 	pak.addLongInt(y);
 
 	pak.ready();
-	SendAllOnMap(pak, 0, drop->map, 0);
+	SendAllOnMap(pak, 0, drop->map, Connection(0));
 }
 
 void Client::RemoveTaskbarItem(int id)
@@ -1407,7 +1408,7 @@ bool Client::UnEquip(int slot)
 			pak2.addLongInt(this->p->getId());
 
 			pak2.ready();
-			SendAllOnMap(pak2, 0, this->p->mapId->id, this->sock);
+			SendAllOnMap(pak2, 0, this->p->mapId->id, getConnection());
 
 			this->p->hp = CalculateHP(this);
 

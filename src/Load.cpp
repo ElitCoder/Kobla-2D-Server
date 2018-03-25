@@ -238,7 +238,7 @@ int LoadMobs()
 							break;
 					}
 
-					m->nextMove = (GetTickCount() + r);
+					m->nextMove = (getTimestamp() + r);
 					m->moving = false;
 
 					m->expamount = exp;
@@ -249,7 +249,7 @@ int LoadMobs()
 					m->level = level;
 
 					m->spawned = true;
-					m->respawnTime = (GetTickCount() + monsterRespawnDelay);
+					m->respawnTime = (getTimestamp() + monsterRespawnDelay);
 
 					m->minY = minY;
 					m->maxY = maxY;
@@ -655,9 +655,9 @@ int LoadExtraSpawns()
 						m->moving = false;
 						m->x = (float)Random(minX, maxX);
 						m->y = (float)Random(minY, maxY);
-						m->nextMove = (GetTickCount() + r);
+						m->nextMove = (getTimestamp() + r);
 						m->spawned = true;
-						m->respawnTime = (GetTickCount() + monsterRespawnDelay);
+						m->respawnTime = (getTimestamp() + monsterRespawnDelay);
 						m->minY = minY;
 						m->maxY = maxY;
 						m->minX = minX;
@@ -724,39 +724,46 @@ int LoadNPC()
 
 				NPC *npc = new NPC();
 
-				z.getline(npc->name, 100);
+				z.getline(temp, 100);
+				npc->name = temp;
 				z.getline(temp, 100);
 
-				sscanf_s(temp, "%d %d %d", &npc->x, &npc->y, &mapId);
+				sscanf(temp, "%d %d %d", &npc->x, &npc->y, &mapId);
 
-				z.getline(npc->dialog, 1000);
-
+				char dialog_buf[1000];
+				z.getline(dialog_buf, 1000);
+				npc->dialog = dialog_buf;
+				
 				number++;
 				npc->id = number;
 				npc->mapId = GetMap(mapId);
 
 				z.getline(temp, 100);
 
-				sscanf_s(temp, "%d", &menus);
+				sscanf(temp, "%d", &menus);
 
 				for(int i = 0; i < menus; i++)
 				{
 					MenuButton m = MenuButton();
 
-					z.getline(m.text, 80);
+					char buf[80];
+					z.getline(buf, 80);
+					m.text_ = buf;
 
 					npc->menu.push_back(m);
 				}
 
 				z.getline(temp, 100);
 
-				sscanf_s(temp, "%d", &menus);
+				sscanf(temp, "%d", &menus);
 
 				for(int i = 0; i < menus; i++)
 				{
 					MenuButton m = MenuButton();
 
-					z.getline(m.text, 80);
+					char buf[80];
+					z.getline(buf, 80);
+					m.text_ = buf;
 
 					npc->diab.push_back(m);
 				}
@@ -771,14 +778,16 @@ int LoadNPC()
 					{
 						MenuButton m = MenuButton();
 
-						z.getline(m.text, 80);
+						char buf[80];
+						z.getline(buf, 80);
+						m.text_ = buf;
 
 						npc->chat.push_back(m);
 					}
 
 					npc->currChat = 1;
 					npc->enableChat = true;
-					npc->nextChat = (GetTickCount() + npcChatDelay);
+					npc->nextChat = (getTimestamp() + npcChatDelay);
 				}
 
 				z.getline(temp, 100);
@@ -887,7 +896,7 @@ int LoadMaps()
 
 				z.getline(temp, 100);
 
-				sscanf_s(temp, "%s %s", &temp2, 100, &temp3, 100);
+				sscanf(temp, "%s %s", &temp2, &temp3);
 
 				if(strcmp(temp2, "PK") == 0)
 				{
@@ -899,7 +908,7 @@ int LoadMaps()
 
 				z.getline(temp, 100);
 
-				sscanf_s(temp, "%s %s", &temp2, 100, &temp3, 100);
+				sscanf(temp, "%s %s", &temp2, &temp3);
 
 				if(strcmp(temp2, "WEAPON") == 0)
 				{
@@ -911,7 +920,7 @@ int LoadMaps()
 
 				z.getline(temp, 100);
 
-				sscanf_s(temp, "%d %d", &sizex, &sizey);
+				sscanf(temp, "%d %d", &sizex, &sizey);
 
 				map->xSize = sizex;
 				map->ySize = sizey;
@@ -926,11 +935,11 @@ int LoadMaps()
 					int from2 = 0;
 					int to2 = 0;
 
-					sscanf_s(temp, "%s", tt, 100);
+					sscanf(temp, "%s", tt);
 
 					if(strcmp(tt, "NOWALK") == 0)
 					{
-						sscanf_s(temp, "NOWALK X %d %d Y %d %d", &from, &to, &from2, &to2);
+						sscanf(temp, "NOWALK X %d %d Y %d %d", &from, &to, &from2, &to2);
 
 						NoWalkZone nn = NoWalkZone();
 
@@ -948,7 +957,7 @@ int LoadMaps()
 						int mapX = 0;
 						int mapY = 0;
 
-						sscanf_s(temp, "TELEPORTER X %d %d Y %d %d %d %d %d", &from, &to, &from2, &to2, &mapid, &mapX, &mapY);
+						sscanf(temp, "TELEPORTER X %d %d Y %d %d %d %d %d", &from, &to, &from2, &to2, &mapid, &mapX, &mapY);
 
 						TeleporterZone tz = TeleporterZone();
 
@@ -967,7 +976,7 @@ int LoadMaps()
 					{
 						PKAREA pkArea;
 
-						sscanf_s(temp, "PKAREA X %d %d Y %d %d", &pkArea.minX, &pkArea.maxX, &pkArea.minY, &pkArea.maxY);
+						sscanf(temp, "PKAREA X %d %d Y %d %d", &pkArea.minX, &pkArea.maxX, &pkArea.minY, &pkArea.maxY);
 
 						map->pkArea.push_back(pkArea);
 					}
@@ -977,12 +986,12 @@ int LoadMaps()
 
 					else if(strcmp(tt, "RESSPOS") == 0)
 					{
-						sscanf_s(temp, "RESSPOS %d %d", &map->resX, &map->resY);
+						sscanf(temp, "RESSPOS %d %d", &map->resX, &map->resY);
 					}
 
 					else if(strcmp(tt, "AGGRORANGE") == 0)
 					{
-						sscanf_s(temp, "AGGRORANGE %d %d", &map->aggX, &map->aggY);
+						sscanf(temp, "AGGRORANGE %d %d", &map->aggX, &map->aggY);
 					}
 				}
 

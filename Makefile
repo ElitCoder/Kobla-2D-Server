@@ -1,7 +1,7 @@
 CPP_FILES	:= $(wildcard src/*.cpp)
 OBJ_FILES	:= $(addprefix obj/,$(notdir $(CPP_FILES:.cpp=.o)))
 CC_FLAGS	:= -std=c++11 -Wall -Wextra -pedantic-errors
-CC_FLAGS	+= -O3
+#CC_FLAGS	+= -O3
 
 EXECUTABLE	:= kobla_2d_server
 

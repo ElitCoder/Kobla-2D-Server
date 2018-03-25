@@ -39,7 +39,7 @@ void RenderWorld()
 
 		if(!tm->attacked && !tm->follows && !tm->goAfter && tm->spawned)
 		{
-			if((unsigned)tm->nextRefresh <= GetTickCount())
+			if((unsigned)tm->nextRefresh <= getTimestamp())
 			{
 				if(tm->hp > tm->chp)
 				{
@@ -51,7 +51,7 @@ void RenderWorld()
 					wc->sendUpdateMProcent(tm);
 				}
 
-				tm->nextRefresh = (GetTickCount() + refreshDelay);
+				tm->nextRefresh = (getTimestamp() + refreshDelay);
 			}
 
 			if(tm->moving && !tm->noMove)
@@ -95,11 +95,11 @@ void RenderWorld()
 
 					int r = Random((moveDelay - (moveDelay / 3)), (moveDelay + (moveDelay / 3)));
 
-					tm->nextMove = (GetTickCount() + r);
+					tm->nextMove = (getTimestamp() + r);
 				}
 			}
 
-			if((unsigned)tm->nextMove <= GetTickCount() && !tm->moving && !tm->noMove && tm->moveDone)
+			if((unsigned)tm->nextMove <= getTimestamp() && !tm->moving && !tm->noMove && tm->moveDone)
 			{
 				bool bloop = true;
 
@@ -155,7 +155,7 @@ void RenderWorld()
 
 				tm->moving = true;
 				tm->moveDone = false;
-				tm->nextMove = GetTickCount();
+				tm->nextMove = getTimestamp();
 
 				tm->moveStartX = tm->x;
 				tm->moveStartY = tm->y;
@@ -195,7 +195,7 @@ void RenderWorld()
 			}
 		}
 
-		if(!tm->spawned && (unsigned)tm->respawnTime <= GetTickCount())
+		if(!tm->spawned && (unsigned)tm->respawnTime <= getTimestamp())
 		{
 			int r = Random((moveDelay / 2), (moveDelay * 2));
 
@@ -218,7 +218,7 @@ void RenderWorld()
 
 			tm->chp = tm->hp;
 
-			tm->nextMove = (GetTickCount() + r);
+			tm->nextMove = (getTimestamp() + r);
 
 			while(true)
 			{
@@ -268,7 +268,7 @@ void RenderWorld()
 
 		if(tm->spawned)
 		{
-			if(tm->attacked && (unsigned)tm->freeAttack <= GetTickCount())
+			if(tm->attacked && (unsigned)tm->freeAttack <= getTimestamp())
 			{
 				tm->attacked = false;
 				tm->moving = false;
@@ -278,7 +278,7 @@ void RenderWorld()
 
 				int r = Random((moveDelay / 2), (moveDelay * 2));
 
-				tm->nextMove = (GetTickCount() + r);
+				tm->nextMove = (getTimestamp() + r);
 			}
 
 			if(tm->follows)
@@ -316,7 +316,7 @@ void RenderWorld()
 
 					int r = Random((moveDelay / 2), (moveDelay * 2));
 
-					tm->nextMove = (GetTickCount() + r);
+					tm->nextMove = (getTimestamp() + r);
 				}
 			}
 
@@ -335,7 +335,7 @@ void RenderWorld()
 			{
 				if(tm->mbuffs.at(y)->changeEffect == HPDRAIN)
 				{
-					if((unsigned)tm->mbuffs.at(y)->nextUse <= GetTickCount())
+					if((unsigned)tm->mbuffs.at(y)->nextUse <= getTimestamp())
 					{
 						float mobDamage = (float)tm->mbuffs.at(y)->value * 10;
 
@@ -359,11 +359,11 @@ void RenderWorld()
 							wc->sendUpdateMProcent(tm);
 						}
 
-						tm->mbuffs.at(y)->nextUse = (GetTickCount() + 2000);
+						tm->mbuffs.at(y)->nextUse = (getTimestamp() + 2000);
 					}
 				}
 
-				if((unsigned)tm->mbuffs.at(y)->endTime <= GetTickCount())
+				if((unsigned)tm->mbuffs.at(y)->endTime <= getTimestamp())
 				{
 					tm->RemoveMonsterBuff(y);
 
@@ -380,12 +380,12 @@ void RenderWorld()
 		if(ac.at(i)->disconnect)
 		{
 			if(strcmp(c->GetIP(), "127.0.0.1") != 0 && enableClientText)
-				log(INFO, "Client disconnected [IP: %s] [SOCKET: %d].\n", c->GetIP(), c->GetSocket());
+				log(INFO, "Client disconnected [IP: %s] [SOCKET: %d].\n", c->GetIP(), c->getConnection().getSocket());
 
 			currentClient = c;
 
 			if(strcmp(c->GetIP(), "127.0.0.1") != 0)
-				PlayerLog("[Client disconnected] [%d]\n", c->GetSocket());
+				PlayerLog("[Client disconnected] [%d]\n", c->getConnection().getSocket());
 
 			currentClient = NULL;
 
@@ -447,6 +447,7 @@ void RenderWorld()
 			delete ac.at(i);
 			ac.erase(ac.begin() + i);
 
+/*
 			char buff[10] = "";
 			std::string programString = "Kobla - ";
 
@@ -455,13 +456,13 @@ void RenderWorld()
 			programString += buff;
 
 			SetConsoleTitleA(programString.c_str());
-
+*/
 			continue;
 		}
 
 		if(!c->isc)
 		{
-			if((unsigned)c->nextOnlineCheck <= GetTickCount())
+			if((unsigned)c->nextOnlineCheck <= getTimestamp())
 			{
 				if(c->onlineCheck)
 				{
@@ -473,7 +474,7 @@ void RenderWorld()
 					c->AddPacket(pak, 0);
 
 					c->onlineCheck = false;
-					c->nextOnlineCheck = (GetTickCount() + onlineCheckDelay);
+					c->nextOnlineCheck = (getTimestamp() + onlineCheckDelay);
 					c->onlineTries = 0;
 				}
 
@@ -493,7 +494,7 @@ void RenderWorld()
 					c->AddPacket(pak, 0);
 
 					c->onlineCheck = false;
-					c->nextOnlineCheck = (GetTickCount() + onlineCheckDelay);
+					c->nextOnlineCheck = (getTimestamp() + onlineCheckDelay);
 					c->onlineTries++;
 				}
 			}
@@ -503,10 +504,10 @@ void RenderWorld()
 		{
 			if(!c->p->dead)
 			{
-				if((unsigned)c->p->atkTimer <= GetTickCount() && c->p->attacked)
+				if((unsigned)c->p->atkTimer <= getTimestamp() && c->p->attacked)
 					c->p->attacked = false;
 
-				if((unsigned)c->p->nextRefresh <= GetTickCount())
+				if((unsigned)c->p->nextRefresh <= getTimestamp())
 				{
 					if(!c->p->attacked)
 					{
@@ -520,10 +521,10 @@ void RenderWorld()
 					if((int)c->p->maxenergy > (int)c->p->energy)
 						c->AddEnergy((c->p->maxenergy / 10.0f));
 
-					c->p->nextRefresh = (GetTickCount() + refreshDelay);
+					c->p->nextRefresh = (getTimestamp() + refreshDelay);
 				}
 
-				if((unsigned)c->p->extraCoolDown <= GetTickCount())
+				if((unsigned)c->p->extraCoolDown <= getTimestamp())
 				{
 					if(c->GetBonus(HPREGEN) > 0)
 					{
@@ -607,7 +608,7 @@ void RenderWorld()
 					{
 						if(c->p->buffs.at(i)->changeEffect == HPDRAIN)
 						{
-							if((unsigned)c->p->buffs.at(i)->nextUse <= GetTickCount())
+							if((unsigned)c->p->buffs.at(i)->nextUse <= getTimestamp())
 							{
 								if(!c->p->godMode)
 								{
@@ -700,11 +701,11 @@ void RenderWorld()
 									wc->sendDamage(c->p, NULL, 2, 0);
 
 								c->com->setAttackTimer(playerAttackTimer);
-								c->p->buffs.at(i)->nextUse = (GetTickCount() + 2000);
+								c->p->buffs.at(i)->nextUse = (getTimestamp() + 2000);
 							}
 						}
 
-						if((unsigned)c->p->buffs.at(i)->endTime <= GetTickCount())
+						if((unsigned)c->p->buffs.at(i)->endTime <= getTimestamp())
 						{
 							c->RemoveBuff(i);
 
@@ -728,13 +729,13 @@ void RenderWorld()
 
 					for(unsigned int q = 0; q < mobs.size(); q++)
 					{
-						if((unsigned)mobs.at(q)->nextAttack <= GetTickCount() && mobs.at(q)->mapId->id == c->p->mapId->id && mobs.at(q)->spawned)
+						if((unsigned)mobs.at(q)->nextAttack <= getTimestamp() && mobs.at(q)->mapId->id == c->p->mapId->id && mobs.at(q)->spawned)
 						{
 							if(mobs.at(q)->followId == c->p->getId() && mobs.at(q)->follows)
 							{
 								if(((c->p->x - mobs.at(q)->monW - c->p->wW - 20) <= mobs.at(q)->x && (c->p->x + c->p->meW + c->p->wW + 20) >= mobs.at(q)->x) && ((c->p->y - mobs.at(q)->monH - 20) <= mobs.at(q)->y && (c->p->y + c->p->meH + 20) >= mobs.at(q)->y))
 								{
-									mobs.at(q)->nextAttack = (GetTickCount() + (Random((monsterAttackDelay - (monsterAttackDelay / 3)), (monsterAttackDelay + (monsterAttackDelay / 3)))));
+									mobs.at(q)->nextAttack = (getTimestamp() + (Random((monsterAttackDelay - (monsterAttackDelay / 3)), (monsterAttackDelay + (monsterAttackDelay / 3)))));
 
 									c->MonsterAttack(mobs.at(q)->pid);
 								}
@@ -744,7 +745,7 @@ void RenderWorld()
 							{
 								if(((c->p->x - mobs.at(q)->monW) <= mobs.at(q)->x && (c->p->x + c->p->meW) >= mobs.at(q)->x) && ((c->p->y - mobs.at(q)->monH) <= mobs.at(q)->y && (c->p->y + c->p->meH) >= mobs.at(q)->y))
 								{
-									mobs.at(q)->nextAttack = (GetTickCount() + (Random((monsterAttackDelay - (monsterAttackDelay / 3)), (monsterAttackDelay + (monsterAttackDelay / 3)))));
+									mobs.at(q)->nextAttack = (getTimestamp() + (Random((monsterAttackDelay - (monsterAttackDelay / 3)), (monsterAttackDelay + (monsterAttackDelay / 3)))));
 
 									c->MonsterAttack(mobs.at(q)->pid);
 								}
@@ -797,7 +798,7 @@ void RenderWorld()
 				}
 			}
 
-			if(c->p->dead && (unsigned)c->p->reviveTime <= GetTickCount())
+			if(c->p->dead && (unsigned)c->p->reviveTime <= getTimestamp())
 			{
 				c->p->dead = false;
 				c->p->moving = false;
@@ -844,17 +845,17 @@ void RenderWorld()
 				p3.addLongInt(c->p->getId());
 
 				p3.ready();
-				SendAllOnMap(p3, 0, c->p->mapId->id, c->GetSocket());
+				SendAllOnMap(p3, 0, c->p->mapId->id, c->getConnection());
 
 				c->com->sendUpdate(HP);
 				c->com->sendUpdate(HPPROCENT);
 			}
 
-			if((unsigned)c->p->nextSave <= GetTickCount())
+			if((unsigned)c->p->nextSave <= getTimestamp())
 			{
 				c->SavePlayer(AUTOSAVE);
 
-				c->p->nextSave = (GetTickCount() + saveDelay);
+				c->p->nextSave = (getTimestamp() + saveDelay);
 			}
 		}
 	}
@@ -875,14 +876,17 @@ void RenderWorld()
 						pak.addInt(1);
 						pak.addInt(2);
 						pak.addInt(2);
-						pak.addString(parties.at(i)->members.at(z)->name);
+						pak.addString(parties.at(i)->members.at(z)->name_.c_str());
 
 						pak.ready();
 
-						char otherSystemChat[100] = "";
+						//char otherSystemChat[100] = "";
 
-						strcpy_s(otherSystemChat, parties.at(i)->members.at(z)->name);
-						strcat_s(otherSystemChat, " has left the party.");
+						//strcpy_s(otherSystemChat, parties.at(i)->members.at(z)->name);
+						//strcat_s(otherSystemChat, " has left the party.");
+
+						string other_chat = parties.at(i)->members.at(z)->name_;
+						other_chat += " has left the party.";
 
 						for(unsigned int o = 0; o < parties.at(i)->members.size(); o++)
 							parties.at(i)->members.at(o)->mb->AddPacket(pak, 0);
@@ -893,7 +897,7 @@ void RenderWorld()
 						parties.at(i)->members.erase(parties.at(i)->members.begin() + z);
 
 						for(unsigned int y = 0; y < parties.at(i)->members.size(); y++)
-							SystemChat(parties.at(i)->members.at(y)->mb, CUSTOM, NULL, otherSystemChat);
+							SystemChat(parties.at(i)->members.at(y)->mb, CUSTOM, NULL, other_chat.c_str());
 
 						if(debugs)
 							log(DEBUG, "Kicked member.\n");
@@ -911,7 +915,7 @@ void RenderWorld()
 					pak.addInt(1);
 					pak.addInt(2);
 					pak.addInt(2);
-					pak.addString(parties.at(i)->members.at(y)->name);
+					pak.addString(parties.at(i)->members.at(y)->name_.c_str());
 
 					pak.ready();
 					parties.at(i)->members.at(y)->mb->AddPacket(pak, 0);
@@ -958,16 +962,16 @@ void RenderWorld()
 	{
 		if(npcs.at(i)->enableChat)
 		{
-			if((unsigned)npcs.at(i)->nextChat <= GetTickCount())
+			if((unsigned)npcs.at(i)->nextChat <= getTimestamp())
 			{
-				SendAllOnMap(CreatePacketChat(npcs.at(i)->chat.at((npcs.at(i)->currChat - 1)).text, npcs.at(i)->name, false, true, 0), 0, npcs.at(i)->mapId->id, 0);
+				SendAllOnMap(CreatePacketChat(npcs.at(i)->chat.at((npcs.at(i)->currChat - 1)).text_.c_str(), npcs.at(i)->name.c_str(), false, true, 0), 0, npcs.at(i)->mapId->id, 0);
 
 				if(npcs.at(i)->currChat == npcs.at(i)->chat.size())
 					npcs.at(i)->currChat = 1;
 				else
 					npcs.at(i)->currChat++;
 
-				npcs.at(i)->nextChat = (GetTickCount() + Random((npcChatDelay - (npcChatDelay / 4)), (npcChatDelay + (npcChatDelay / 4))));
+				npcs.at(i)->nextChat = (getTimestamp() + Random((npcChatDelay - (npcChatDelay / 4)), (npcChatDelay + (npcChatDelay / 4))));
 			}
 		}
 	}
@@ -976,11 +980,11 @@ void RenderWorld()
 	{
 		if(!drops.at(i)->lootEnable)
 		{
-			if((unsigned)drops.at(i)->loottimer <= GetTickCount())
+			if((unsigned)drops.at(i)->loottimer <= getTimestamp())
 				drops.at(i)->lootEnable = true;
 		}
 
-		if((unsigned)drops.at(i)->autodelete <= GetTickCount())
+		if((unsigned)drops.at(i)->autodelete <= getTimestamp())
 		{
 			Packet pak = Packet();
 
@@ -1000,9 +1004,9 @@ void RenderWorld()
 
 	if(enableStatusCheck)
 	{
-		if((unsigned)nextStatusCheck <= GetTickCount())
+		if((unsigned)nextStatusCheck <= getTimestamp())
 		{
-			Uptime(true);
+			Uptime();
 
 			nextStatusCheck += statusDelay;
 		}

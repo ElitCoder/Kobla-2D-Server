@@ -12,8 +12,11 @@ float RandomFloat(float a, float b)
 
 unsigned int getTime(bool fast)
 {
+	return getTimestamp();
+	
+	/*
 	if(fast)
-		return GetTickCount();
+		return getTimestamp();
 
 	else
 	{
@@ -27,4 +30,5 @@ unsigned int getTime(bool fast)
 
 		return (unsigned int)currentTimer.QuadPart;
 	}
+	*/
 }

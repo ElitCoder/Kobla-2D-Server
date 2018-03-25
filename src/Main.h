@@ -57,6 +57,7 @@
 #include "Packet.h"
 #include "World.h"
 #include "Timer.h"
+#include "Connection.h"
 
 extern int defSpeed;
 extern long onlineCheckDelay;
@@ -74,6 +75,8 @@ class Item;
 class Skill;
 class Player;
 class Monster;
+
+unsigned long long getTimestamp();
 
 class Partner
 {
@@ -177,8 +180,10 @@ public:
 
 		this->critChance = defCritChance;
 
-		strcpy_s(this->name, "");
-		strcpy_s(this->owner, "");
+		name = "";
+		owner = "";
+		//strcpy_s(this->name, "");
+		//strcpy_s(this->owner, "");
 
 		this->x = (float)mPlayerStartX;
 		this->y = (float)mPlayerStartY;
@@ -285,8 +290,11 @@ public:
 	int agility;
 	int intt;
 
-	char name[20];
-	char owner[20];
+	std::string name;
+	std::string owner;
+	
+	//char name[20];
+	//char owner[20];
 
 	Map *mapId;
 	Party *pt;
@@ -385,10 +393,10 @@ public:
 		this->password = "";
 
 		this->loginTries = 0;
-		this->nextLogin = GetTickCount();
+		this->nextLogin = getTimestamp();
 
 		this->onlineCheck = true;
-		this->nextOnlineCheck = (GetTickCount() + onlineCheckDelay);
+		this->nextOnlineCheck = (getTimestamp() + onlineCheckDelay);
 
 		this->gone = false;
 		this->isc = false;
@@ -419,7 +427,8 @@ public:
 	{
 		delete this->com;
 
-		closesocket(this->sock);
+		connection_.destroy();
+		//closesocket(this->sock);
 	}
 
 	void AddPacket(Packet pak, long delay);
@@ -428,8 +437,12 @@ public:
 	void SetIP(char *_ip);
 	char *GetIP();
 
-	void SetSocket(SOCKET s);
-	SOCKET GetSocket();
+	void setConnection(const Connection& connection);
+	Connection& getConnection();
+	const Connection& getConnection() const;
+	
+	//void SetSocket(SOCKET s);
+	//SOCKET GetSocket();
 
 	Command *com;
 
@@ -484,7 +497,7 @@ public:
 	void AddStat(char *b);
 
 	void AcceptInvite(char *b);
-	void SendInvite(char *name);
+	void SendInvite(const std::string& name_string);
 	void InviteToParty(char *name);
 	void LeaveParty();
 	void KickFromParty(char *name);
@@ -631,19 +644,20 @@ public:
 private:
 	char ip[16];
 
-	SOCKET sock;
+	Connection connection_;
+	//SOCKET sock;
 };
 
 void packetmain();
 
-void log(int logmsg, char *message, ...);
+void log(int logmsg, const std::string& message, ...);
 void Config(int &p);
-void Uptime(bool eText);
+void Uptime();
 
 void ProcessPacket(Client *p, unsigned char *b2, int len);
 
 void QuitKobla();
 
-void LD(int logmsg, char *message, ...);
+void LD(int logmsg, const std::string& message, ...);
 
 #endif

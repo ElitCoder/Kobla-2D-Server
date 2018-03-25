@@ -278,7 +278,7 @@ void Client::Spawn(char *b)
 				mes.addLongInt(this->p->buffs.at(i)->effect);
 				mes.addLongInt(this->p->buffs.at(i)->changeEffect);
 				mes.addLongInt(this->p->buffs.at(i)->value);
-				mes.addLongInt(((this->p->buffs.at(i)->endTime - GetTickCount()) / 1000));
+				mes.addLongInt(((this->p->buffs.at(i)->endTime - getTimestamp()) / 1000));
 			}
 
 			mes.addLongInt(this->GetBonus(STRENGTH));
@@ -515,7 +515,7 @@ void Client::Spawn(char *b)
 					pn.addInt(npc.at(i)->menu.size());
 
 					for(unsigned int y = 0; y < npc.at(i)->menu.size(); y++)
-						pn.addString(npc.at(i)->menu.at(y).text);
+						pn.addString(npc.at(i)->menu.at(y).text_);
 
 					pn.ready();
 					this->AddPacket(pn, 0);
@@ -544,8 +544,8 @@ void Client::Spawn(char *b)
 				this->AddPacket(pd, 0);
 			}
 
-			this->p->nextRefresh = (GetTickCount() + (refreshDelay * 2));
-			this->p->nextSave = (GetTickCount() + saveDelay);
+			this->p->nextRefresh = (getTimestamp() + (refreshDelay * 2));
+			this->p->nextSave = (getTimestamp() + saveDelay);
 
 			if(this->p->access <= 50)
 			{
@@ -1360,7 +1360,7 @@ void Client::SavePlayer(int PARAM)
 
 	for(unsigned int i = 0; i < this->p->buffs.size(); i++)
 	{
-		this->p->buffs.at(i)->endTime = (this->p->buffs.at(i)->endTime - GetTickCount());
+		this->p->buffs.at(i)->endTime = (this->p->buffs.at(i)->endTime - getTimestamp());
 
 		if(this->p->buffs.at(i)->endTime <= 0)
 			this->p->buffs.at(i)->endTime = 0;
@@ -1372,7 +1372,7 @@ void Client::SavePlayer(int PARAM)
 		o << this->p->buffs.at(i)->effect << " " << this->p->buffs.at(i)->value << " " << this->p->buffs.at(i)->endTime << endl;
 
 	for(unsigned int i = 0; i < this->p->buffs.size(); i++)
-		this->p->buffs.at(i)->endTime += GetTickCount();
+		this->p->buffs.at(i)->endTime += getTimestamp();
 
 	for(int i = 0; i < 9; i++)
 	{
@@ -2672,7 +2672,7 @@ void Client::Chat(char *msg)
 
 	else
 	{
-		if((unsigned)this->p->chatCoolDown <= GetTickCount())
+		if((unsigned)this->p->chatCoolDown <= getTimestamp())
 		{
 			char coms[200] = "";
 			sscanf_s(msg, "%s", &coms, 200);
@@ -2988,7 +2988,7 @@ void Client::Attack(int id, int type, int param, int hits, char *b, bool serv, i
 							m->chp -= pAtk;
 
 							m->attacked = true;
-							m->freeAttack = (GetTickCount() + monsterFreeDelay);
+							m->freeAttack = (getTimestamp() + monsterFreeDelay);
 
 							m->attackerId = this->p->getId();
 
@@ -3087,12 +3087,12 @@ void Client::Shoot(char *b, bool ss, int sId, int target, bool allowSkill, int t
 			{
 				this->CheckSkill(PARAM);
 
-				if((unsigned)this->GetSkill(PARAM)->nextUsage <= GetTickCount() || allowSkill)
+				if((unsigned)this->GetSkill(PARAM)->nextUsage <= getTimestamp() || allowSkill)
 				{
 					/*
 					if(PARAM == 6 && target == 0)
 					{
-						this->GetSkill(PARAM)->nextUsage = (GetTickCount() + GetSkillCooldown(PARAM));
+						this->GetSkill(PARAM)->nextUsage = (getTimestamp() + GetSkillCooldown(PARAM));
 						this->com->setAttackTimer(playerAttackTimer);
 						this->SetSkillCoolDown(PARAM);
 
@@ -3122,7 +3122,7 @@ void Client::Shoot(char *b, bool ss, int sId, int target, bool allowSkill, int t
 					if(PARAM != 5)
 						this->AddSkillExp(PARAM, 5);
 
-					this->GetSkill(PARAM)->nextUsage = (GetTickCount() + GetSkillCooldown(PARAM));
+					this->GetSkill(PARAM)->nextUsage = (getTimestamp() + GetSkillCooldown(PARAM));
 					this->com->setAttackTimer(playerAttackTimer);
 					this->SetSkillCoolDown(PARAM);
 					*/
@@ -3169,12 +3169,12 @@ void Client::Shoot(char *b, bool ss, int sId, int target, bool allowSkill, int t
 
 			if(IsSkill(PARAM))
 			{
-				if((unsigned)this->GetSkill(PARAM)->nextUsage <= GetTickCount() || allowSkill)
+				if((unsigned)this->GetSkill(PARAM)->nextUsage <= getTimestamp() || allowSkill)
 				{
 					/*
 					if(PARAM == 6 && target == 0)
 					{
-						this->GetSkill(PARAM)->nextUsage = (GetTickCount() + GetSkillCooldown(PARAM));
+						this->GetSkill(PARAM)->nextUsage = (getTimestamp() + GetSkillCooldown(PARAM));
 						this->com->setAttackTimer(playerAttackTimer);
 						this->SetSkillCoolDown(PARAM);
 
@@ -3213,7 +3213,7 @@ void Client::Shoot(char *b, bool ss, int sId, int target, bool allowSkill, int t
 					if(PARAM != 5)
 						this->AddSkillExp(PARAM, 5);
 
-					this->GetSkill(PARAM)->nextUsage = (GetTickCount() + GetSkillCooldown(PARAM));
+					this->GetSkill(PARAM)->nextUsage = (getTimestamp() + GetSkillCooldown(PARAM));
 					this->com->setAttackTimer(playerAttackTimer);
 					this->SetSkillCoolDown(PARAM);
 					*/
@@ -3919,7 +3919,7 @@ Client *GetClientByPlayerIdInMap(int id, int mapid)
 }
 
 
-void SystemChat(Client *_Client, int _Param, Client *_Client2, char *_Custom)
+void SystemChat(Client *_Client, int _Param, Client *_Client2, const string& custom)
 {
 	char msg[1000] = "";
 
@@ -4159,14 +4159,19 @@ Client *GetClientByName(char *name, int &result)
 	return ret;
 }
 
-Client *GetClientByPlayerName(char *name)
+Client *GetClientByPlayerName(const string& name)
 {
 	for(unsigned int i = 0; i < ac.size(); i++)
 	{
 		if(ac.at(i)->ingame)
 		{
+			if (name == ac.at(i)->p->name)
+				return ac.at(i);
+				
+			/*
 			if(strcmp(name, ac.at(i)->p->name) == 0)
 				return ac.at(i);
+				*/
 		}
 	}
 
@@ -4278,8 +4283,10 @@ void Client::SendTradeInvite(int charId)
 	}
 }
 
-void Client::SendInvite(char *name)
+void Client::SendInvite(const string& name_string)
 {
+	const char* name = name_string.c_str();
+	
 	if(strcmp(name, this->p->name) == 0)
 	{
 		SystemChat(this, CUSTOM, NULL, "You can not invite yourself.");
@@ -4903,7 +4910,7 @@ void Client::KickFromParty(char *name)
 
 				for(unsigned int i = 0; i < p->members.size(); i++)
 				{
-					if(strcmp(p->members.at(i)->mb->p->name, name) == 0)
+					if(strcmp(p->members.at(i)->mb->p->name.c_str(), name) == 0)
 					{
 						Packet pak = Packet();
 
@@ -4917,8 +4924,8 @@ void Client::KickFromParty(char *name)
 
 						char otherSystemChat[100] = "";
 
-						strcpy_s(otherSystemChat, name);
-						strcat_s(otherSystemChat, " has left the party.");
+						strcpy(otherSystemChat, name);
+						strcat(otherSystemChat, " has left the party.");
 
 						for(unsigned int z = 0; z < p->members.size(); z++)
 							p->members.at(z)->mb->AddPacket(pak, 20);
@@ -5045,7 +5052,7 @@ void Client::AddBuff(int BUFF, int LVL, int DURSEC, int PLAYERPUT)
 				else
 					sendUpdate = false;
 
-				thisbuf->endTime = (GetTickCount() + (DURSEC * 1000));
+				thisbuf->endTime = (getTimestamp() + (DURSEC * 1000));
 
 				if(thisbuf->changeEffect == HPDRAIN)
 					sendUpdate = false;
@@ -5060,11 +5067,11 @@ void Client::AddBuff(int BUFF, int LVL, int DURSEC, int PLAYERPUT)
 				*b = *buffd;
 
 				b->value = LVL;
-				b->endTime = (GetTickCount() + (DURSEC * 1000));
+				b->endTime = (getTimestamp() + (DURSEC * 1000));
 
 				if(b->changeEffect == HPDRAIN)
 				{
-					b->nextUse = (GetTickCount() + 2000);
+					b->nextUse = (getTimestamp() + 2000);
 					sendUpdate = false;
 				}
 
@@ -5166,7 +5173,7 @@ void Monster::AddMonsterBuff(int BUFF, int LVL, int DURSEC, int userMade)
 				if(LVL > thisbuf->value)
 					thisbuf->value = LVL;
 
-				thisbuf->endTime = (GetTickCount() + (DURSEC * 1000));
+				thisbuf->endTime = (getTimestamp() + (DURSEC * 1000));
 				thisbuf->userPut = userMade;
 			}
 
@@ -5177,11 +5184,11 @@ void Monster::AddMonsterBuff(int BUFF, int LVL, int DURSEC, int userMade)
 				*b = *buffd;
 
 				b->value = LVL;
-				b->endTime = (GetTickCount() + (DURSEC * 1000));
+				b->endTime = (getTimestamp() + (DURSEC * 1000));
 				b->userPut = userMade;
 
 				if(b->changeEffect == HPDRAIN)
-					b->nextUse = (GetTickCount() + 2000);
+					b->nextUse = (getTimestamp() + 2000);
 
 				this->mbuffs.push_back(b);
 			}
@@ -5387,29 +5394,29 @@ void Client::HitNPCMenuButton(char *b)
 			{
 				if(this->InArea((np->x - 200 - this->p->meW), (np->y - 200 - this->p->meH), (400 + np->meW), (400 + np->meH)))
 				{
-					if(strcmp(np->menu.at((btn - 1)).text, "Get buffed!") == 0)
+					if(strcmp(np->menu.at((btn - 1)).text_.c_str(), "Get buffed!") == 0)
 					{
 						for(int i = 0; i < buff; i++)
 							this->AddBuff(buffs[i], buffsLvl[i], buffTime[i], 0);
 					}
 
-					else if(strcmp(np->menu.at((btn - 1)).text, "Dialog") == 0)
+					else if(strcmp(np->menu.at((btn - 1)).text_.c_str(), "Dialog") == 0)
 					{
 						Packet pak = Packet();
 
 						pak.addHeader(0x31);
 						pak.addLongInt(np->id);
-						pak.addLongString(np->dialog);
+						pak.addLongString(np->dialog.c_str());
 						pak.addInt(np->diab.size());
 
 						for(unsigned int i = 0; i < np->diab.size(); i++)
-							pak.addString(np->diab.at(i).text);
+							pak.addString(np->diab.at(i).text_);
 
 						pak.ready();
 						this->AddPacket(pak, 0);
 					}
 
-					else if(strcmp(np->menu.at((btn - 1)).text, "Trade") == 0)
+					else if(strcmp(np->menu.at((btn - 1)).text_.c_str(), "Trade") == 0)
 					{
 						Packet pak = Packet();
 
@@ -5424,7 +5431,7 @@ void Client::HitNPCMenuButton(char *b)
 						this->AddPacket(pak, 0);
 					}
 
-					else if(strcmp(np->menu.at((btn - 1)).text, "Teleportation") == 0)
+					else if(strcmp(np->menu.at((btn - 1)).text_.c_str(), "Teleportation") == 0)
 					{
 						Packet pak = Packet();
 
@@ -5443,7 +5450,7 @@ void Client::HitNPCMenuButton(char *b)
 					}
 
 					else
-						log(ERR, "[void Client::HitNPCMenuButton(char*)] [Unknown NPC param] [%s] [%s] [%d]\n", np->menu.at((btn - 1)).text, np->name, np->id);
+						log(ERR, "[void Client::HitNPCMenuButton(char*)] [Unknown NPC param] [%s] [%s] [%d]\n", np->menu.at((btn - 1)).text_.c_str(), np->name, np->id);
 				}
 
 				else
@@ -5754,10 +5761,12 @@ void Client::SpecialAttack(int id, int type, int param)
 							plusdmg += myskill->lvl * mains->multbasedmg;
 						}
 
+						/*
 						if(this->p->mapId->pk)
 							this->SkillAttackAoEPK(&GetPlayersInRange(c->p->mapId->id, (int)c->p->x, (int)c->p->y, c->p->meW, c->p->meH, mains->aoerange, mains->aoerange, this->p->getId()), mains->basedmg * 2 + plusdmg, mains->id, mains->basedOn);
 
 						this->SkillAttackAoE(&GetMonstersInRange(c->p->mapId->id, (int)c->p->x, (int)c->p->y, c->p->meW, c->p->meH, mains->aoerange, mains->aoerange), mains->basedmg + plusdmg, mains->id, mains->basedOn);
+						*/	
 					}
 
 					else
@@ -5915,10 +5924,12 @@ void Client::SpecialAttack(int id, int type, int param)
 							plusdmg += myskill->lvl * mains->multbasedmg;
 						}
 
+/*
 						if(this->p->mapId->pk)
 							this->SkillAttackAoEPK(&GetPlayersInRange(m->mapId->id, (int)m->x, (int)m->y, m->monW, m->monH, mains->aoerange, mains->aoerange, this->p->getId()), mains->basedmg * 2 + plusdmg, mains->id, mains->basedOn);
 
 						this->SkillAttackAoE(&GetMonstersInRange(m->mapId->id, (int)m->x, (int)m->y, m->monW, m->monH, mains->aoerange, mains->aoerange), mains->basedmg + plusdmg, mains->id, mains->basedOn);
+	*/
 					}
 
 					else
@@ -6011,7 +6022,7 @@ void Client::SpecialAttack(int id, int type, int param)
 					*/
 
 					m->attacked = true;
-					m->freeAttack = (GetTickCount() + monsterFreeDelay);
+					m->freeAttack = (getTimestamp() + monsterFreeDelay);
 
 					m->attackerId = this->p->getId();
 
@@ -6045,7 +6056,7 @@ void Client::HitNPCDialogButton(char *b)
 		{
 			if(this->p->mapId->id == tar->mapId->id)
 			{
-				char *target = tar->diab.at((button - 1)).text;
+				const char *target = tar->diab.at((button - 1)).text_.c_str();
 
 				if(strcmp(target, "Bye!") == 0)
 				{
@@ -6116,7 +6127,7 @@ void Client::RemoveFollower(int id)
 				mobs.at(t)->attacked = false;
 				mobs.at(t)->goAfter = true;
 
-				mobs.at(t)->nextMove = (GetTickCount() + w + 4000);
+				mobs.at(t)->nextMove = (getTimestamp() + w + 4000);
 
 				mobs.at(t)->move.start(true);
 
@@ -6322,7 +6333,7 @@ void Client::SkillAttackAoE(std::vector<Monster*> *vec, int baseDamage, int skil
 
 						m->chp = 0;
 						m->spawned = false;
-						m->respawnTime = (GetTickCount() + m->respawnDelayMonster);
+						m->respawnTime = (getTimestamp() + m->respawnDelayMonster);
 
 						m->attackerId = this->p->getId();
 
@@ -6374,7 +6385,7 @@ void Client::SkillAttackAoE(std::vector<Monster*> *vec, int baseDamage, int skil
 						m->chp -= pAtk;
 
 						m->attacked = true;
-						m->freeAttack = (GetTickCount() + monsterFreeDelay);
+						m->freeAttack = (getTimestamp() + monsterFreeDelay);
 
 						m->attackerId = this->p->getId();
 
@@ -6764,7 +6775,7 @@ void Client::UseSkill(int id)
 	{
 		this->CheckSkill(id);
 
-		if((unsigned)this->GetSkill(id)->nextUsage > GetTickCount())
+		if((unsigned)this->GetSkill(id)->nextUsage > getTimestamp())
 			return;
 
 		Skill *mains = GetMainSkill(id);
@@ -6866,7 +6877,7 @@ void Client::UseSkill(int id)
 				/*
 					if(PARAM == 6 && target == 0)
 					{
-						this->GetSkill(PARAM)->nextUsage = (GetTickCount() + GetSkillCooldown(PARAM));
+						this->GetSkill(PARAM)->nextUsage = (getTimestamp() + GetSkillCooldown(PARAM));
 						this->com->setAttackTimer(playerAttackTimer);
 						this->SetSkillCoolDown(PARAM);
 
@@ -6878,7 +6889,7 @@ void Client::UseSkill(int id)
 					if(PARAM != 5)
 						this->AddSkillExp(PARAM, 5);
 
-					this->GetSkill(PARAM)->nextUsage = (GetTickCount() + GetSkillCooldown(PARAM));
+					this->GetSkill(PARAM)->nextUsage = (getTimestamp() + GetSkillCooldown(PARAM));
 					this->com->setAttackTimer(playerAttackTimer);
 					this->SetSkillCoolDown(PARAM);
 					*/
@@ -6965,10 +6976,12 @@ void Client::UseSkill(int id)
 
 			else if(mains->aoe)
 			{
+				/*
 				if(this->p->mapId->pk)
 					this->SkillAttackAoEPK(&GetPlayersInRange(this->p->mapId->id, (int)this->p->x, (int)this->p->y, this->p->meW, this->p->meH, mains->aoerange, mains->aoerange, this->p->getId()), mains->basedmg * 2, mains->id, mains->basedOn);
 
 				this->SkillAttackAoE(&GetMonstersInRange(this->p->mapId->id, (int)this->p->x, (int)this->p->y, this->p->meW, this->p->meH, mains->aoerange, mains->aoerange), mains->basedmg, mains->id, mains->basedOn);
+				*/
 			}
 		}
 
@@ -6990,7 +7003,7 @@ void Client::UseSkill(int id)
 		}
 
 		this->SetSkillCoolDown(id);
-		this->GetSkill(id)->nextUsage = (GetTickCount() + GetSkillCooldown(id));
+		this->GetSkill(id)->nextUsage = (getTimestamp() + GetSkillCooldown(id));
 	}
 
 	else
@@ -7270,7 +7283,7 @@ void Client::OptimizeBuffs()
 {
 	for(unsigned int i = 0; i < this->p->buffs.size(); i++)
 	{
-		this->p->buffs.at(i)->endTime = (this->p->buffs.at(i)->endTime - GetTickCount());
+		this->p->buffs.at(i)->endTime = (this->p->buffs.at(i)->endTime - getTimestamp());
 
 		if(this->p->buffs.at(i)->endTime <= 0)
 			this->p->buffs.at(i)->endTime = 0;
@@ -7283,8 +7296,8 @@ void Client::GetBuffsOnline()
 {
 	for(unsigned int i = 0; i < this->p->buffs.size(); i++)
 	{
-		this->p->buffs.at(i)->endTime = (GetTickCount() + this->p->buffs.at(i)->endTime);
-		this->p->buffs.at(i)->nextUse = (GetTickCount() + 2000);
+		this->p->buffs.at(i)->endTime = (getTimestamp() + this->p->buffs.at(i)->endTime);
+		this->p->buffs.at(i)->nextUse = (getTimestamp() + 2000);
 	}
 }
 
@@ -7416,7 +7429,7 @@ Player *GetPlayerByName(const char *name)
 {
 	for(unsigned int i = 0; i < pvector.size(); i++)
 	{
-		if(strcmp(pvector.at(i)->name, name) == 0)
+		if(strcmp(pvector.at(i)->name.c_str(), name) == 0)
 			return pvector.at(i);
 	}
 
@@ -7928,7 +7941,7 @@ void Client::PlayerMenu(char *b)
 
 		else if(strcmp(strMen.c_str(), "Add as friend") == 0)
 		{
-			this->SendFriendInvite(charId, c->p->name);
+			this->SendFriendInvite(charId, c->p->name.c_str());
 		}
 
 		else
@@ -8730,13 +8743,13 @@ void Client::AddEnergy(float hp)
 	this->com->sendUpdate(ENERGY);
 }
 
-Packet CreatePacketChat(const char *msg, const char *name, bool ispro, bool isnpc, int col)
+Packet CreatePacketChat(const char *msg, const string& name, bool ispro, bool isnpc, int col)
 {
 	Packet pak = Packet();
 
 	pak.addHeader(0x15);
 	pak.addString((char*)msg);
-	pak.addString((char*)name);
+	pak.addString(name);
 	pak.addBool(ispro);
 	pak.addBool(isnpc);
 	pak.addInt(col);
@@ -9048,7 +9061,7 @@ void Client::UpdateFriends(bool on)
 		{
 			for(unsigned int y = 0; y < pl->friends.size(); y++)
 			{
-				if(strcmp(pl->friends.at(y).name.c_str(), this->p->name) == 0)
+				if(strcmp(pl->friends.at(y).name.c_str(), this->p->name.c_str()) == 0)
 				{
 					pl->friends.at(y).level = this->p->level;
 					pl->friends.at(y).job = 0;
@@ -9080,11 +9093,11 @@ void Client::RemoveFriend(const char *name)
 			{
 				for(unsigned int y = 0; y < pvector.size(); y++)
 				{
-					if(strcmp(pvector.at(y)->name, name) == 0)
+					if (pvector.at(y)->name == name)
 					{
 						for(unsigned int z = 0; z < pvector.at(y)->friends.size(); z++)
 						{
-							if(strcmp(pvector.at(y)->friends.at(z).name.c_str(), this->p->name) == 0)
+							if(strcmp(pvector.at(y)->friends.at(z).name.c_str(), this->p->name.c_str()) == 0)
 							{
 								pvector.at(y)->friends.erase(pvector.at(y)->friends.begin() + z);
 
@@ -9101,7 +9114,7 @@ void Client::RemoveFriend(const char *name)
 			{
 				for(unsigned int y = 0; y < plas->p->friends.size(); y++)
 				{
-					if(strcmp(plas->p->friends.at(y).name.c_str(), this->p->name) == 0)
+					if(strcmp(plas->p->friends.at(y).name.c_str(), this->p->name.c_str()) == 0)
 					{
 						plas->p->friends.erase(plas->p->friends.begin() + y);
 
@@ -9152,11 +9165,11 @@ void FixFriends()
 
 			for(unsigned int z = 0; z < pvector.size(); z++)
 			{
-				if(strcmp(pvector.at(z)->name, pvector.at(i)->friends.at(y).name.c_str()) == 0)
+				if(strcmp(pvector.at(z)->name.c_str(), pvector.at(i)->friends.at(y).name.c_str()) == 0)
 				{
 					for(unsigned int r = 0; r < pvector.at(z)->friends.size(); r++)
 					{
-						if(strcmp(pvector.at(i)->name, pvector.at(z)->friends.at(r).name.c_str()) == 0)
+						if(strcmp(pvector.at(i)->name.c_str(), pvector.at(z)->friends.at(r).name.c_str()) == 0)
 						{
 							found = true;
 							break;
@@ -9207,7 +9220,7 @@ void FixFriends()
 
 void Client::SendPM(const char *name, const char *msg)
 {
-	if(strcmp(name, this->p->name) == 0)
+	if(strcmp(name, this->p->name.c_str()) == 0)
 	{
 		SystemChat(this, CUSTOM, NULL, "You cannot send a message to yourself!");
 
