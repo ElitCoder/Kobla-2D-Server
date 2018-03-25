@@ -1,0 +1,24 @@
+Filename: <Account><Slot>.txt
+
+< Character name >
+< Level >
+< Power >
+< Agility >
+< X >
+< Y >
+< Map >
+< Experience >
+< Magic >
+< Points avaible >
+< PK points >
+< Access level >
+< Inventory items >
+< Item #1 id > < Item #1 slot > < Item #1 stack >
+< Buffs >
+< Buff #1 > < Buff #1 level > < Buff #1 time left >
+< Taskbar items >
+< Taskbar item #1 > < #1 type > < #1 slot > < #1 eqinv > < #1 itemid >
+< Skills >
+< #1 id > < #1 type > < #1 level > < #1 exp >
+< Equips >
+< #1 id > < #1 slot>

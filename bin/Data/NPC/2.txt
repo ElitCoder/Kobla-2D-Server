@@ -1,0 +1,17 @@
+Helper
+702 643 6
+Hello! I'm here to help all players to become stronger by giving them buffs.
+3
+Dialog
+Trade
+Get buffed!
+1
+Bye!
+1
+Welcome to the PvP-zone!
+2
+1
+3
+0
+64 64
+0

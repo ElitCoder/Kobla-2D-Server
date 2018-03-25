@@ -1,0 +1,10 @@
+< Monster ID >
+< Min X >
+< Max X >
+< Min Y >
+< Max Y >
+< Monsters to spawn >
+< Map ID >
+< Aggro chance >
+< No move 0/1 >
+< Respawn time >

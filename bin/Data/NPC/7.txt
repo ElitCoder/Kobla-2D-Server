@@ -1,0 +1,14 @@
+Unknown
+115 541 12
+Only gods will be able to defeat this monster.
+1
+Teleportation
+1
+Bye!
+0
+0
+1
+Kobla Bay
+500 1 500 450
+65 112
+0

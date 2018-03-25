@@ -1,0 +1,18 @@
+<type> <cooldown (ms)>
+<for job> <cost type> <cost amount>
+<name (line)>
+<amount of buffs to add>
+<#1 target 0 = you 1 = hit> <buff id> <buff lvl> <buff duration (sec)> <scale buff lvl with skill lvl> <buff lvl multiplier> <duration scale> <scale mult>
+<specialcoded 0/1>
+<do animation 0/1>
+<shoot 0/1>
+<aoe 0/1>
+<aoerange>
+<base damage>
+<dmg up per lvl 0/1>
+<based on>
+<expamount>
+<basedmg scale skill lvl>
+<mult FOR AOE>
+<scaletype 1VS1>
+<USE WEAPON FOR USING SKILL 0/1>

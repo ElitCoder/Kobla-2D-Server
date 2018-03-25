@@ -1,0 +1,9 @@
+< Max stacking >
+< Effect >
+< Value >
+< Name >
+< Price >
+< Level req. >
+<amount of effects>
+<effect#1>
+<job req.>

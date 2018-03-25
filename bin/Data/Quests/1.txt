@@ -1,0 +1,10 @@
+SetStartNPC
+Buff Pang
+AddDialog
+Me is pro, talk pls.
+CloseDialog
+SetFinalNPC
+BuffPang
+AddDialog
+You soy pro.
+AddReward ITEM 1

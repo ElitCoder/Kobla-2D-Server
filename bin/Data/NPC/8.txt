@@ -1,0 +1,19 @@
+RANDOM
+1000 500 6
+Hello! I'm here to help all players to become stronger by giving them buffs.
+4
+Dialog
+Trade
+Teleportation
+Get buffed!
+1
+Bye!
+1
+Welcome to Kobla Online!
+2
+1
+3
+1
+Ghost Castle
+1020 6 500 400
+110 60

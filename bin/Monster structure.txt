@@ -1,0 +1,20 @@
+< Name >
+< Level >
+< HP >
+< EXP >
+< Attack >
+< Min X - Spawn >
+< Max X >
+< Min Y - Spawn >
+< Max Y >
+< Number of monsters to spawn >
+< Map ID >
+< Aggro chance >
+< Monster width >
+< Monster hight >
+< Drops >
+< ID > < Stack > < Chance (%) >
+< Attack params >
+< Param #1 >
+< No move 0/1 >
+< Respawn time >

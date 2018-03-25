@@ -1,0 +1,22 @@
+num of skills
+skill #1
+skill #2
+need weap to shoot 0/1
+got mp 0/1
+got energy 0/1
+mp plus <amount>
+energy plus <amount>
+hp plus <amount>
+normalshotbulletid <param>
+attacks based on <param>
+bulletspeed <amount>
+bulletrotate <amount>
+amount of items <amount>
+<id #1> <eq 0/1> <slot> <stack>
+<disabled 0/1>
+shoot cost <type> <amount>
+<ranged 0/1>
+<bullet range>
+<effects>
+<effect#1> <amount>
+<base multi*>

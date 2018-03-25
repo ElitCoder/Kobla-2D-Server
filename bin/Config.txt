@@ -1,0 +1,80 @@
+[KOBLA]
+IP: 90.231.170.103
+Port: 2400
+Debug: 0
+DebugPacket: 0
+EnableText: 0
+EnableStatusCheck: 1
+ServerName: Kobla-1
+
+[ISC]
+ISCIP: 127.0.0.1
+ISCPort: 5400
+Password: SERVER4tning
+[GAME]
+EnableAttack: 1
+MaxMaps: 6
+EnableKS: 0
+EnableSkill: 1
+EnablePvPPoints: 1
+
+[REFRESH]
+SaveDelay: 60000
+RefreshDelay: 1000
+OnlineDelay: 10000
+ReviveDelay: 10000
+StatusCheckDelay: 60000
+FoodCooldown: 650
+
+[SPAWN]
+PlayerDelay: 30
+MonsterDelay: 70
+NPCDelay: 50
+
+[PLAYER]
+DefaultSpeed: 8
+PlayerAttackTimer: 2000
+
+[MONSTER]
+MonsterRespawnDelay: 9300
+MonsterFreeDelay: 9000
+MoveDelay: 13800
+AttackDelay: 1900
+MonsterFollowMaxX: 100000
+MonsterFollowMaxY: 100000
+
+[NPC]
+NPCChatDelay: 14000
+
+[DROP]
+DeleteDropDelay: 150000
+PickDropDelay: 60
+
+[PLAYER-NEW]
+StartX: 500
+StartY: 370
+StartMap: 1
+StartCrit: 10
+StartBlock: 8
+
+[LEVEL]
+ExpRate: 5
+MaxLevel: 65
+ExpTable: 16 34 65 84 130 186 210 235 260 300 333 387 425 510 623 700 832 954 1050 1300 1440 1632 1805 2216 3000 4215 5124 5900 7254 10000 13564 18024 23654 30543 40000 52314 68547 85411 100000 120000 124871 137587 154299 164500 190200 210000 226987 263500 300000 345987 415872 436587 452168 489700 500000 589157 678958 785489 856000 1000000 1234327 1540000 2000000 2123432 3000000
+
+[SKILL]
+SkillExpRate: 1
+SkillMaxLevel: 10
+SkillExpTable: 5 7 13 22 31 54 80 103 132 194
+
+[PANG]
+Buffs: 5
+BuffID: 61 3 1200 63 3 1200 64 3 1200 65 3 1200 66 3 1200
+
+[RATES]
+DeniroRate: 5
+DropRate: 5
+
+[PARTY]
+PartyMaxLevel: 30
+PartyExp: 1

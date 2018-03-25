@@ -1,0 +1,22 @@
+Guard
+189 168 11
+What are you doing here?! This is a restricted area, leave now!
+4
+Dialog
+Trade
+Teleportation
+Get buffed!
+1
+Bye!
+1
+Stand back! These monsters are dangerous!
+4
+1
+7
+8
+9
+1
+Kobla Bay
+500 1 500 450
+64 64
+11

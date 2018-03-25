@@ -1,0 +1,15 @@
+< Name >
+< X > < Y > < Map-ID >
+< Dialog >
+< Number of menu items >
+< Menu #1 >
+< Number of Dialog buttons >
+< Button #1 >
+< Number of chats >
+< Chat #1 >
+< Number of selling items >
+< Item id #1 >
+< Num of TP places >
+< Name #1 >
+< Price #1 > < Map ID > < X > < Y >
+< NPC X > < NPC Y >

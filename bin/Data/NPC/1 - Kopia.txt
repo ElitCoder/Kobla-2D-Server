@@ -1,0 +1,23 @@
+Helper
+674 271 1
+Hello! I have some tips for you: To change map you can either click and me and choose "Teleportation" and click on you destination, or you can change map the normal way by going to end of the map (in this case to the right) and press backspace (<--) that's located just above the enter/return button.
+4
+Dialog
+Trade
+Teleportation
+Get buffed!
+1
+Bye!
+1
+Welcome to Kobla Online! Talk to me if you need help!
+3
+1
+3
+12
+2
+Valley of Zombies
+8500 11 70 158
+PvP World
+12000 8 5 845
+64 64
+0
