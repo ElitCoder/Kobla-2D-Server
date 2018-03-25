@@ -1,6 +1,10 @@
 #include <iostream>
 #include <vector>
 
+// Network
+#include <sys/types.h>
+#include <sys/socket.h>
+
 #include "Packet.h"
 #include "Main.h"
 
@@ -9,7 +13,7 @@ extern std::vector<Player*> pvector;
 
 extern std::string PasswordISC;
 
-extern SOCKET forum;
+extern int forum;
 extern char *temp;
 
 extern bool debugs;

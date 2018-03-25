@@ -8,6 +8,9 @@
 #include "Main.h"
 #include "Item.h"
 
+#define strcpy_s strcpy
+#define sscanf_s sscanf
+
 using namespace std;
 
 extern vector<Player*> pvector;
@@ -167,7 +170,7 @@ int LoadMobs()
 
 					z.getline(getdrops, 100);
 
-					sscanf_s(getdrops, "%d %d %f", &itemid, &qty, &chance);
+					sscanf(getdrops, "%d %d %f", &itemid, &qty, &chance);
 
 					MonsterDrop md = MonsterDrop();
 
@@ -548,7 +551,8 @@ int LoadChars()
 					p->y = (float)(p->mapId->ySize - 64);
 
 				p->slot = atoi(slot);
-				strcpy_s(p->owner, t);
+				p->owner = t;
+				//strcpy_s(p->owner, t);
 
 				CheckSkills(p);
 				CheckClassSkills(p);
@@ -770,7 +774,7 @@ int LoadNPC()
 
 				z.getline(temp, 100);
 
-				sscanf_s(temp, "%d", &menus);
+				sscanf(temp, "%d", &menus);
 
 				if(menus > 0)
 				{
@@ -792,7 +796,7 @@ int LoadNPC()
 
 				z.getline(temp, 100);
 
-				sscanf_s(temp, "%d", &menus);
+				sscanf(temp, "%d", &menus);
 
 				if(menus > 0)
 				{
@@ -810,7 +814,7 @@ int LoadNPC()
 
 				z.getline(temp, 100);
 
-				sscanf_s(temp, "%d", &menus);
+				sscanf(temp, "%d", &menus);
 
 				if(menus > 0)
 				{

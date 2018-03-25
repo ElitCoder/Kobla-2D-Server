@@ -8,7 +8,16 @@
 #include "Command.h"
 #include "BufferCheck.h"
 
+#define strcpy_s strcpy
+#define strcat_s strcat
+#define sscanf_s sscanf
+#define _itoa_s itoa_own
+
 using namespace std;
+
+void itoa_own(int num, char* buffer, int base, int length) {
+	strcpy(buffer, to_string(num).c_str());
+}
 
 extern vector<Player*> pvector;
 extern vector<Monster*> mobs;
@@ -632,7 +641,7 @@ void Client::Move(char *b)
 		pak.addLongInt((int)this->p->y);
 
 		pak.ready();
-		SendAllOnMap(pak, 0, this->p->mapId->id, this->sock);
+		SendAllOnMap(pak, 0, this->p->mapId->id, getConnection());
 	}
 }
 
@@ -665,7 +674,7 @@ void Client::StopMove(char *b)
 		pak.addLongInt((int)this->p->y);
 
 		pak.ready();
-		SendAllOnMap(pak, 0, this->p->mapId->id, this->sock);
+		SendAllOnMap(pak, 0, this->p->mapId->id, getConnection());
 	}
 }
 
@@ -848,7 +857,7 @@ void Client::PlayerPosition(float x, float y, int param)
 
 	pak.ready();
 
-	SendAllOnMap(pak, 0, this->p->mapId->id, this->sock);
+	SendAllOnMap(pak, 0, this->p->mapId->id, getConnection());
 
 	if(param != OTHER)
 		this->AddPacket(pak, 0);
@@ -877,7 +886,7 @@ void Client::Unspawn(int param)
 		pak.addLongInt(this->p->getId());
 
 		pak.ready();
-		SendAllOnMap(pak, 0, this->p->mapId->id, this->sock);
+		SendAllOnMap(pak, 0, this->p->mapId->id, getConnection());
 
 		if(this->ingame)
 			this->ingame = false;
@@ -938,7 +947,7 @@ void Client::SpawnForMap(int map)
 	pak.ready();
 
 	if(this->p->pt == NULL)
-		SendAllOnMap(pak, 0, this->p->mapId->id, this->sock);
+		SendAllOnMap(pak, 0, this->p->mapId->id, getConnection());
 
 	else
 	{
@@ -956,7 +965,7 @@ void Client::SpawnForMap(int map)
 						{
 							if(c->p->pt != this->p->pt)
 							{
-								if(this->sock != c->GetSocket())
+								if(getConnection() != c->getConnection()
 									c->AddPacket(pak, 0);
 							}
 						}
@@ -1030,7 +1039,7 @@ void Client::SpawnForMap(int map)
 						{
 							if(c->p->pt == this->p->pt)
 							{
-								if(this->sock != c->GetSocket())
+								if(getConnection() != c->getConnection())
 									c->AddPacket(pak2, 0);
 							}
 						}
@@ -1162,7 +1171,7 @@ void Client::SpawnForMap(int map)
 			pakn.addInt(npc.at(i)->menu.size());
 			
 			for(unsigned int y = 0; y < npc.at(i)->menu.size(); y++)
-				pakn.addString(npc.at(i)->menu.at(y).text);
+				pakn.addString(npc.at(i)->menu.at(y).text_);
 
 			pakn.ready();
 			this->AddPacket(pakn, 0);
@@ -1762,7 +1771,7 @@ void Client::Chat(char *msg)
 	{
 		char command[200] = "";
 
-		sscanf_s(msg, "%s", &command, 200);
+		sscanf_s(msg, "%s", &command);
 
 		if(strcmp(command, "/tele") == 0)
 		{
@@ -4527,7 +4536,7 @@ void Client::AcceptInvite(char *b)
 		{
 			char full[100] = "";
 
-			strcpy_s(full, this->p->name);
+			strcpy_s(full, this->p->name.c_str());
 			strcat_s(full, " refused to join your party.");
 
 			SystemChat(inviteFrom, CUSTOM, NULL, full);
@@ -4698,8 +4707,11 @@ void Client::InviteToParty(char *name)
 				pm2->online = true;
 				pm2->setTimer = false;
 
-				strcpy_s(pm->name, this->p->name);
-				strcpy_s(pm2->name, target->p->name);
+				pm->name_ = p->name_;
+				pm2->name_ = target->p->name;
+
+				//strcpy_s(pm->name, this->p->name);
+				//strcpy_s(pm2->name, target->p->name);
 
 				p->members.push_back(pm);
 				p->members.push_back(pm2);
@@ -4752,7 +4764,8 @@ void Client::InviteToParty(char *name)
 						pm->online = true;
 						pm->setTimer = false;
 
-						strcpy_s(pm->name, target->p->name);
+						pm->name_ = target->p->name;
+						//strcpy_s(pm->name_, target->p->name);
 
 						target->p->pt = this->p->pt;
 
@@ -4769,7 +4782,7 @@ void Client::InviteToParty(char *name)
 
 						char full[100] = "";
 
-						strcpy_s(full, target->p->name);
+						strcpy_s(full, target->p->name.c_str());
 						strcat_s(full, " has joined the party.");
 
 						for(unsigned int i = 0; i < this->p->pt->members.size(); i++)
@@ -4863,7 +4876,7 @@ void Client::LeaveParty()
 
 				char otherSystemChat[100] = "";
 
-				strcpy_s(otherSystemChat, this->p->name);
+				strcpy_s(otherSystemChat, this->p->name.c_str());
 				strcat_s(otherSystemChat, " has left the party.");
 
 				for(unsigned int z = 0; z < cpt->members.size(); z++)
@@ -4897,7 +4910,7 @@ void Client::KickFromParty(char *name)
 	{
 		if(this->p->pt->members.at(0)->mb->p->getId() == this->p->getId())
 		{
-			if(strcmp(this->p->name, name) == 0)
+			if(strcmp(this->p->name.c_str(), name) == 0)
 			{
 				SystemChat(this, CUSTOM, NULL, "You can not kick yourself.");
 			}

@@ -4,6 +4,10 @@
 #include "Packet.h"
 #include "Handle.h"
 
+#define sprintf_s snprintf
+
+using namespace std;
+
 extern std::vector<Client*> ac;
 
 void Packet::addHeader(int header)
@@ -54,16 +58,20 @@ void Packet::addString(const string& message)
 
 void Packet::addLongString(const char* add)
 {
+	addLongInt(strlen(add));
+	
+	/*
 	int strleng = strlen(add);
 	char buf[20] = "";
 
 	_itoa_s(strleng, buf, 10);
 	this->addString(buf);
+	*/
 
 	if((unsigned)this->packetlen <= ((this->pos + strlen(add))))
 		this->newBuffer(strlen(add));
 
-	for(int i = 0; i < strleng; i++)
+	for(int i = 0; i < strlen(add); i++)
 	{
 		this->packet[this->pos] = add[i];
 		this->pos++;
@@ -72,10 +80,14 @@ void Packet::addLongString(const char* add)
 
 void Packet::addLongInt(int add)
 {
+	addString(to_string(add));
+	
+	/*
 	char buf[20] = "";
 
 	_itoa_s(add, buf, 10);
 	this->addString(buf);
+	*/
 }
 
 void Packet::addFloat(float add)
@@ -163,6 +175,7 @@ void SendAllInParty(Packet pak, Party *pt, Map *map, const Connection& connectio
 {
 	bool doTo = true;
 	bool doMap = true;
+	int sock = connection.getSocket();
 
 	if(sock == 0)
 		doTo = false;
@@ -188,7 +201,7 @@ void SendAllInParty(Packet pak, Party *pt, Map *map, const Connection& connectio
 							{
 								if(doTo)
 								{
-									if(sock != c->GetSocket())
+									if(c->getConnection() != sock)
 										c->AddPacket(pak, 0);
 								}
 
@@ -216,7 +229,7 @@ void SendAllInParty(Packet pak, Party *pt, Map *map, const Connection& connectio
 					{
 						if(doTo)
 						{
-							if(sock != c->GetSocket())
+							if(c->getConnection() != sock)
 								c->AddPacket(pak, 0);
 						}
 
@@ -232,6 +245,7 @@ void SendAllInParty(Packet pak, Party *pt, Map *map, const Connection& connectio
 void SendAllOnMap(Packet pak, long delay, int mId, const Connection& connection)
 {
 	bool doTo = true;
+	int sock = connection.getSocket();
 
 	if(sock == 0)
 		doTo = false;
@@ -250,7 +264,7 @@ void SendAllOnMap(Packet pak, long delay, int mId, const Connection& connection)
 					{
 						if(doTo)
 						{
-							if(sock != c->GetSocket())
+							if(c->getConnection() != sock) 
 								c->AddPacket(pak, delay);
 						}
 
@@ -275,18 +289,26 @@ unsigned char *Packet::getPacket()
 
 std::string IntToString(int intt)
 {
+	return to_string(intt);
+	
+	/*
 	char itoado[20] = "";
 	_itoa_s(intt, itoado, 20, 10);
 
 	std::string retVal = itoado;
 	return retVal;
+	*/
 }
 
 std::string FloatToString(float floatt)
 {
+	return to_string(floatt);
+	
+	/*
 	char buf[20] = "";
 	sprintf_s(buf, 20, "%2.2f", floatt);
 
 	std::string retVal = buf;
 	return retVal;
+	*/
 }

@@ -2,7 +2,7 @@
 
 using namespace std;
 
-extern SOCKET server;
+extern int server;
 
 extern std::vector<Client*> ac;
 
