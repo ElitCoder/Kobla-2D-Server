@@ -64,3 +64,8 @@ void Connection::processedPacket() {
     
     in_queue_.pop_front();
 }
+
+// TODO: Implement this on a later stage
+bool Connection::isVerified() const {
+    return true;
+}

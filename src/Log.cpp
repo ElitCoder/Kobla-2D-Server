@@ -38,6 +38,9 @@ Log::~Log() {
 		case NETWORK: PRINT_STREAM << "[NETWORK]";
 			break;
 			
+		case GAME: PRINT_STREAM << "[GAME]";
+			break;
+			
 		default: PRINT_STREAM << "[UNKNOWN ENUM]";
 	}
 	

@@ -3,6 +3,7 @@
 
 #include "Connection.h"
 #include "Packet.h"
+#include "Player.h"
 
 class Game {
 public:
@@ -12,6 +13,16 @@ public:
 	void logic();
 	
 private:
+	Player* getPlayer(const Connection& connection);
+	
+	void handleLogin();
+	void handleGetCharacters();
+	
+	std::vector<Player> players_;
+	
+	Player* current_player_;
+	Connection* current_connection_;
+	Packet* current_packet_;
 };
 
 #endif

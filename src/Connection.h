@@ -20,6 +20,8 @@ public:
     PartialPacket& getIncomingPacket();
     void processedPacket();
     
+    bool isVerified() const;
+    
 private:
     int socket_;
     

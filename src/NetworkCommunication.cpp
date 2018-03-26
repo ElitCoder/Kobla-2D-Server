@@ -414,6 +414,13 @@ void NetworkCommunication::addOutgoingPacket(const int fd, const Packet &packet)
     mOutgoingCV.notify_one();
 }
 
+void NetworkCommunication::send(const Connection* connection, const Packet& packet) {
+    if (connection == nullptr)
+        return;
+        
+    addOutgoingPacket(connection->getSocket(), packet);
+}
+
 void NetworkCommunication::removeOutgoingPacket() {
     lock_guard<mutex> guard(mOutgoingMutex);
     

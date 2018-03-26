@@ -46,6 +46,7 @@ public:
     std::pair<int, Packet>& waitForOutgoingPackets();
     void removeOutgoingPacket();
     void addOutgoingPacket(const int fd, const Packet &packet);
+    void send(const Connection* connection, const Packet& packet);
     
     std::pair<int, Packet>* waitForProcessingPackets();
     void removeProcessingPacket();

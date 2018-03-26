@@ -11,7 +11,8 @@ enum {
 	NONE,
 	ERROR,
 	WARNING,
-	NETWORK
+	NETWORK,
+	GAME
 };
 
 class Log : public std::ostringstream {
