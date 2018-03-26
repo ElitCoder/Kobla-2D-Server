@@ -39,7 +39,21 @@ vector<string> NetworkCommunication::getStats() {
     string incoming =       "Number of incoming packets in queue: " + to_string(mIncomingPackets.size());
     string outgoing =       "Number of outgoing packets in queue: " + to_string(mOutgoingPackets.size());
     
-    return { connections, incoming, outgoing };
+    vector<string> lines = { connections, incoming, outgoing };
+    
+    if (!mConnections.empty()) {
+        string values = "";
+        
+        for (auto& peer : mConnections) {
+            auto& connection = peer.second;
+            
+            values += to_string(connection.getSocket()) + ": " + to_string(connection.waitingForRealProcessing()) + ", ";
+        }
+        
+        lines.push_back(values);
+    }
+    
+    return lines;
 }
 
 static void statsThread(NetworkCommunication& network) {
@@ -281,7 +295,7 @@ void NetworkCommunication::setFileDescriptorsReceive(fd_set &readSet, fd_set &er
     
     lock_guard<mutex> guard(mConnectionsMutex);
     
-    for_each(mConnections.begin(), mConnections.end(), [&readSet, &errorSet] (pair<mutex*, Connection> &connectionPair) {        
+    for_each(mConnections.begin(), mConnections.end(), [&readSet, &errorSet] (auto& connectionPair) {
         FD_SET(connectionPair.second.getSocket(), &readSet);
         FD_SET(connectionPair.second.getSocket(), &errorSet);
     });
@@ -313,6 +327,14 @@ bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, u
         bool removeConnection = false;
         mutex *connectionMutex = connectionPair.first;      
         Connection &connection = connectionPair.second;
+        
+        if (connection.waitingForRealProcessing() > NetworkConstants::MAX_WAITING_PACKETS_PER_CLIENT) {
+            //Log(DEBUG) << "Buffer filled " << connection.waitingForRealProcessing() << "\n";
+            
+            continue;
+        } else {
+            //Log(DEBUG) << "BUFFER OKAY\n";
+        }
         
         if(FD_ISSET(connection.getSocket(), &errorSet)) {
             Log(WARNING) << "errorSet was set in connection\n";
@@ -346,6 +368,8 @@ bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, u
             else {
                 assemblePacket(buffer, received, connection);
             }
+            
+            //Log(DEBUG) << "Received " << received << " bytes\n";
         }
         
         if(removeConnection) {

@@ -7,6 +7,8 @@
 
 using namespace std;
 
+mutex Connection::waiting_processing_mutex_;
+
 Connection::Connection(const int socket) {
     socket_ = socket;
     
@@ -17,6 +19,9 @@ Connection::Connection(const int socket) {
     
     if (setsockopt(socket_, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&on), sizeof(on)) < 0)
         Log(WARNING) << "Could not set TCP_NODELAY\n";
+        
+    lock_guard<mutex> lock(waiting_processing_mutex_);    
+    waiting_processing_ = 0;
 }
 
 bool Connection::operator==(const Connection &connection) {
@@ -63,9 +68,29 @@ void Connection::processedPacket() {
     }
     
     in_queue_.pop_front();
+    addRealProcessing();
 }
 
 // TODO: Implement this on a later stage
 bool Connection::isVerified() const {
     return true;
+}
+
+size_t Connection::waitingForRealProcessing() {
+    lock_guard<mutex> lock(waiting_processing_mutex_);
+    
+    return waiting_processing_;
+}
+
+void Connection::finishRealProcessing() {
+    lock_guard<mutex> lock(waiting_processing_mutex_);
+    
+    if (waiting_processing_ > 0)
+        waiting_processing_--;
+}
+
+void Connection::addRealProcessing() {
+    lock_guard<mutex> lock(waiting_processing_mutex_);
+    
+    waiting_processing_++;
 }

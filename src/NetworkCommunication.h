@@ -9,7 +9,8 @@
 #include <deque>
 
 enum NetworkConstants {
-    BUFFER_SIZE = 4096
+    BUFFER_SIZE = 4096,
+    MAX_WAITING_PACKETS_PER_CLIENT = 1000
 };
 
 class EventPipe {

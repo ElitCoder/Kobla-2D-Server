@@ -4,7 +4,8 @@
 #include "Packet.h"
 #include "PartialPacket.h"
 
-#include <list>
+#include <deque>
+#include <mutex>
 
 class Connection {
 public:
@@ -22,10 +23,17 @@ public:
     
     bool isVerified() const;
     
+    size_t waitingForRealProcessing();
+    void finishRealProcessing();
+    void addRealProcessing();
+    
 private:
     int socket_;
+    std::deque<PartialPacket> in_queue_;
     
-    std::list<PartialPacket> in_queue_;
+    size_t waiting_processing_;
+    // TODO: Change this, will be slowdowns with multiple connections
+    static std::mutex waiting_processing_mutex_;
 };
 
 #endif

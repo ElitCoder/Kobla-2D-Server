@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// TODO: Only single threaded processing/logic for now
 static mutex g_main_sync;
 
 static void printStart() {
@@ -55,6 +56,7 @@ static void process() {
 		g_main_sync.unlock();
 		
 		// Remove packet from processing queue
+		connection_pair->second.finishRealProcessing();
 		Base::network().unlockConnection(*connection_pair);
 		Base::network().removeProcessingPacket();
 	}
