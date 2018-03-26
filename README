@@ -1,0 +1,6 @@
+Kobla-2D-Server
+
+Back-end server for Kobla, rebase under development.
+
+BUILDING:
+./create.sh
