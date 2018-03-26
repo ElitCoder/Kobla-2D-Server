@@ -16,3 +16,13 @@ Packet PacketCreator::unknown() {
 	
 	return packet;
 }
+
+Packet PacketCreator::spawn() {
+	Packet packet;
+	packet.addHeader(HEADER_SPAWN);
+	// Hard-coded map-id
+	packet.addInt(0);
+	packet.finalize();
+	
+	return packet;
+}

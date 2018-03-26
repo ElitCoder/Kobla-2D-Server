@@ -7,13 +7,15 @@ enum {
 	HEADER_LOGIN,
 	HEADER_GET_CHARACTERS,
 	HEADER_PING_ALIVE,
-	HEADER_UNKNOWN
+	HEADER_UNKNOWN,
+	HEADER_SPAWN
 };
 
 class PacketCreator {
 public:
 	static Packet answerLogin(bool success);
 	static Packet unknown();
+	static Packet spawn();
 };
 
 #endif

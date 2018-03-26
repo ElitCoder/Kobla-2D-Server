@@ -40,6 +40,12 @@ void Game::handleUnknownPacket() {
 	Base::network().send(current_connection_, PacketCreator::unknown());
 }
 
+void Game::handleSpawn() {
+	auto answer = PacketCreator::spawn();
+	
+	Base::network().send(current_connection_, answer);
+}
+
 void Game::process(Connection& connection, Packet& packet) {
 	auto* player = connection.isVerified() ? getPlayer(connection) : nullptr;
 	auto header = packet.getByte();
@@ -53,6 +59,9 @@ void Game::process(Connection& connection, Packet& packet) {
 			break;
 			
 		case HEADER_GET_CHARACTERS: handleGetCharacters();
+			break;
+			
+		case HEADER_SPAWN: handleSpawn();
 			break;
 			
 		default: {
