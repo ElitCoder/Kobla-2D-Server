@@ -43,7 +43,6 @@ static void process() {
 		auto& fd_packet = Base::network().waitForProcessingPackets();
 		auto* connection_pair = Base::network().getConnectionAndLock(fd_packet.first);
 		
-		// TODO: Rewrite this so the sync timer is not skipped if the connection disconnected
 		if (connection_pair == nullptr) {
 			Base::network().removeProcessingPacket();
 			
