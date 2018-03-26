@@ -8,3 +8,11 @@ Packet PacketCreator::answerLogin(bool success) {
 	
 	return packet;
 }
+
+Packet PacketCreator::unknown() {
+	Packet packet;
+	packet.addHeader(HEADER_UNKNOWN);
+	packet.finalize();
+	
+	return packet;
+}

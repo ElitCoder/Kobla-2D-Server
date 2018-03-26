@@ -30,6 +30,40 @@ void receiveThread(NetworkCommunication &networkCommunication) {
     Log(ERROR) << "Terminating receiveThread\n";
 }
 
+vector<string> NetworkCommunication::getStats() {
+    lock_guard<mutex> connection_guard(mConnectionsMutex);
+    lock_guard<mutex> incoming_guard(mIncomingMutex);
+    lock_guard<mutex> outgoing_guard(mOutgoingMutex);
+    
+    string connections =    "Number of connections: " + to_string(mConnections.size());
+    string incoming =       "Number of incoming packets in queue: " + to_string(mIncomingPackets.size());
+    string outgoing =       "Number of outgoing packets in queue: " + to_string(mOutgoingPackets.size());
+    
+    return { connections, incoming, outgoing };
+}
+
+static void statsThread(NetworkCommunication& network) {
+    if (!Base::settings().get<bool>("stats"))
+        return;
+        
+    auto next_sync = chrono::system_clock::now() + chrono::milliseconds(3000);
+    
+    while (true) {
+        if ((chrono::system_clock::now() - next_sync).count() > 0) {
+            auto stats = network.getStats();
+            
+            Log(INFORMATION) << "Network stats:\n";
+            
+            for (auto& line : stats)
+                Log(INFORMATION) << line << endl;
+            
+            next_sync += chrono::milliseconds(3000);
+		}
+        
+        this_thread::sleep_for(chrono::milliseconds(300));
+    }
+}
+
 void sendThread(NetworkCommunication &networkCommunication) {
     signal(SIGPIPE, SIG_IGN);
 
@@ -213,6 +247,7 @@ NetworkCommunication::~NetworkCommunication() {
     mAcceptThread.detach();
     mReceiveThread.detach();
     mSendThread.detach();
+    mStatsThread.detach();
 }
 
 // Same as old constructor
@@ -226,6 +261,7 @@ void NetworkCommunication::start(unsigned short port, int wait_incoming) {
     mAcceptThread = thread(acceptThread, ref(*this));
     mReceiveThread = thread(receiveThread, ref(*this));
     mSendThread = thread(sendThread, ref(*this));
+    mStatsThread = thread(statsThread, ref(*this));
 }
 
 void NetworkCommunication::setFileDescriptorsAccept(fd_set &readSet, fd_set &errorSet) {
@@ -469,7 +505,13 @@ pair<int, Packet>& NetworkCommunication::waitForProcessingPackets() {
 */
 
 // TODO: Make this multithreaded: return packet instead of pointer and DO NOT keep the packet in the queue
-pair<int, Packet>* NetworkCommunication::waitForProcessingPackets() {
+pair<int, Packet>& NetworkCommunication::waitForProcessingPackets() {
+    unique_lock<mutex> lock(mIncomingMutex);
+    mIncomingCV.wait(lock, [this] { return !mIncomingPackets.empty(); });
+    
+    return mIncomingPackets.front();
+    
+    /*
     unique_lock<mutex> lock(mIncomingMutex);
     
     if(mIncomingCV.wait_for(lock, chrono::milliseconds(wait_incoming_), [this] { return !mIncomingPackets.empty(); })) {
@@ -477,6 +519,7 @@ pair<int, Packet>* NetworkCommunication::waitForProcessingPackets() {
     }
     
     return nullptr;
+    */
 }
 
 void NetworkCommunication::removeProcessingPacket() {

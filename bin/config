@@ -1,2 +1,3 @@
 # Network
 port: 11000
+stats: 0

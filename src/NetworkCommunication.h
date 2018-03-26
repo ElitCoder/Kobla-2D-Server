@@ -4,9 +4,9 @@
 #include "Connection.h"
 
 #include <thread>
-#include <list>
 #include <mutex>
 #include <condition_variable>
+#include <deque>
 
 enum NetworkConstants {
     BUFFER_SIZE = 4096
@@ -48,11 +48,12 @@ public:
     void addOutgoingPacket(const int fd, const Packet &packet);
     void send(const Connection* connection, const Packet& packet);
     
-    std::pair<int, Packet>* waitForProcessingPackets();
+    std::pair<int, Packet>& waitForProcessingPackets();
     void removeProcessingPacket();
     
     void addOutgoingPacketToAllExcept(const Packet &packet, const std::vector<int> &except);
-    //void addOutgoingPacketToAllExceptUnsafe(const Packet &packet, const std::vector<int> &except);
+    
+    std::vector<std::string> getStats();
     
 private:
     void assemblePacket(const unsigned char *buffer, const unsigned int received, Connection &connection);
@@ -62,15 +63,15 @@ private:
     int mSocket;
     EventPipe mPipe;
     
-    std::thread mReceiveThread, mSendThread, mAcceptThread;
+    std::thread mReceiveThread, mSendThread, mAcceptThread, mStatsThread;
     
     std::mutex mIncomingMutex;
     std::condition_variable mIncomingCV;
-    std::list<std::pair<int, Packet>> mIncomingPackets;
+    std::deque<std::pair<int, Packet>> mIncomingPackets;
     
     std::mutex mOutgoingMutex;
     std::condition_variable mOutgoingCV;
-    std::list<std::pair<int, Packet>> mOutgoingPackets;
+    std::deque<std::pair<int, Packet>> mOutgoingPackets;
     
     std::mutex mConnectionsMutex;
     std::vector<std::pair<std::mutex*, Connection>> mConnections;

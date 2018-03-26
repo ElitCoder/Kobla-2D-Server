@@ -17,6 +17,7 @@ private:
 	
 	void handleLogin();
 	void handleGetCharacters();
+	void handleUnknownPacket();
 	
 	std::vector<Player> players_;
 	

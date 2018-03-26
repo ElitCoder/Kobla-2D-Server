@@ -6,8 +6,27 @@
 
 using namespace std;
 
+static mutex g_main_sync;
+
 static void printStart() {
 	Log(NONE) << "Kobla-2D-Server-Rebased [alpha] [" << __DATE__ << " @ " << __TIME__ << "]\n";
+}
+
+static void logic() {
+	auto next_sync = chrono::system_clock::now();
+	
+	while (true) {
+		if ((chrono::system_clock::now() - next_sync).count() > 0) {
+			next_sync += chrono::milliseconds(PACKET_WAIT_TIME);
+			
+			// Handle logic
+			g_main_sync.lock();
+			Base::game().logic();
+			g_main_sync.unlock();
+		}
+		
+		this_thread::sleep_for(chrono::milliseconds(PACKET_WAIT_TIME / 10));
+	}
 }
 
 static void process() {
@@ -17,41 +36,35 @@ static void process() {
 	Log(DEBUG) << "Starting network\n";
 	Base::network().start(port, PACKET_WAIT_TIME);
 	
-	printStart();
-	
-	auto next_sync = chrono::system_clock::now();
-	
+	thread sync_thread(logic);
+
 	while (true) {
-		auto* fd_packet = Base::network().waitForProcessingPackets();
+		auto& fd_packet = Base::network().waitForProcessingPackets();
+		auto* connection_pair = Base::network().getConnectionAndLock(fd_packet.first);
 		
-		if (fd_packet != nullptr) {
-			auto* connection_pair = Base::network().getConnectionAndLock(fd_packet->first);
-			
-			// TODO: Rewrite this so the sync timer is not skipped
-			if (connection_pair == nullptr) {
-				Base::network().removeProcessingPacket();
-				
-				continue;
-			}
-			
-			// Handle packet
-			Base::game().process(connection_pair->second, fd_packet->second);
-			
-			// Remove packet from processing queue
-			Base::network().unlockConnection(*connection_pair);
+		// TODO: Rewrite this so the sync timer is not skipped if the connection disconnected
+		if (connection_pair == nullptr) {
 			Base::network().removeProcessingPacket();
+			
+			continue;
 		}
 		
-		if ((chrono::system_clock::now() - next_sync).count() > 0) {
-			next_sync += chrono::milliseconds(PACKET_WAIT_TIME);
-			
-			// Handle logic
-			Base::game().logic();
-		}
+		// Handle packet
+		g_main_sync.lock();
+		Base::game().process(connection_pair->second, fd_packet.second);
+		g_main_sync.unlock();
+		
+		// Remove packet from processing queue
+		Base::network().unlockConnection(*connection_pair);
+		Base::network().removeProcessingPacket();
 	}
+	
+	sync_thread.detach();
 }
 
 int main() {
+	printStart();
+	
 	Log(DEBUG) << "Parsing config\n";
 	Base::settings().parse("config");
 	

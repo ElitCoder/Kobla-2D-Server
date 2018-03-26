@@ -36,6 +36,10 @@ void Game::handleLogin() {
 void Game::handleGetCharacters() {
 }
 
+void Game::handleUnknownPacket() {
+	Base::network().send(current_connection_, PacketCreator::unknown());
+}
+
 void Game::process(Connection& connection, Packet& packet) {
 	auto* player = connection.isVerified() ? getPlayer(connection) : nullptr;
 	auto header = packet.getByte();
@@ -51,7 +55,10 @@ void Game::process(Connection& connection, Packet& packet) {
 		case HEADER_GET_CHARACTERS: handleGetCharacters();
 			break;
 			
-		default: Log(NETWORK) << "Unknown packet header " << header << endl;
+		default: {
+			Log(NETWORK) << "Unknown packet header " << header << endl;
+			handleUnknownPacket();
+		}
 	}
 	
 	current_player_ = nullptr;
