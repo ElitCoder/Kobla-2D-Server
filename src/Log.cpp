@@ -1,5 +1,8 @@
 #include "Log.h"
 
+#define PRINT_STREAM	(std::cout)
+#define FLUSH_STREAM	(std::flush)
+
 using namespace std;
 
 mutex Log::print_mutex_;
@@ -32,8 +35,14 @@ Log::~Log() {
 		case WARNING: PRINT_STREAM << "[WARNING]";
 			break;
 			
+		case NETWORK: PRINT_STREAM << "[NETWORK]";
+			break;
+			
 		default: PRINT_STREAM << "[UNKNOWN ENUM]";
 	}
 	
-	PRINT_STREAM << " " << str();
+	if (level_ != NONE)
+		PRINT_STREAM << " ";
+	
+	PRINT_STREAM << str() << FLUSH_STREAM;
 }

@@ -193,6 +193,22 @@ NetworkCommunication::NetworkCommunication() {
 }
 
 NetworkCommunication::~NetworkCommunication() {
+    lock_guard<mutex> incoming_guard(mIncomingMutex);
+    lock_guard<mutex> outgoing_guard(mOutgoingMutex);
+    lock_guard<mutex> connection_guard(mConnectionsMutex);
+    
+    for_each(mConnections.begin(), mConnections.end(), [] (auto& connection_peer) {
+        connection_peer.first->lock();
+        close(connection_peer.second.getSocket());
+        connection_peer.first->unlock();
+        
+        delete connection_peer.first;
+    });
+    
+    mIncomingPackets.clear();
+    mOutgoingPackets.clear();
+    mConnections.clear();
+    
     // Detach threads, preventing the destructor to SIGABRT the whole program
     mAcceptThread.detach();
     mReceiveThread.detach();

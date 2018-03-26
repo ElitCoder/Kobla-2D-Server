@@ -5,14 +5,13 @@
 #include <iostream>
 #include <sstream>
 
-#define PRINT_STREAM	(std::cout)
-
 enum {
 	DEBUG,
 	INFORMATION,
 	NONE,
 	ERROR,
-	WARNING
+	WARNING,
+	NETWORK
 };
 
 class Log : public std::ostringstream {
