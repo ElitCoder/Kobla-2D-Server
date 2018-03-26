@@ -12,6 +12,35 @@ void process() {
 	
 	Log(DEBUG) << "Starting network\n";
 	Base::network().start(port, PACKET_WAIT_TIME);
+	
+	auto next_sync = chrono::system_clock::now();
+	
+	while (true) {
+		auto* fd_packet = Base::network().waitForProcessingPackets();
+		
+		if (fd_packet != nullptr) {
+			auto* connection_pair = Base::network().getConnectionAndLock(fd_packet->first);
+			
+			// TODO: Rewrite this so the sync timer is not skipped
+			if (connection_pair == nullptr) {
+				Base::network().removeProcessingPacket();
+				
+				continue;
+			}
+			
+			// Handle packet
+			
+			// Remove packet from processing queue
+			Base::network().unlockConnection(*connection_pair);
+			Base::network().removeProcessingPacket();
+		}
+		
+		if ((chrono::system_clock::now() - next_sync).count() > 0) {
+			next_sync += chrono::milliseconds(PACKET_WAIT_TIME);
+			
+			// Handle logic
+		}
+	}
 }
 
 int main() {

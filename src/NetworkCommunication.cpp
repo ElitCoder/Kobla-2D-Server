@@ -445,6 +445,7 @@ pair<int, Packet>& NetworkCommunication::waitForProcessingPackets() {
 }
 */
 
+// TODO: Make this multithreaded: return packet instead of pointer and DO NOT keep the packet in the queue
 pair<int, Packet>* NetworkCommunication::waitForProcessingPackets() {
     unique_lock<mutex> lock(mIncomingMutex);
     
