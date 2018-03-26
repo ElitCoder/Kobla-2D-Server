@@ -29,6 +29,9 @@ Log::~Log() {
 		case ERROR: PRINT_STREAM << "[ERROR]";
 			break;
 			
+		case WARNING: PRINT_STREAM << "[WARNING]";
+			break;
+			
 		default: PRINT_STREAM << "[UNKNOWN ENUM]";
 	}
 	

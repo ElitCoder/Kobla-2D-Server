@@ -3,12 +3,11 @@
 #include "Log.h"
 
 #include <algorithm>
-#include <iostream>
+#include <csignal>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <fcntl.h>
-#include <csignal>
 
 using namespace std;
 
@@ -28,7 +27,7 @@ void receiveThread(NetworkCommunication &networkCommunication) {
     
     delete[] buffer;
     
-    cout << "ERROR: terminating receiveThread\n";
+    Log(ERROR) << "Terminating receiveThread\n";
 }
 
 void sendThread(NetworkCommunication &networkCommunication) {
@@ -70,7 +69,7 @@ void sendThread(NetworkCommunication &networkCommunication) {
         }
     }
     
-    cout << "ERROR: terminating sendThread\n";
+    Log(ERROR) << "Terminating sendThread\n";
 }
 
 void acceptThread(NetworkCommunication &networkCommunication) {
@@ -86,7 +85,7 @@ void acceptThread(NetworkCommunication &networkCommunication) {
         }
     }
     
-    cout << "ERROR: terminating acceptThread\n";
+    Log(ERROR) << "Terminating acceptThread\n";
 }
 
 bool setupServer(int &masterSocket, const unsigned short port) {
@@ -95,7 +94,7 @@ bool setupServer(int &masterSocket, const unsigned short port) {
     masterSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     
     if(masterSocket < 0) {
-        cout << "ERROR: socket() failed\n";
+        Log(ERROR) << "socket() failed\n";
         
         return false;
     }
@@ -103,7 +102,7 @@ bool setupServer(int &masterSocket, const unsigned short port) {
     int on = 1;
     
     if(setsockopt(masterSocket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&on), sizeof(on)) < 0) {
-        cout << "ERROR: not reusable address\n";
+        Log(ERROR) << "Not reusable address\n";
         
         return false;
     }
@@ -114,7 +113,7 @@ bool setupServer(int &masterSocket, const unsigned short port) {
     socketInformation.sin_port = htons(port);
     
     if(bind(masterSocket, reinterpret_cast<sockaddr*>(&socketInformation), sizeof(socketInformation)) < 0) {
-        cout << "ERROR: bind() failed\n";
+        Log(ERROR) << "bind() failed\n";
         
         close(masterSocket);
         return false;
@@ -123,7 +122,7 @@ bool setupServer(int &masterSocket, const unsigned short port) {
     size_t socketInformationSize = sizeof(socketInformation);
 
 	if(getsockname(masterSocket, reinterpret_cast<sockaddr*>(&socketInformation), reinterpret_cast<socklen_t*>(&socketInformationSize)) < 0) {
-        cout << "ERROR: could not get address information\n";
+        Log(ERROR) << "Could not get address information\n";
         
         close(masterSocket);
         return false;
@@ -143,7 +142,7 @@ unsigned int NetworkCommunication::processBuffer(const unsigned char *buffer, co
         }
         
         if(insert > received) {
-            cout << "ERROR: trying to insert more data than available in buffer, insert = " << insert << ", received = " << received << endl;
+            Log(ERROR) << "Trying to insert more data than available in buffer, insert = " << insert << ", received = " << received << endl;
         }
         
         partialPacket.addData(buffer, insert);
@@ -156,7 +155,7 @@ unsigned int NetworkCommunication::processBuffer(const unsigned char *buffer, co
         unsigned int adding = received > leftHeader ? leftHeader : received;
         
         if(adding > received) {
-            cout << "ERROR: trying to insert more data than available in buffer, adding = " << adding << ", received = " << received << endl;
+            Log(ERROR) << "Trying to insert more data than available in buffer, adding = " << adding << ", received = " << received << endl;
         }
         
         partialPacket.addData(buffer, adding);
@@ -193,8 +192,17 @@ void NetworkCommunication::moveProcessedPacketsToQueue(Connection &connection) {
 NetworkCommunication::NetworkCommunication() {
 }
 
+NetworkCommunication::~NetworkCommunication() {
+    // Detach threads, preventing the destructor to SIGABRT the whole program
+    mAcceptThread.detach();
+    mReceiveThread.detach();
+    mSendThread.detach();
+}
+
 // Same as old constructor
-void NetworkCommunication::start(unsigned short port) {
+void NetworkCommunication::start(unsigned short port, int wait_incoming) {
+    wait_incoming_ = wait_incoming;
+    
     if(!setupServer(mSocket, port)) {
         return;
     }
@@ -229,19 +237,19 @@ void NetworkCommunication::setFileDescriptorsReceive(fd_set &readSet, fd_set &er
 
 bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, unsigned char *buffer) {    
     if(select(FD_SETSIZE, &readSet, NULL, &errorSet, NULL) == 0) {
-        cout << "ERROR: select() returned 0 when there's no timeout\n";
+        Log(ERROR) << "select() returned 0 when there's no timeout\n";
         
         return false;
     }
     
     if(FD_ISSET(mPipe.getSocket(), &errorSet)) {
-        cout << "ERROR: errorSet was set in pipe, errno = " << errno << '\n';
+        Log(ERROR) << "errorSet was set in pipe, errno = " << errno << '\n';
         
         return false;
     }
     
     if(FD_ISSET(mPipe.getSocket(), &readSet)) {
-        cout << "INFO: pipe was activated\n";
+        Log(DEBUG) << "Pipe was activated\n";
         
         mPipe.resetPipe();
         return true;
@@ -251,65 +259,53 @@ bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, u
         
     for(auto& connectionPair : mConnections) {
         bool removeConnection = false;
-        mutex *connectionMutex = connectionPair.first;
+        mutex *connectionMutex = connectionPair.first;      
+        Connection &connection = connectionPair.second;
         
-        {            
-            //lock_guard<mutex> connectionGuard(*connectionMutex);
-            Connection &connection = connectionPair.second;
+        if(FD_ISSET(connection.getSocket(), &errorSet)) {
+            Log(WARNING) << "errorSet was set in connection\n";
             
-            if(FD_ISSET(connection.getSocket(), &errorSet)) {
-                cout << "WARNING: errorSet was set in connection\n";
-                
-                removeConnection = true;
-            }
+            removeConnection = true;
+        }
+        
+        else if(FD_ISSET(connection.getSocket(), &readSet)) {
+            int received = recv(connection.getSocket(), buffer, BUFFER_SIZE, 0);
             
-            else if(FD_ISSET(connection.getSocket(), &readSet)) {
-                int received = recv(connection.getSocket(), buffer, BUFFER_SIZE, 0);
-                
-                if(received <= 0) {
-                    if(received == 0) {
-                        cout << "INFO: connection disconnected\n";
-                        
-                        removeConnection = true;
-                    }
+            if(received <= 0) {
+                if(received == 0) {
+                    Log(INFORMATION) << "Connection disconnected\n";
                     
-                    else {
-                        if(errno == EWOULDBLOCK || errno == EAGAIN) {
-                            cout << "WARNING: EWOULDBLOCK activated\n";
-                        }
-                        
-                        else {
-                            cout << "WARNING: connection failed with errno = " << errno << '\n';
-                            
-                            removeConnection = true;
-                        }
-                    }
+                    removeConnection = true;
                 }
                 
                 else {
-                    assemblePacket(buffer, received, connection);
+                    if(errno == EWOULDBLOCK || errno == EAGAIN) {
+                        Log(WARNING) << "EWOULDBLOCK activated\n";
+                    }
+                    
+                    else {
+                        Log(WARNING) << "Connection failed with errno = " << errno << '\n';
+                        
+                        removeConnection = true;
+                    }
                 }
             }
             
-            if(removeConnection) {
-                lock_guard<mutex> removeGuard(*connectionMutex);
-                
-                /*
-                if(connection.getPlayer() != nullptr) {
-                    connection.getPlayer()->setOnlineStatus(false);
-                    
-                    Base::mGame->removePlayer(connection);
-                }
-                */
-                
-                if(close(connection.getSocket()) < 0) {
-                    cout << "ERROR: close() got errno = " << errno << endl;
-                }
-                
-                mConnections.erase(remove_if(mConnections.begin(), mConnections.end(), [&connection] (pair<mutex*, Connection> &connectionPair) {
-                    return connectionPair.second == connection;
-                }));
+            else {
+                assemblePacket(buffer, received, connection);
             }
+        }
+        
+        if(removeConnection) {
+            lock_guard<mutex> removeGuard(*connectionMutex);
+            
+            if(close(connection.getSocket()) < 0) {
+                Log(ERROR) << "close() got errno = " << errno << endl;
+            }
+            
+            mConnections.erase(remove_if(mConnections.begin(), mConnections.end(), [&connection] (pair<mutex*, Connection> &connectionPair) {
+                return connectionPair.second == connection;
+            }));
         }
         
         if(removeConnection) {
@@ -320,6 +316,8 @@ bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, u
     return true;
 }
 
+// Should not be needed since mConnectionsMutex is unlocked every run?
+/*
 void NetworkCommunication::addOutgoingPacketToAllExceptUnsafe(const Packet &packet, const vector<int> &except) {
     for_each(mConnections.begin(), mConnections.end(), [&packet, &except, this] (pair<mutex*, Connection> &connectionPair) {
         if(find_if(except.begin(), except.end(), [&connectionPair] (const int fd) { return connectionPair.second == fd; }) != except.end()) {
@@ -329,6 +327,7 @@ void NetworkCommunication::addOutgoingPacketToAllExceptUnsafe(const Packet &pack
         addOutgoingPacket(connectionPair.second.getSocket(), packet);
     });
 }
+*/
 
 void NetworkCommunication::addOutgoingPacketToAllExcept(const Packet &packet, const std::vector<int> &except) {
     lock_guard<mutex> guard(mConnectionsMutex);
@@ -349,13 +348,13 @@ void NetworkCommunication::addOutgoingPacketToAllExcept(const Packet &packet, co
 
 bool NetworkCommunication::runSelectAccept(fd_set &readSet, fd_set &errorSet) {
     if(select(FD_SETSIZE, &readSet, NULL, &errorSet, NULL) == 0) {
-        cout << "ERROR: select() returned 0 when there's no timeout\n";
+        Log(ERROR) << "select() returned 0 when there's no timeout\n";
         
         return false;
     }
     
     if(FD_ISSET(mSocket, &errorSet)) {
-        cout << "ERROR: masterSocket received an error\n";
+        Log(ERROR) << "masterSocket received an error\n";
         
         return false;
     }
@@ -364,20 +363,19 @@ bool NetworkCommunication::runSelectAccept(fd_set &readSet, fd_set &errorSet) {
         int newSocket = accept(mSocket, 0, 0);
         
         if(newSocket < 0) {
-            cout << "ERROR: accept() failed with " << errno << endl;
+            Log(ERROR) << "accept() failed with " << errno << endl;
             
             return false;
         }
         
         {
             lock_guard<mutex> guard(mConnectionsMutex);
-            mConnections.push_back({new mutex, move(Connection(newSocket))});
-            //mConnections.back().second.setPlayer(new Player("Bert", "", {150000, 171, 150000}, {1, 1, 1}, 0, true)); // REMOVE THIS LATER ON
+            mConnections.push_back({ new mutex, Connection(newSocket) });
         }
         
         mPipe.setPipe();
         
-        cout << "INFO: connection added\n";
+        Log(INFORMATION) << "Connection added\n";
     }
     
     return true;
@@ -404,7 +402,7 @@ void NetworkCommunication::removeOutgoingPacket() {
     lock_guard<mutex> guard(mOutgoingMutex);
     
     if(mOutgoingPackets.empty()) {
-        cout << "ERROR: trying to pop when outgoingPackets is empty\n";
+        Log(ERROR) << "Trying to pop when outgoingPackets is empty\n";
         
         return;
     }
@@ -430,7 +428,7 @@ pair<std::mutex*, Connection>* NetworkCommunication::getConnectionAndLock(const 
 
 void NetworkCommunication::unlockConnection(pair<mutex*, Connection> &connectionPair) {
     if(connectionPair.first == nullptr) {
-        cout << "ERROR: trying to unlock mutex which is nullptr\n";
+        Log(ERROR) << "Trying to unlock mutex which is nullptr\n";
         
         return;
     }
@@ -450,7 +448,7 @@ pair<int, Packet>& NetworkCommunication::waitForProcessingPackets() {
 pair<int, Packet>* NetworkCommunication::waitForProcessingPackets() {
     unique_lock<mutex> lock(mIncomingMutex);
     
-    if(mIncomingCV.wait_for(lock, chrono::milliseconds(10), [this] { return !mIncomingPackets.empty(); })) {
+    if(mIncomingCV.wait_for(lock, chrono::milliseconds(wait_incoming_), [this] { return !mIncomingPackets.empty(); })) {
         return &mIncomingPackets.front();
     }
     
@@ -461,7 +459,7 @@ void NetworkCommunication::removeProcessingPacket() {
     lock_guard<mutex> guard(mIncomingMutex);
     
     if(mIncomingPackets.empty()) {
-        cout << "ERROR: trying to pop_front when incomingPackets is empty\n";
+        Log(ERROR) << "Trying to pop_front when incomingPackets is empty\n";
         
         return;
     }
@@ -471,11 +469,11 @@ void NetworkCommunication::removeProcessingPacket() {
 
 EventPipe::EventPipe() {
     if(pipe(mPipes) < 0) {
-        cout << "ERROR: failed to create pipe, won't be able to wake threads, errno = " << errno << '\n';
+        Log(ERROR) << "Failed to create pipe, won't be able to wake threads, errno = " << errno << '\n';
     }
     
     if(fcntl(mPipes[0], F_SETFL, O_NONBLOCK) < 0) {
-        cout << "WARNING: failed to set pipe non-blocking mode\n";
+        Log(WARNING) << "Failed to set pipe non-blocking mode\n";
     }
 }
 
@@ -491,7 +489,7 @@ EventPipe::~EventPipe() {
 
 void EventPipe::setPipe() {
     if(write(mPipes[1], "0", 1) < 0) {
-        cout << "ERROR: could not write to pipe, errno = " << errno << '\n';
+        Log(ERROR) << "Could not write to pipe, errno = " << errno << '\n';
     }
 }
 

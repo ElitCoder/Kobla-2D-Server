@@ -11,7 +11,8 @@ enum {
 	DEBUG,
 	INFORMATION,
 	NONE,
-	ERROR
+	ERROR,
+	WARNING
 };
 
 class Log : public std::ostringstream {

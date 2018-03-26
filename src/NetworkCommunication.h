@@ -29,8 +29,9 @@ private:
 class NetworkCommunication {
 public:
     NetworkCommunication();
+    ~NetworkCommunication();
     
-    void start(unsigned short port);
+    void start(unsigned short port, int wait_incoming);
     
     void setFileDescriptorsAccept(fd_set &readSet, fd_set &errorSet);
     void setFileDescriptorsReceive(fd_set &readSet, fd_set &errorSet);
@@ -50,7 +51,7 @@ public:
     void removeProcessingPacket();
     
     void addOutgoingPacketToAllExcept(const Packet &packet, const std::vector<int> &except);
-    void addOutgoingPacketToAllExceptUnsafe(const Packet &packet, const std::vector<int> &except);
+    //void addOutgoingPacketToAllExceptUnsafe(const Packet &packet, const std::vector<int> &except);
     
 private:
     void assemblePacket(const unsigned char *buffer, const unsigned int received, Connection &connection);
@@ -72,6 +73,8 @@ private:
     
     std::mutex mConnectionsMutex;
     std::vector<std::pair<std::mutex*, Connection>> mConnections;
+    
+    int wait_incoming_;
 };
 
 #endif

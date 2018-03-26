@@ -1,6 +1,5 @@
 #include "PartialPacket.h"
-
-#include <iostream>
+#include "Log.h"
 
 using namespace std;
 
@@ -13,7 +12,7 @@ unsigned int PartialPacket::getSize() const {
 
 void PartialPacket::setFullSize() {
     if(m_data.size() < 4) {
-        cout << "ERROR: trying to set full size at partial packet when size < 4\n";
+        Log(ERROR) << "Trying to set full size at partial packet when size < 4\n";
         
         return;
     }
@@ -27,7 +26,7 @@ unsigned int PartialPacket::getFullSize() const {
 
 void PartialPacket::addData(const unsigned char *buffer, const unsigned int size) {
     if(buffer == nullptr || size == 0) {
-        cout << "ERROR: trying to insert nullptr or size = 0 data in partial packet\n";
+        Log(ERROR) << "Trying to insert nullptr or size = 0 data in partial packet\n";
         
         return;
     }

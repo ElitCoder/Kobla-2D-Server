@@ -1,8 +1,8 @@
 #include "Config.h"
+#include "Log.h"
 
 #include <vector>
 #include <fstream>
-#include <iostream>
 
 using namespace std;
 
@@ -28,7 +28,7 @@ void Config::parse(const string& filename) {
 	ifstream file(filename);
 	
 	if (!file.is_open()) {
-		cout << "Warning: could not open config\n";
+		Log(WARNING) << "Could not open config\n";
 		
 		return;
 	}
@@ -44,7 +44,7 @@ void Config::parse(const string& filename) {
 		// Remove ':' from the setting
 		tokens.front().pop_back();
 		
-		cout << "Set key " << tokens.front() << " to value " << tokens.back() << endl;
+		Log(DEBUG) << "Set key " << tokens.front() << " to value " << tokens.back() << endl;
 		
 		add({ tokens.front(), tokens.back() });
 	}

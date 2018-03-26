@@ -11,13 +11,7 @@ public:
     Packet();
     Packet(const unsigned char *buffer, const unsigned int size);
     
-    Packet(const Packet &packet);
-    Packet(Packet &&packet) = delete;
-    
     Packet(PartialPacket &&partialPacket);
-    
-    Packet& operator=(const Packet &packet) = delete;
-    Packet& operator=(Packet &&packet) = delete;
     
     void addHeader(const unsigned char header);
     void addString(const std::string &str);

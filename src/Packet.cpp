@@ -1,7 +1,7 @@
 #include "Packet.h"
+#include "Log.h"
 
 #include <array>
-#include <iostream>
 #include <cstring>
 
 using namespace std;
@@ -11,7 +11,7 @@ Packet::Packet() : m_sent(0), m_read(0), m_finalized(false) {
 
 Packet::Packet(const unsigned char *buffer, const unsigned int size) : m_sent(0), m_read(0), m_finalized(false) {
     if(buffer == nullptr || size == 0) {
-        cout << "WARNING: trying to create packet with empty buffer\n";
+        Log(WARNING) << "Trying to create packet with empty buffer\n";
         
         return;
     }
@@ -23,7 +23,7 @@ Packet::Packet(PartialPacket &&partialPacket) : m_sent(0), m_read(0), m_finalize
     m_packet = move(partialPacket.getData());
     
     if(m_packet.size() < 4) {
-        cout << "ERROR: trying to remove header from partialPacket when m_packet is < 4\n";
+        Log(ERROR) << "Trying to remove header from partialPacket when m_packet is < 4\n";
         
         return;
     }
@@ -31,16 +31,9 @@ Packet::Packet(PartialPacket &&partialPacket) : m_sent(0), m_read(0), m_finalize
     m_packet.erase(m_packet.begin(), m_packet.begin() + 4);
 }
 
-Packet::Packet(const Packet &packet) {
-    m_sent = packet.m_sent;
-    m_read = packet.m_read;
-    m_finalized = packet.m_finalized;
-    m_packet = packet.m_packet;
-}
-
 void Packet::addHeader(const unsigned char header) {
     if(isFinalized()) {
-        cout << "ERROR: can't add anything to a finalized packet\n";
+        Log(ERROR) << "Can't add anything to a finalized packet\n";
         
         return;
     }
@@ -50,14 +43,13 @@ void Packet::addHeader(const unsigned char header) {
 
 void Packet::addString(const string &str) {
     if(isFinalized()) {
-        cout << "ERROR: can't add anything to a finalized packet\n";
+        Log(ERROR) << "Can't add anything to a finalized packet\n";
         
         return;
     }
     
-    if(str.length() == 0) {
-        cout << "WARNING: trying to add an empty string to packet\n";
-    }
+    if(str.length() == 0)
+        Log(WARNING) << "Trying to add an empty string to packet\n";
     
     addInt(str.length());
     m_packet.insert(m_packet.end(), str.begin(), str.end());
@@ -65,13 +57,13 @@ void Packet::addString(const string &str) {
 
 void Packet::addPointer(const unsigned char *ptr, const unsigned int size) {
     if(isFinalized()) {
-        cout << "ERROR: can't add anything to a finalized packet\n";
+        Log(ERROR) << "Can't add anything to a finalized packet\n";
         
         return;
     }
     
     if(ptr == nullptr || size == 0) {
-        cout << "ERROR: trying to add a nullptr or size = 0 to packet\n";
+        Log(ERROR) << "Trying to add a nullptr or size = 0 to packet\n";
     }
     
     addInt(size);
@@ -80,7 +72,7 @@ void Packet::addPointer(const unsigned char *ptr, const unsigned int size) {
 
 void Packet::addInt(const int nbr) {
     if(isFinalized()) {
-        cout << "ERROR: can't add anything to a finalized packet\n";
+        Log(ERROR) << "Can't add anything to a finalized packet\n";
         
         return;
     }
@@ -93,7 +85,7 @@ void Packet::addInt(const int nbr) {
 
 void Packet::addBool(const bool val) {
     if(isFinalized()) {
-        cout << "ERROR: can't add anything to a finalized packet\n";
+        Log(ERROR) << "Can't add anything to a finalized packet\n";
         
         return;
     }
@@ -103,16 +95,10 @@ void Packet::addBool(const bool val) {
 
 void Packet::addFloat(const float nbr) {
     if(isFinalized()) {
-        cout << "ERROR: can't add anything to a finalized packet\n";
+        Log(ERROR) << "Can't add anything to a finalized packet\n";
         
         return;
     }
-    
-    /*
-    string floatString = to_string(nbr);
-    
-    addString(floatString);
-    */
     
     string floatString = to_string(nbr);
     
@@ -127,12 +113,6 @@ float Packet::getFloat() {
     m_read += length;
     
     return stof(str);
-    
-    /*
-    string floatString = getString();
-    
-    return stof(floatString);
-    */
 }
 
 string Packet::getString() {
@@ -146,7 +126,7 @@ string Packet::getString() {
 
 const unsigned char* Packet::getData() const {
     if(!isFinalized()) {
-        cout << "ERROR: can't return data from packet not finalized\n";
+        Log(ERROR) << "Can't return data from packet not finalized\n";
         
         return nullptr;
     }
@@ -154,7 +134,7 @@ const unsigned char* Packet::getData() const {
     const unsigned char *data = m_packet.data();
     
     if(data == nullptr) {
-        cout << "ERROR: trying to return data from packet when nullptr\n";
+        Log(ERROR) << "Trying to return data from packet when nullptr\n";
     }
     
     return data;
@@ -162,7 +142,7 @@ const unsigned char* Packet::getData() const {
 
 unsigned int Packet::getSize() const {
     if(!isFinalized()) {
-        cout << "ERROR: can't return size of data from packet not finalized\n";
+        Log(ERROR) << "Can't return size of data from packet not finalized\n";
         
         return 0;
     }
@@ -178,7 +158,7 @@ unsigned char Packet::getByte() {
     try {
         return m_packet.at(m_read++);
     } catch(const out_of_range &e) {
-        cout << "ERROR: trying to read beyond packet size, m_read = " << m_read << " packet size = " << m_packet.size() << endl;
+        Log(ERROR) << "Trying to read beyond packet size, m_read = " << m_read << " packet size = " << m_packet.size() << endl;
         
         return 0;
     }
@@ -191,7 +171,7 @@ int Packet::getInt() {
         nbr = (m_packet.at(m_read) << 24) | (m_packet.at(m_read + 1) << 16) | (m_packet.at(m_read + 2) << 8) | m_packet.at(m_read + 3); 
         m_read += 4;
     } catch(...) {
-        cout << "ERROR: trying to read beyond packet size, m_read = " << m_read << " packet size = " << m_packet.size() << endl;
+        Log(ERROR) << "Trying to read beyond packet size, m_read = " << m_read << " packet size = " << m_packet.size() << endl;
         
         return 0;
     }
@@ -213,7 +193,7 @@ bool Packet::isFinalized() const {
 
 void Packet::finalize() {
     if(isFinalized()) {
-        cout << "ERROR: packet is already finalized\n";
+        Log(ERROR) << "Packet is already finalized\n";
         
         return;
     }
