@@ -7,8 +7,9 @@ class Character {
 public:
 	Character();
 	
-private:
+protected:
 	std::string name_;
+	size_t id_;
 };
 
 #endif

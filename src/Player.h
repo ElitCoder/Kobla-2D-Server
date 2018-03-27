@@ -10,8 +10,6 @@ public:
 	int getConnectionID() const;
 	
 private:
-	size_t id_;
-	
 	// Use Connection getSocket() for ID
 	int connection_id_;
 };

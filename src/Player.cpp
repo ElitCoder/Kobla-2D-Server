@@ -1,10 +1,10 @@
 #include "Player.h"
+#include "Log.h"
 
 Player::Player() {
-	static size_t id;
-	
-	id_ = id++;
 	connection_id_ = -1;
+	
+	Log(DEBUG) << "Running constructor for Player\n";
 }
 
 int Player::getConnectionID() const {
