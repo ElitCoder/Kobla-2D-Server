@@ -20,8 +20,20 @@ Packet PacketCreator::unknown() {
 Packet PacketCreator::spawn() {
 	Packet packet;
 	packet.addHeader(HEADER_SPAWN);
-	// Hard-coded map-id
+	
+	// Map ID
 	packet.addInt(0);
+	
+	// Player texture ID
+	packet.addInt(0);
+	
+	// Player position x, y
+	packet.addInt(100);
+	packet.addInt(100);
+	
+	// Player name
+	packet.addString("Igge");
+	
 	packet.finalize();
 	
 	return packet;
