@@ -1,11 +1,13 @@
 #!/bin/bash
 
+cores=`grep --count ^processor /proc/cpuinfo`
+
 function build {
 	if [ $# -ne 0 ]; then
 		make clean
 	fi
 	
-	make -j 5
+	make -j $cores
 	
 	if [ $? -ne 0 ]; then
 		exit 1
