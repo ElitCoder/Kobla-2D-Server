@@ -16,7 +16,7 @@ Character::Character() {
 	y_ = 100;
 	texture_id_ = 0;
 	map_id_ = 0;
-	moving_speed_ = 120;
+	moving_speed_ = 400;
 	
 	name_ = "Igge" + to_string(getID());
 }

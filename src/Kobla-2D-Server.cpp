@@ -26,7 +26,7 @@ static void logic() {
 			g_main_sync.unlock();
 		}
 		
-		this_thread::sleep_for(chrono::milliseconds(PACKET_WAIT_TIME / 10));
+		this_thread::sleep_for(chrono::milliseconds(PACKET_WAIT_TIME));
 	}
 }
 
