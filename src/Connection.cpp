@@ -22,6 +22,11 @@ Connection::Connection(const int socket) {
         
     lock_guard<mutex> lock(waiting_processing_mutex_);    
     waiting_processing_ = 0;
+    
+    static size_t unique_id;
+    unique_id_ = unique_id++;
+    
+    Log(DEBUG) << "Creating ID " << unique_id_ << endl;
 }
 
 bool Connection::operator==(const Connection &connection) {
@@ -30,6 +35,10 @@ bool Connection::operator==(const Connection &connection) {
 
 bool Connection::operator==(const int fd) {
     return socket_ == fd;
+}
+
+size_t Connection::getUniqueID() const {
+    return unique_id_;
 }
 
 int Connection::getSocket() const {

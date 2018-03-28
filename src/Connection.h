@@ -9,7 +9,7 @@
 
 class Connection {
 public:
-    Connection(const int socket);
+    explicit Connection(const int socket);
     
     bool operator==(const Connection &connection);
     bool operator==(const int fd);
@@ -27,6 +27,8 @@ public:
     void finishRealProcessing();
     void addRealProcessing();
     
+    size_t getUniqueID() const;
+    
 private:
     int socket_;
     std::deque<PartialPacket> in_queue_;
@@ -34,6 +36,8 @@ private:
     size_t waiting_processing_;
     // TODO: Change this, will be slowdowns with multiple connections
     static std::mutex waiting_processing_mutex_;
+    
+    size_t unique_id_;
 };
 
 #endif

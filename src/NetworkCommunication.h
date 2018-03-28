@@ -52,7 +52,8 @@ public:
     std::pair<int, Packet>& waitForProcessingPackets();
     void removeProcessingPacket();
     
-    void addOutgoingPacketToAllExcept(const Packet &packet, const std::vector<int> &except);
+    void sendToAllExcept(const Packet &packet, const std::vector<int> &except);
+    void sendToAllExceptUnsafe(const Packet &packet, const std::vector<int> &except);
     
     std::vector<std::string> getStats();
     

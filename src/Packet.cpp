@@ -106,6 +106,10 @@ void Packet::addFloat(const float nbr) {
     m_packet.insert(m_packet.end(), floatString.begin(), floatString.end());
 }
 
+bool Packet::getBool() {
+    return m_packet.at(m_read++) == 1 ? true : false;
+}
+
 float Packet::getFloat() {
     unsigned char length = m_packet.at(m_read++);
     

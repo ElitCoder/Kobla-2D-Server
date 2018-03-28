@@ -12,13 +12,18 @@ public:
 	void process(Connection& connection, Packet& packet);
 	void logic();
 	
+	void disconnected(const Connection& connection);
+	
 private:
+	void addPlayer(const Player& player);
 	Player* getPlayer(const Connection& connection);
+	std::vector<Player*> getPlayersOnMap(const std::vector<Player*>& except, int map_id);
 	
 	void handleLogin();
 	void handleGetCharacters();
 	void handleUnknownPacket();
 	void handleSpawn();
+	void handleMove();
 	
 	std::vector<Player> players_;
 	

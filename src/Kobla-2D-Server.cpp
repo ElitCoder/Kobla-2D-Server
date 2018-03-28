@@ -6,8 +6,8 @@
 
 using namespace std;
 
-// TODO: Only single threaded processing/logic for now
-static mutex g_main_sync;
+// TODO: Only single threaded processing/logic/disconnecting for now
+mutex g_main_sync;
 
 static void printStart() {
 	Log(NONE) << "Kobla-2D-Server-Rebased [alpha] [" << __DATE__ << " @ " << __TIME__ << "]\n";

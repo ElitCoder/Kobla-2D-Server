@@ -7,11 +7,12 @@ class Player : public Character {
 public:
 	Player();
 	
-	int getConnectionID() const;
+	size_t getConnectionID() const;
+	void setConnectionID(size_t id);
 	
 private:
-	// Use Connection getSocket() for ID
-	int connection_id_;
+	// Use Connection getUniqueID() for ID
+	size_t connection_id_;
 };
 
 #endif

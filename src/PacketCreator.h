@@ -2,20 +2,28 @@
 #define PACKET_CREATOR_H
 
 #include "Packet.h"
+#include "Character.h"
+#include "Player.h"
 
 enum {
 	HEADER_LOGIN,
 	HEADER_GET_CHARACTERS,
 	HEADER_PING_ALIVE,
 	HEADER_UNKNOWN,
-	HEADER_SPAWN
+	HEADER_SPAWN,
+	HEADER_MOVE,
+	HEADER_ADD_PLAYER,
+	HEADER_REMOVE_CHARACTER
 };
 
 class PacketCreator {
 public:
 	static Packet answerLogin(bool success);
 	static Packet unknown();
-	static Packet spawn();
+	static Packet spawn(const Player& player);
+	static Packet move(const Character* character);
+	static Packet addPlayer(const Player& player);
+	static Packet remove(const Character* character);
 };
 
 #endif

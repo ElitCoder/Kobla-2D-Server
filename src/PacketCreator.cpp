@@ -17,23 +17,58 @@ Packet PacketCreator::unknown() {
 	return packet;
 }
 
-Packet PacketCreator::spawn() {
+// Adding the same things anyway
+static void playerAddInformation(Packet& packet, const Player& player) {
+	packet.addInt(player.getTextureID());
+	packet.addFloat(player.getX());
+	packet.addFloat(player.getY());
+	packet.addString(player.getName());
+	packet.addFloat(player.getMovingSpeed());
+}
+
+Packet PacketCreator::spawn(const Player& player) {
 	Packet packet;
 	packet.addHeader(HEADER_SPAWN);
+	packet.addInt(player.getMapID());
 	
-	// Map ID
-	packet.addInt(0);
+	playerAddInformation(packet, player);
 	
-	// Player texture ID
-	packet.addInt(0);
+	packet.finalize();
 	
-	// Player position x, y
-	packet.addInt(100);
-	packet.addInt(100);
+	return packet;
+}
+
+Packet PacketCreator::addPlayer(const Player& player) {
+	Packet packet;
+	packet.addHeader(HEADER_ADD_PLAYER);
+	packet.addInt(player.getID());
+	packet.addBool(player.isMoving());
+	packet.addInt(player.getMovingDirection());
 	
-	// Player name
-	packet.addString("Igge");
+	playerAddInformation(packet, player);
+
+	packet.finalize();
 	
+	return packet;
+}
+
+Packet PacketCreator::move(const Character* character) {
+	Packet packet;
+	packet.addHeader(HEADER_MOVE);
+	packet.addBool(character->isMoving());
+	packet.addFloat(character->getX());
+	packet.addFloat(character->getY());
+	packet.addInt(character->getMovingDirection());
+	packet.addInt(character->getID());
+	packet.finalize();
+	
+	return packet;
+}
+
+Packet PacketCreator::remove(const Character* character) {
+	Packet packet;
+	packet.addHeader(HEADER_REMOVE_CHARACTER);
+	packet.addInt(character->getID());
 	packet.finalize();
 	
 	return packet;
