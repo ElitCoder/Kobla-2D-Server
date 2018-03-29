@@ -132,6 +132,9 @@ void Game::parseMaps(const vector<pair<int, deque<string>>>& maps) {
 		string tmp;
 		
 		while (getline(file, tmp)) {
+			if (tmp.empty() || tmp.front() == '#')
+				continue;
+
 			auto tokens = getTokens(tmp, ' ');
 			
 			// Remove ':'
