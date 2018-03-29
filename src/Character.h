@@ -18,6 +18,9 @@ public:
 	void move();
 	
 	void setPosition(double x, double y);
+	void setName(const std::string& name);
+	void setTextureID(int texture_id);
+	void setMapID(int map_id);
 	
 	bool isMoving() const;
 	double getX() const;

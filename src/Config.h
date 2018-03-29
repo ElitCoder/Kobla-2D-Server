@@ -3,33 +3,57 @@
 
 #include <map>
 #include <sstream>
+#include <deque>
+#include <vector>
 
 struct NoConfigException {
 };
 
 class Config {
 public:
-	static void parse(const std::string& filename);
-	static void clear();
+	void parse(const std::string& filename);
+	void clear();
+	
+	std::map<std::string, std::deque<std::string>>& internal();
 	
 	template<class T>
-	static T get(const std::string& key) {
+	T get(const std::string& key) {
 		auto iterator = configs_.find(key);
 		
 		if (iterator == configs_.end())
 			throw NoConfigException();
 			
-		std::istringstream stream(iterator->second);
+		std::istringstream stream(iterator->second.front());
 		T value;
 		stream >> value;
 		
 		return value;
 	}
 	
-private:
-	static void add(const std::pair<std::string, std::string>& config);
+	template<class T>
+	std::vector<T> getAll(const std::string& key) {
+		auto iterator = configs_.find(key);
+		
+		if (iterator == configs_.end())
+			throw NoConfigException();
+			
+		std::vector<T> values;
+		
+		for (auto& string_value : iterator->second) {
+			std::istringstream stream(string_value);
+			T value;
+			stream >> value;
+			
+			values.push_back(value);
+		}
+		
+		return values;
+	}
 	
-	static std::map<std::string, std::string> configs_;
+private:
+	void add(const std::pair<std::string, std::deque<std::string>>& config);
+	
+	std::map<std::string, std::deque<std::string>> configs_;
 };
 
 #endif

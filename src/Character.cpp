@@ -106,3 +106,15 @@ const string& Character::getName() const {
 double Character::getMovingSpeed() const {
 	return moving_speed_;
 }
+
+void Character::setName(const string& name) {
+	name_ = name;
+}
+
+void Character::setTextureID(int texture_id) {
+	texture_id_ = texture_id;
+}
+
+void Character::setMapID(int map_id) {
+	map_id_ = map_id;
+}

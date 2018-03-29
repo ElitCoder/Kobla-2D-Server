@@ -22,7 +22,7 @@ public:
 	static Packet unknown();
 	static Packet spawn(const Player& player);
 	static Packet move(const Character* character);
-	static Packet addPlayer(const Player& player);
+	static Packet addPlayer(const Character* character);
 	static Packet remove(const Character* character);
 };
 

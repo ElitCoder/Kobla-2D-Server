@@ -6,15 +6,13 @@
 
 using namespace std;
 
-map<string, string> Config::configs_;
-
-void Config::add(const pair<string, string>& config) {
+void Config::add(const pair<string, deque<string>>& config) {
 	configs_[config.first] = config.second;
 }
 
-static vector<string> getTokens(string input, char delimiter) {
+static deque<string> getTokens(string input, char delimiter) {
 	istringstream stream(input);
-	vector<string> tokens;
+	deque<string> tokens;
 	string token;
 	
 	while (getline(stream, token, delimiter))
@@ -45,8 +43,10 @@ void Config::parse(const string& filename) {
 		tokens.front().pop_back();
 		
 		Log(DEBUG) << "Set key " << tokens.front() << " to value " << tokens.back() << endl;
+		string key = tokens.front();
+		tokens.pop_front();
 		
-		add({ tokens.front(), tokens.back() });
+		add({ key, tokens });
 	}
 	
 	file.close();
@@ -54,4 +54,8 @@ void Config::parse(const string& filename) {
 
 void Config::clear() {
 	configs_.clear();
+}
+
+map<string, deque<string>>& Config::internal() {
+	return configs_;
 }

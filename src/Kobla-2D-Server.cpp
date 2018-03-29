@@ -34,6 +34,9 @@ static void process() {
 	Log(DEBUG) << "Getting port information\n";
 	const unsigned int port = Base::settings().get<unsigned short>("port");
 	
+	// Load game information before starting network
+	Base::game().load();
+	
 	Log(DEBUG) << "Starting network\n";
 	Base::network().start(port, PACKET_WAIT_TIME);
 	

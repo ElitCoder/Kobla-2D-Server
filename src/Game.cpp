@@ -4,6 +4,7 @@
 #include "PacketCreator.h"
 
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -46,6 +47,124 @@ void Game::process(Connection& connection, Packet& packet) {
 void Game::logic() {
 	for (auto& player : players_)
 		player.move();
+}
+
+static void loadDataID(vector<pair<int, deque<string>>>& container, const string& path) {
+	if (!container.empty())
+		return;
+		
+	Config config;
+	config.parse(path);
+	
+	for (auto& peer : config.internal())
+		container.push_back({ stoi(peer.first), peer.second });
+}
+
+/*
+static deque<string> findDataId(vector<pair<int, deque<string>>>& container, int id) {
+	auto iterator = find_if(container.begin(), container.end(), [id] (auto& peer) { return peer.first == id; });
+	
+	if (iterator == container.end()) {
+		Log(WARNING) << "Can't find ID from parsing config\n";
+		
+		return deque<string>();
+	}
+	
+	return (*iterator).second;
+}
+*/
+
+void Game::parseNPCs(const vector<pair<int, deque<string>>>& npcs) {
+	for (auto& peer : npcs) {
+		auto id = peer.first;
+		auto name = peer.second.front();
+		
+		Config config;
+		config.parse("data/npcs/" + name);
+		
+		auto real_name = config.get<string>("name");
+		auto texture_id = config.get<int>("texture_id");
+		
+		NPC npc;
+		npc.setNPCID(id);
+		npc.setName(real_name);
+		npc.setTextureID(texture_id);
+		
+		reference_npcs_.push_back(npc);
+	}
+}
+
+NPC* Game::getReferenceNPC(int id) {
+	auto iterator = find_if(reference_npcs_.begin(), reference_npcs_.end(), [&id] (auto& npc) { return npc.getNPCID() == (unsigned int)id; });
+	
+	if (iterator == reference_npcs_.end()) {
+		Log(WARNING) << "Could not find reference NPC with ID " << id << endl;
+		
+		return nullptr;
+	}
+		
+	return &*iterator;
+}
+
+static deque<string> getTokens(string input, char delimiter) {
+	istringstream stream(input);
+	deque<string> tokens;
+	string token;
+	
+	while (getline(stream, token, delimiter))
+		if (!token.empty())
+			tokens.push_back(token);
+	
+	return tokens;
+}
+
+// TODO: Make this better later on
+void Game::parseMaps(const vector<pair<int, deque<string>>>& maps) {
+	for (auto& peer : maps) {
+		auto id = peer.first;
+		auto name = peer.second.front();
+		
+		ifstream file("data/maps/" + name);
+		
+		if (!file.is_open())
+			Log(WARNING) << "Could not open Map file " << name << endl;
+			
+		string tmp;
+		
+		while (getline(file, tmp)) {
+			auto tokens = getTokens(tmp, ' ');
+			
+			// Remove ':'
+			tokens.front().pop_back();
+			
+			// Add NPC
+			if (tokens.front() == "npc") {
+				auto npc_id = stoi(tokens.at(1));
+				auto x = stoi(tokens.at(2));
+				auto y = stoi(tokens.at(3));
+				
+				NPC npc = *getReferenceNPC(npc_id);
+				npc.setPosition(x, y);
+				npc.setMapID(id);
+				
+				npcs_.push_back(npc);
+				
+				Log(DEBUG) << "Added NPC " << npc.getName() << " on map " << id << endl;
+			}
+		}
+	}
+}
+
+void Game::load() {
+	// Load NPCs
+	vector<pair<int, deque<string>>> saved_npcs;
+	loadDataID(saved_npcs, "data/npcs/id");
+	parseNPCs(saved_npcs);
+	
+	// Load maps
+	vector<pair<int, deque<string>>> saved_maps;
+	loadDataID(saved_maps, "data/maps/id");
+	parseMaps(saved_maps);
 }
 
 void Game::disconnected(const Connection& connection) {
@@ -104,6 +223,19 @@ vector<Player*> Game::getPlayersOnMap(const vector<Player*>& except, int map_id)
 	return players;
 }
 
+vector<NPC*> Game::getNPCsOnMap(int map_id) {
+	vector<NPC*> npcs;
+	
+	for (auto& npc : npcs_) {
+		if (npc.getMapID() != map_id)
+			continue;
+			
+		npcs.push_back(&npc);	
+	}
+	
+	return npcs;
+}
+
 void Game::handleLogin() {
 	auto username = current_packet_->getString();
 	auto password = current_packet_->getString();
@@ -137,14 +269,21 @@ void Game::handleSpawn() {
 	auto answer = PacketCreator::spawn(player);
 	Base::network().send(current_connection_, answer);
 	
-	auto other = PacketCreator::addPlayer(player);
+	auto other = PacketCreator::addPlayer(&player);
 	Base::network().sendToAllExcept(other, { current_connection_->getSocket() });
 	
 	// Add the already spawned players
 	auto players = getPlayersOnMap({ &player }, player.getMapID());
 	
 	for_each(players.begin(), players.end(), [this] (auto* other) {
-		auto add_player_packet = PacketCreator::addPlayer(*other);
+		auto add_player_packet = PacketCreator::addPlayer(other);
+		Base::network().send(current_connection_, add_player_packet);
+	});
+	
+	auto npcs = getNPCsOnMap(player.getMapID());
+	
+	for_each(npcs.begin(), npcs.end(), [this] (auto* other) {
+		auto add_player_packet = PacketCreator::addPlayer(other);
 		Base::network().send(current_connection_, add_player_packet);
 	});
 }
