@@ -149,6 +149,8 @@ void Game::parseMaps(const vector<pair<int, deque<string>>>& maps) {
 				NPC npc = *getReferenceNPC(npc_id);
 				npc.setPosition(x, y);
 				npc.setMapID(id);
+				// Otherwise the NPC will have the same ID as the reference
+				npc.setValidID();
 				
 				npcs_.push_back(npc);
 				

@@ -32,6 +32,8 @@ public:
 	const std::string& getName() const;
 	double getMovingSpeed() const;
 	
+	void setValidID();
+	
 protected:
 	Character();
 	

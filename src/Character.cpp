@@ -3,9 +3,10 @@
 
 using namespace std;
 
+static size_t g_character_id;
+
 Character::Character() {
-	static size_t id;
-	id_ = id++;
+	id_ = g_character_id++;
 	
 	Log(DEBUG) << "Running constructor for Character\n";
 	
@@ -19,6 +20,10 @@ Character::Character() {
 	moving_speed_ = 200;
 	
 	name_ = "Igge" + to_string(getID());
+}
+
+void Character::setValidID() {
+	id_ = g_character_id++;
 }
 
 void Character::changeMoveStatus(bool moving, double x, double y, int direction) {
