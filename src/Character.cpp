@@ -19,6 +19,8 @@ Character::Character() {
 	map_id_ = 0;
 	moving_speed_ = 200;
 	collision_ = false;
+	full_health = 100;
+	current_health = full_health;
 	
 	name_ = "Igge" + to_string(getID());
 }

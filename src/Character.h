@@ -53,6 +53,9 @@ protected:
 	
 	int texture_id_;
 	int map_id_;
+	
+	double full_health;
+	double current_health;
 };
 
 #endif
