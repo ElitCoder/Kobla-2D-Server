@@ -145,10 +145,12 @@ void Game::parseMaps(const vector<pair<int, deque<string>>>& maps) {
 				auto npc_id = stoi(tokens.at(1));
 				auto x = stoi(tokens.at(2));
 				auto y = stoi(tokens.at(3));
+				auto collision = stoi(tokens.at(4));
 				
 				NPC npc = *getReferenceNPC(npc_id);
 				npc.setPosition(x, y);
 				npc.setMapID(id);
+				npc.setCollision(collision);
 				// Otherwise the NPC will have the same ID as the reference
 				npc.setValidID();
 				

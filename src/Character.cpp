@@ -18,12 +18,21 @@ Character::Character() {
 	texture_id_ = 0;
 	map_id_ = 0;
 	moving_speed_ = 200;
+	collision_ = false;
 	
 	name_ = "Igge" + to_string(getID());
 }
 
 void Character::setValidID() {
 	id_ = g_character_id++;
+}
+
+void Character::setCollision(bool collision) {
+	collision_ = collision;
+}
+
+bool Character::getCollision() const {
+	return collision_;
 }
 
 void Character::changeMoveStatus(bool moving, double x, double y, int direction) {

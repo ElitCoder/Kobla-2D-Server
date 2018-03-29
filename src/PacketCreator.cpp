@@ -24,12 +24,14 @@ static void playerAddInformation(Packet& packet, const Character* player) {
 	packet.addFloat(player->getY());
 	packet.addString(player->getName());
 	packet.addFloat(player->getMovingSpeed());
+	packet.addBool(player->getCollision());
 }
 
 Packet PacketCreator::spawn(const Player& player) {
 	Packet packet;
 	packet.addHeader(HEADER_SPAWN);
 	packet.addInt(player.getMapID());
+	packet.addInt(player.getID());
 	
 	playerAddInformation(packet, &player);
 	

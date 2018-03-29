@@ -21,6 +21,7 @@ public:
 	void setName(const std::string& name);
 	void setTextureID(int texture_id);
 	void setMapID(int map_id);
+	void setCollision(bool collision);
 	
 	bool isMoving() const;
 	double getX() const;
@@ -31,6 +32,7 @@ public:
 	int getMapID() const;
 	const std::string& getName() const;
 	double getMovingSpeed() const;
+	bool getCollision() const;
 	
 	void setValidID();
 	
@@ -44,6 +46,7 @@ protected:
 	int direction_;
 	bool moving_;
 	double moving_speed_;
+	bool collision_;
 	
 	double x_;
 	double y_;
