@@ -59,9 +59,21 @@ const NPC& Game::getReferenceNPC(int id) const {
 	return *iterator;	
 }
 
+const Monster& Game::getReferenceMonster(int id) const {
+	auto iterator = find_if(reference_monsters_.begin(), reference_monsters_.end(), [&id] (auto& monster) {
+		return monster.getMonsterID() == id;
+	});
+	
+	if (iterator == reference_monsters_.end())
+		Log(ERROR) << "Could not find reference Monster " << id << endl;
+		
+	return *iterator;	
+}
+
 void Game::load() {
 	// Load everything from database
 	Base::database()->parseNPCs(reference_npcs_);
+	Base::database()->parseMonsters(reference_monsters_);
 	Base::database()->parseMaps(maps_);
 }
 
@@ -139,6 +151,10 @@ vector<NPC>& Game::getNPCsOnMap(int map_id) {
 	return map.getNPCs();
 }
 
+vector<Monster>& Game::getMonstersOnMap(int map_id) {
+	return getMap(map_id).getMonsters();
+}
+
 void Game::handleLogin() {
 	auto username = current_packet_->getString();
 	auto password = current_packet_->getString();
@@ -189,9 +205,18 @@ void Game::handleSpawn() {
 		Base::network().send(current_connection_, add_player_packet);
 	});
 	
+	// Add NPCs
 	auto npcs = getNPCsOnMap(player.getMapID());
 	
 	for_each(npcs.begin(), npcs.end(), [this] (auto& other) {
+		auto add_player_packet = PacketCreator::addPlayer(&other);
+		Base::network().send(current_connection_, add_player_packet);
+	});
+	
+	// Add monsters
+	auto monsters = getMonstersOnMap(player.getMapID());
+	
+	for_each(monsters.begin(), monsters.end(), [this] (auto& other) {
 		auto add_player_packet = PacketCreator::addPlayer(&other);
 		Base::network().send(current_connection_, add_player_packet);
 	});

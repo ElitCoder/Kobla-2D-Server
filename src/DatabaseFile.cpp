@@ -13,8 +13,15 @@ using DataContainer = vector<pair<int, deque<string>>>;
 bool DatabaseFile::login(const string& username, const string& password) {
 	// Check login from file
 	
+	// Remove warning for now
+	if (username == password) {}
+	
 	return true;
 }
+
+/*
+	Parsing stuff below
+*/
 
 // Generic data loader
 static DataContainer loadDataID(const string& path) {
@@ -47,6 +54,28 @@ void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {
 		npc.setTextureID(texture_id);
 		
 		reference_npcs.push_back(npc);
+	}
+}
+
+void DatabaseFile::parseMonsters(vector<Monster>& reference_monsters) {
+	auto monsters = loadDataID("data/monsters/id");
+	
+	for (auto& peer : monsters) {
+		auto id = peer.first;
+		auto name = peer.second.front();
+		
+		Config config;
+		config.parse("data/monsters/" + name);
+		
+		auto real_name = config.get<string>("name");
+		auto texture_id = config.get<int>("texture_id");
+		
+		Monster monster;
+		monster.setMonsterID(id);
+		monster.setName(real_name);
+		monster.setTextureID(texture_id);
+		
+		reference_monsters.push_back(monster);
 	}
 }
 
@@ -116,6 +145,18 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				Log(DEBUG) << "Adding spawning point from " << from_x << endl;
 				
 				map.addSpawnPoint(MapSpawnPoint({ from_x, from_y }, { to_x, to_y }));
+			} else if (tokens.front() == "monster") {
+				auto monster_id = stoi(tokens.at(1));
+				auto from_x = stoi(tokens.at(2));
+				auto from_y = stoi(tokens.at(3));
+				auto to_x = stoi(tokens.at(4));
+				auto to_y = stoi(tokens.at(5));
+				auto number = stoi(tokens.at(6));
+				
+				Monster monster = Base::game().getReferenceMonster(monster_id);
+				monster.setMapID(id);
+				
+				map.addMonster(monster, number, MapSpawnPoint({ from_x, from_y }, { to_x, to_y }));
 			}
 		}
 		

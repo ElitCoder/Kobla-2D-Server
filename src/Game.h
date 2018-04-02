@@ -19,11 +19,13 @@ public:
 	
 	// For parsing
 	const NPC& getReferenceNPC(int id) const;
+	const Monster& getReferenceMonster(int id) const;
 	
 private:
 	Map& getMap(int map_id);
 	
 	std::vector<NPC>& getNPCsOnMap(int map_id);
+	std::vector<Monster>& getMonstersOnMap(int map_id);
 	
 	void addPlayer(const Player& player);
 	Player* getPlayer(const Connection& connection);
@@ -38,6 +40,7 @@ private:
 	std::vector<Player> players_;
 	std::vector<Map> maps_;
 	std::vector<NPC> reference_npcs_;
+	std::vector<Monster> reference_monsters_;
 	
 	Player* current_player_;
 	Connection* current_connection_;

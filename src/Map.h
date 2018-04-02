@@ -2,6 +2,7 @@
 #define MAP_H
 
 #include "NPC.h"
+#include "Monster.h"
 
 #include <vector>
 #include <cstddef>
@@ -25,15 +26,18 @@ class Map {
 public:
 	void setID(int id);
 	void addNPC(const NPC& npc);
+	void addMonster(const Monster& monster, int number = 1, const MapSpawnPoint& point = MapSpawnPoint({ 0, 0 }, { 0, 0}));
 	void addSpawnPoint(const MapSpawnPoint& point);
 	
 	int getID() const;
 	std::vector<NPC>& getNPCs();
+	std::vector<Monster>& getMonsters();
 	std::array<int, 2> getSpawnPoint();
-	
+		
 private:
 	int id_;
 	std::vector<NPC> npcs_;
+	std::vector<Monster> monsters_;
 	std::vector<MapSpawnPoint> player_spawn_points_;
 };
 

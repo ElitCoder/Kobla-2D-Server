@@ -1,5 +1,6 @@
 #include "Map.h"
 #include "Random.h"
+#include "Log.h"
 
 using namespace std;
 
@@ -31,6 +32,30 @@ array<int, 2> Map::getSpawnPoint() {
 	int y = Random::getRandomInteger(point.getFromY(), point.getToY());
 	
 	return { x, y };
+}
+
+vector<Monster>& Map::getMonsters() {
+	return monsters_;
+}
+
+void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& point) {
+	bool from_file = number > 1;
+	
+	for (int i = number; i > 0; i--) {
+		Monster new_monster = monster;
+		new_monster.setValidID();
+		
+		if (from_file) {
+			int x = Random::getRandomInteger(point.getFromX(), point.getToX());
+			int y = Random::getRandomInteger(point.getFromY(), point.getToY());
+			
+			new_monster.setPosition(x, y);
+			
+			Log(DEBUG) << "Adding monster " << new_monster.getID() << " at " << x << " " << y << endl;
+		}
+		
+		monsters_.push_back(new_monster);
+	}
 }
 
 /*

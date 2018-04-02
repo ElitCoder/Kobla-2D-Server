@@ -9,6 +9,7 @@ public:
 	
 	virtual void parseNPCs(std::vector<NPC>& reference_npcs) override;
 	virtual void parseMaps(std::vector<Map>& maps) override;
+	virtual void parseMonsters(std::vector<Monster>& reference_monsters) override;
 };
 
 #endif
