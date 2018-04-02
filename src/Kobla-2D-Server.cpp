@@ -2,7 +2,7 @@
 #include "Base.h"
 
 // How long to wait before doing other server related things, in ms
-#define PACKET_WAIT_TIME	(100)
+#define PACKET_WAIT_TIME	(20)
 
 using namespace std;
 
@@ -34,6 +34,9 @@ static void process() {
 	Log(DEBUG) << "Getting port information\n";
 	const unsigned int port = Base::settings().get<unsigned short>("port");
 	
+	// Create the database (using file-based for now)
+	Base::createDatabase(DATABASE_TYPE_FILE);
+	
 	// Load game information before starting network
 	Base::game().load();
 	
@@ -62,6 +65,9 @@ static void process() {
 		Base::network().unlockConnection(*connection_pair);
 		Base::network().removeProcessingPacket();
 	}
+	
+	// Shutdown
+	Base::destroyDatabase();
 	
 	sync_thread.detach();
 }

@@ -5,6 +5,7 @@
 #include "Packet.h"
 #include "Player.h"
 #include "NPC.h"
+#include "Map.h"
 
 class Game {
 public:
@@ -16,12 +17,13 @@ public:
 	
 	void disconnected(const Connection& connection);
 	
-private:
-	void parseNPCs(const std::vector<std::pair<int, std::deque<std::string>>>& npcs);
-	void parseMaps(const std::vector<std::pair<int, std::deque<std::string>>>& maps);
+	// For parsing
+	const NPC& getReferenceNPC(int id) const;
 	
-	NPC* getReferenceNPC(int id);
-	std::vector<NPC*> getNPCsOnMap(int map_id);
+private:
+	Map& getMap(int map_id);
+	
+	std::vector<NPC>& getNPCsOnMap(int map_id);
 	
 	void addPlayer(const Player& player);
 	Player* getPlayer(const Connection& connection);
@@ -34,7 +36,7 @@ private:
 	void handleMove();
 	
 	std::vector<Player> players_;
-	std::vector<NPC> npcs_;
+	std::vector<Map> maps_;
 	std::vector<NPC> reference_npcs_;
 	
 	Player* current_player_;

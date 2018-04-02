@@ -1,0 +1,114 @@
+#include "DatabaseFile.h"
+#include "Config.h"
+#include "Log.h"
+#include "Base.h"
+
+#include <deque>
+#include <fstream>
+
+using namespace std;
+
+using DataContainer = vector<pair<int, deque<string>>>;
+
+bool DatabaseFile::login(const string& username, const string& password) {
+	// Check login from file
+	
+	return true;
+}
+
+// Generic data loader
+static DataContainer loadDataID(const string& path) {
+	DataContainer container;
+	Config config;
+	config.parse(path);
+	
+	for (auto& peer : config.internal())
+		container.push_back({ stoi(peer.first), peer.second });
+		
+	return container;
+}
+
+void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {
+	auto data = loadDataID("data/npcs/id");
+	
+	for (auto& peer : data) {
+		auto id = peer.first;
+		auto name = peer.second.front();
+		
+		Config config;
+		config.parse("data/npcs/" + name);
+		
+		auto real_name = config.get<string>("name");
+		auto texture_id = config.get<int>("texture_id");
+		
+		NPC npc;
+		npc.setNPCID(id);
+		npc.setName(real_name);
+		npc.setTextureID(texture_id);
+		
+		reference_npcs.push_back(npc);
+	}
+}
+
+static deque<string> getTokens(string input, char delimiter) {
+	istringstream stream(input);
+	deque<string> tokens;
+	string token;
+	
+	while (getline(stream, token, delimiter))
+		if (!token.empty())
+			tokens.push_back(token);
+	
+	return tokens;
+}
+
+void DatabaseFile::parseMaps(vector<Map>& maps) {
+	auto data = loadDataID("data/maps/id");
+	
+	for (auto& peer : data) {
+		auto id = peer.first;
+		auto name = peer.second.front();
+		
+		ifstream file("data/maps/" + name);
+		
+		if (!file.is_open())
+			Log(WARNING) << "Could not open Map file " << name << endl;
+			
+		Map map;
+		map.setID(id);
+		
+		string tmp;
+		
+		while (getline(file, tmp)) {
+			if (tmp.empty() || tmp.front() == '#')
+				continue;
+
+			auto tokens = getTokens(tmp, ' ');
+			
+			// Remove ':'
+			tokens.front().pop_back();
+			
+			// Add NPC
+			if (tokens.front() == "npc") {
+				auto npc_id = stoi(tokens.at(1));
+				auto x = stoi(tokens.at(2));
+				auto y = stoi(tokens.at(3));
+				auto collision = stoi(tokens.at(4));
+				
+				NPC npc = Base::game().getReferenceNPC(npc_id);
+				npc.setPosition(x, y);
+				npc.setMapID(id);
+				npc.setCollision(collision);
+				// Otherwise the NPC will have the same ID as the reference
+				npc.setValidID();
+				
+				//npcs_.push_back(npc);
+				map.addNPC(npc);
+				
+				Log(DEBUG) << "Added NPC " << npc.getName() << " on map " << id << endl;
+			}
+		}
+		
+		maps.push_back(map);
+	}
+}
