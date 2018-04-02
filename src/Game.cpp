@@ -167,6 +167,12 @@ void Game::handleSpawn() {
 	player.setConnectionID(current_connection_->getUniqueID());
 	addPlayer(player);
 	
+	// Randomize position since it's not saved
+	auto position = getMap(player.getMapID()).getSpawnPoint();
+	player.setPosition(position.front(), position.back());
+	
+	Log(DEBUG) << "Spawning player at " << position.front() << " " << position.back() << endl;
+	
 	Log(DEBUG) << "Player got connection ID " << current_connection_->getUniqueID() << endl;
 	
 	auto answer = PacketCreator::spawn(player);

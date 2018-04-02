@@ -106,6 +106,16 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				map.addNPC(npc);
 				
 				Log(DEBUG) << "Added NPC " << npc.getName() << " on map " << id << endl;
+			} else if (tokens.front() == "player_spawn") {
+				// Where the player can be spawned (random here)
+				auto from_x = stoi(tokens.at(1));
+				auto from_y = stoi(tokens.at(2));
+				auto to_x = stoi(tokens.at(3));
+				auto to_y = stoi(tokens.at(4));
+				
+				Log(DEBUG) << "Adding spawning point from " << from_x << endl;
+				
+				map.addSpawnPoint(MapSpawnPoint({ from_x, from_y }, { to_x, to_y }));
 			}
 		}
 		
