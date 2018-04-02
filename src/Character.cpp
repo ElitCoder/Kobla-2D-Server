@@ -19,8 +19,8 @@ Character::Character() {
 	map_id_ = 0;
 	moving_speed_ = 200;
 	collision_ = false;
-	full_health = 100;
-	current_health = full_health;
+	full_health_ = 100;
+	current_health_ = full_health_;
 	
 	name_ = "Igge" + to_string(getID());
 }
@@ -133,4 +133,12 @@ void Character::setTextureID(int texture_id) {
 
 void Character::setMapID(int map_id) {
 	map_id_ = map_id;
+}
+
+double Character::getCurrentHealth() const {
+	return current_health_;
+}
+
+double Character::getFullHealth() const {
+	return full_health_;
 }

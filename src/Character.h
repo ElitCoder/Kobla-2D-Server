@@ -33,6 +33,8 @@ public:
 	const std::string& getName() const;
 	double getMovingSpeed() const;
 	bool getCollision() const;
+	double getCurrentHealth() const;
+	double getFullHealth() const;
 	
 	void setValidID();
 	
@@ -54,8 +56,8 @@ protected:
 	int texture_id_;
 	int map_id_;
 	
-	double full_health;
-	double current_health;
+	double full_health_;
+	double current_health_;
 };
 
 #endif

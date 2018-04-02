@@ -19,19 +19,21 @@ Packet PacketCreator::unknown() {
 
 // Adding the same things anyway
 static void playerAddInformation(Packet& packet, const Character* player) {
+	packet.addInt(player->getID());
 	packet.addInt(player->getTextureID());
 	packet.addFloat(player->getX());
 	packet.addFloat(player->getY());
 	packet.addString(player->getName());
 	packet.addFloat(player->getMovingSpeed());
 	packet.addBool(player->getCollision());
+	packet.addFloat(player->getFullHealth());
+	packet.addFloat(player->getCurrentHealth());
 }
 
 Packet PacketCreator::spawn(const Player& player) {
 	Packet packet;
 	packet.addHeader(HEADER_SPAWN);
 	packet.addInt(player.getMapID());
-	packet.addInt(player.getID());
 	
 	playerAddInformation(packet, &player);
 	
@@ -43,7 +45,6 @@ Packet PacketCreator::spawn(const Player& player) {
 Packet PacketCreator::addPlayer(const Character* player) {
 	Packet packet;
 	packet.addHeader(HEADER_ADD_PLAYER);
-	packet.addInt(player->getID());
 	packet.addBool(player->isMoving());
 	packet.addInt(player->getMovingDirection());
 	
