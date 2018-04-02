@@ -2,7 +2,7 @@
 #include "Base.h"
 
 // How long to wait before doing other server related things, in ms
-#define PACKET_WAIT_TIME	(100)
+#define PACKET_WAIT_TIME	(50)
 
 using namespace std;
 

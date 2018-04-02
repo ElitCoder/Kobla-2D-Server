@@ -133,7 +133,7 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				
 				// Set NPC AI type to Basic for now
 				// TODO: Change this
-				npc.bindAI(AI_TYPE_BASIC);
+				npc.setAI(AI_NPC_TYPE_KILL_CLOSE);
 				
 				map.addNPC(npc);
 				

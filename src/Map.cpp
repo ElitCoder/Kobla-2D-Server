@@ -58,7 +58,7 @@ void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& po
 		}
 		
 		// Set AI for monster
-		new_monster.bindAI(AI_TYPE_BASIC);
+		new_monster.setAI(AI_MONSTER_TYPE_NORMAL);
 		
 		monsters_.push_back(new_monster);
 	}
@@ -66,35 +66,23 @@ void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& po
 
 // Do logic stuff on map
 void Map::react() {
-	// Do Monster AI
-	for (auto& monster : monsters_)
+	// Do Monster AI & movement
+	for (auto& monster : monsters_) {
 		monster.react();
+		monster.move();
+	}
 		
-	// Do NPC AI
-	for (auto& npc : npcs_)
+	// Do NPC AI & movement
+	for (auto& npc : npcs_) {
 		npc.react();
+		npc.move();
+	}
 }
 
 void Map::removeMonster(int id) {
-	// TODO: FIX THIS PRONTO
-	
-	/*
-	
-	// Remove in server
-	for (size_t i = 0; i < monsters_.size(); i++) {
-		if (monsters_.at(i).getID() == (unsigned int)id) {
-			monsters_.erase(monsters_.begin() + i);
-			
-			break;
-		}
-	}
-	*/
-	
-	/*
 	monsters_.erase(remove_if(monsters_.begin(), monsters_.end(), [&id] (auto& monster) {
 		return monster.getID() == (unsigned int)id;
 	}));
-	*/
 }
 
 /*

@@ -2,7 +2,6 @@
 #include "Log.h"
 #include "Base.h"
 #include "PacketCreator.h"
-#include "AIBasic.h"
 
 #include <algorithm>
 
@@ -157,31 +156,23 @@ vector<Monster>& Game::getMonstersOnMap(int map_id) {
 	return getMap(map_id).getMonsters();
 }
 
-AI* Game::getAI(int type) {
-	switch (type) {
-		case AI_TYPE_BASIC: return new AIBasic;
-			break;
-			
-		default: Log(WARNING) << "Monster requesting unknown AI type " << type << endl;
-	}
-	
-	Log(WARNING) << "Did not find any AI\n";
-	
-	// No AI found
-	return nullptr;
-}
-
-static double distance(const Character* from, const Character* to) {
+static double distanceTo(const Character* from, const Character* to) {
 	return sqrt((from->getX() - to->getX()) * (from->getX() - to->getX()) + (from->getY() - to->getY()) * (from->getY() - to->getY()));
 }
 
 vector<Monster*> Game::getCloseMonsters(const Character* character) {
 	auto& monsters = getMap(character->getMapID()).getMonsters();
 	vector<Monster*> closest;
-	
+		
 	for (auto& monster : monsters) {
-		if (distance(&monster, character) < CHARACTER_CLOSE_DISTANCE)
+		auto distance = distanceTo(&monster, character);
+		
+		//Log(DEBUG) << "Distance: " << distance << endl;
+		
+		if (distanceTo(&monster, character) < CHARACTER_CLOSE_DISTANCE)
 			closest.push_back(&monster);
+
+			
 	}
 	
 	return closest;
@@ -202,7 +193,7 @@ void Game::removeMonster(int id) {
 		Base::network().sendToAllExcept(packet, {});
 		
 		map.removeMonster(id);
-		break;	
+		break;
 	}
 }
 

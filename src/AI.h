@@ -1,25 +1,29 @@
 #ifndef AI_H
 #define AI_H
 
-class NPC;
-class Monster;
+#include "Character.h"
 
+/*
+	AI_TYPE_NONE				- not set
+	AI_MONSTER_TYPE_AGGRESSIVE	- follows and attack on sight
+	AI_MONSTER_TYPE_NORMAL		- normal, stands still for now
+	AI_NPC_TYPE_KILL_CLOSE		- kills monster if they're close to protect the town!
+*/
 enum {
-	AI_TYPE_BASIC
+	AI_TYPE_NONE,
+	AI_MONSTER_TYPE_AGGRESSIVE,
+	AI_MONSTER_TYPE_NORMAL,
+	AI_NPC_TYPE_KILL_CLOSE
 };
 
-// AI is an interface for different types of AI
-class AI {
+class AI : public Character {
 public:
-	virtual ~AI();
-	
-	virtual int getType() = 0;
-	virtual void decide(Monster& monster) = 0;
-	virtual void decide(NPC& npc) = 0;
-	
-protected:
 	AI();
 	
+	void react();
+	void setAI(int type);
+
+private:
 	int type_;
 };
 
