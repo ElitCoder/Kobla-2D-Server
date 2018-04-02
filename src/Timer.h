@@ -5,6 +5,8 @@
 
 class Timer {
 public:
+	Timer();
+	
 	void start();
 	double restart();
 	

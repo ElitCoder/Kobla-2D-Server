@@ -2,14 +2,13 @@
 #include "Log.h"
 #include "Base.h"
 #include "PacketCreator.h"
+#include "AIBasic.h"
 
 #include <algorithm>
 
 using namespace std;
 
 extern mutex g_main_sync;
-
-Game::Game() {}
 
 void Game::process(Connection& connection, Packet& packet) {
 	auto* player = connection.isVerified() ? getPlayer(connection) : nullptr;
@@ -46,6 +45,9 @@ void Game::process(Connection& connection, Packet& packet) {
 void Game::logic() {
 	for (auto& player : players_)
 		player.move();
+		
+	for (auto& map : maps_)
+		map.react();
 }
 
 const NPC& Game::getReferenceNPC(int id) const {
@@ -155,6 +157,55 @@ vector<Monster>& Game::getMonstersOnMap(int map_id) {
 	return getMap(map_id).getMonsters();
 }
 
+AI* Game::getAI(int type) {
+	switch (type) {
+		case AI_TYPE_BASIC: return new AIBasic;
+			break;
+			
+		default: Log(WARNING) << "Monster requesting unknown AI type " << type << endl;
+	}
+	
+	Log(WARNING) << "Did not find any AI\n";
+	
+	// No AI found
+	return nullptr;
+}
+
+static double distance(const Character* from, const Character* to) {
+	return sqrt((from->getX() - to->getX()) * (from->getX() - to->getX()) + (from->getY() - to->getY()) * (from->getY() - to->getY()));
+}
+
+vector<Monster*> Game::getCloseMonsters(const Character* character) {
+	auto& monsters = getMap(character->getMapID()).getMonsters();
+	vector<Monster*> closest;
+	
+	for (auto& monster : monsters) {
+		if (distance(&monster, character) < CHARACTER_CLOSE_DISTANCE)
+			closest.push_back(&monster);
+	}
+	
+	return closest;
+}
+
+void Game::removeMonster(int id) {
+	Log(DEBUG) << "Trying to remove monster ID " << id << endl;
+	
+	for (auto& map : maps_) {
+		auto iterator = find_if(map.getMonsters().begin(), map.getMonsters().end(), [&id] (auto& monster) {
+			return monster.getID() == (unsigned int)id;
+		});
+		
+		if (iterator == map.getMonsters().end())
+			continue;
+			
+		auto packet = PacketCreator::remove(&*iterator);
+		Base::network().sendToAllExcept(packet, {});
+		
+		map.removeMonster(id);
+		break;	
+	}
+}
+
 void Game::handleLogin() {
 	auto username = current_packet_->getString();
 	auto password = current_packet_->getString();
@@ -206,7 +257,7 @@ void Game::handleSpawn() {
 	});
 	
 	// Add NPCs
-	auto npcs = getNPCsOnMap(player.getMapID());
+	auto& npcs = getNPCsOnMap(player.getMapID());
 	
 	for_each(npcs.begin(), npcs.end(), [this] (auto& other) {
 		auto add_player_packet = PacketCreator::addPlayer(&other);
@@ -214,7 +265,7 @@ void Game::handleSpawn() {
 	});
 	
 	// Add monsters
-	auto monsters = getMonstersOnMap(player.getMapID());
+	auto& monsters = getMonstersOnMap(player.getMapID());
 	
 	for_each(monsters.begin(), monsters.end(), [this] (auto& other) {
 		auto add_player_packet = PacketCreator::addPlayer(&other);

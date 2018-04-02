@@ -131,7 +131,10 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				// Otherwise the NPC will have the same ID as the reference
 				npc.setValidID();
 				
-				//npcs_.push_back(npc);
+				// Set NPC AI type to Basic for now
+				// TODO: Change this
+				npc.bindAI(AI_TYPE_BASIC);
+				
 				map.addNPC(npc);
 				
 				Log(DEBUG) << "Added NPC " << npc.getName() << " on map " << id << endl;

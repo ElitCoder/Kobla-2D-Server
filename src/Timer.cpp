@@ -2,6 +2,10 @@
 
 using namespace std;
 
+Timer::Timer() {
+	start();
+}
+
 void Timer::start() {
 	start_time_ = chrono::system_clock::now();
 }

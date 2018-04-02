@@ -6,11 +6,14 @@
 #include "Player.h"
 #include "NPC.h"
 #include "Map.h"
+#include "AI.h"
+
+enum {
+	CHARACTER_CLOSE_DISTANCE = 50
+};
 
 class Game {
 public:
-	Game();
-	
 	void process(Connection& connection, Packet& packet);
 	void logic();
 	void load();
@@ -20,6 +23,13 @@ public:
 	// For parsing
 	const NPC& getReferenceNPC(int id) const;
 	const Monster& getReferenceMonster(int id) const;
+	
+	// For Monster & NPC
+	AI* getAI(int type);
+	
+	std::vector<Monster*> getCloseMonsters(const Character* character);
+	
+	void removeMonster(int id);
 	
 private:
 	Map& getMap(int map_id);

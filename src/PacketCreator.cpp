@@ -76,3 +76,14 @@ Packet PacketCreator::remove(const Character* character) {
 	
 	return packet;
 }
+
+Packet PacketCreator::health(const Character* character) {
+	Packet packet;
+	packet.addHeader(HEADER_UPDATE_HEALTH);
+	packet.addInt(character->getID());
+	packet.addFloat(character->getFullHealth());
+	packet.addFloat(character->getCurrentHealth());
+	packet.finalize();
+	
+	return packet;
+}

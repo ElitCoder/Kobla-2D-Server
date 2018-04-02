@@ -28,11 +28,14 @@ public:
 	void addNPC(const NPC& npc);
 	void addMonster(const Monster& monster, int number = 1, const MapSpawnPoint& point = MapSpawnPoint({ 0, 0 }, { 0, 0}));
 	void addSpawnPoint(const MapSpawnPoint& point);
+	void removeMonster(int id);
 	
 	int getID() const;
 	std::vector<NPC>& getNPCs();
 	std::vector<Monster>& getMonsters();
 	std::array<int, 2> getSpawnPoint();
+	
+	void react();
 		
 private:
 	int id_;
