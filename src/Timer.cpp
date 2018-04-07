@@ -10,6 +10,12 @@ void Timer::start() {
 	start_time_ = chrono::system_clock::now();
 }
 
+void Timer::start(size_t ms) {
+	start();
+	
+	elapsed_time_ = start_time_ + chrono::milliseconds(ms);
+}
+
 // Get current elapsed time and restart timer
 double Timer::restart() {
 	auto now = chrono::system_clock::now();
@@ -17,5 +23,12 @@ double Timer::restart() {
 	start_time_ = now;
 	
 	// Return seconds
-	return nanoseconds.count() / 1e09;
+	return (double)nanoseconds.count() / 1e09;
+}
+
+bool Timer::elapsed() {
+	auto now = chrono::system_clock::now();
+	auto nanoseconds = chrono::duration_cast<chrono::nanoseconds>(now - elapsed_time_);
+	
+	return nanoseconds.count() > 0;
 }

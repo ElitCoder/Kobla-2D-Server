@@ -51,6 +51,9 @@ void Character::changeMoveStatus(bool moving, double x, double y, int direction)
 	y_ = y;
 	direction_ = direction;
 	
+	// Character stopped in this direction, let's reset total distance moved for monsters
+	distance_moved_= 0;
+	
 	if (moving)
 		started_moving_.start();
 }
@@ -83,6 +86,8 @@ void Character::move() {
 		case PLAYER_MOVE_RIGHT: x += pixels;
 			break;
 	}
+	
+	distance_moved_ += pixels;
 	
 	setPosition(x, y);
 }
@@ -141,4 +146,8 @@ double Character::getCurrentHealth() const {
 
 double Character::getFullHealth() const {
 	return full_health_;
+}
+
+double Character::getDistanceMoved() const {
+	return distance_moved_;
 }

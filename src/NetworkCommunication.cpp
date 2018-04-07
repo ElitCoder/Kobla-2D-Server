@@ -424,6 +424,13 @@ void NetworkCommunication::sendToAllExcept(const Packet &packet, const std::vect
     });
 }
 
+void NetworkCommunication::sendToAll(const Packet& packet) {
+    lock_guard<mutex> guard(mConnectionsMutex);
+    
+    for (auto& peer : mConnections)
+        send(&peer.second, packet);
+}
+
 bool NetworkCommunication::runSelectAccept(fd_set &readSet, fd_set &errorSet) {
     if(select(FD_SETSIZE, &readSet, NULL, &errorSet, NULL) == 0) {
         Log(ERROR) << "select() returned 0 when there's no timeout\n";

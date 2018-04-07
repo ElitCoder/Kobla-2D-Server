@@ -6,7 +6,7 @@
 /*
 	AI_TYPE_NONE				- not set
 	AI_MONSTER_TYPE_AGGRESSIVE	- follows and attack on sight
-	AI_MONSTER_TYPE_NORMAL		- normal, stands still for now
+	AI_MONSTER_TYPE_NORMAL		- moves around "casually"
 	AI_NPC_TYPE_KILL_CLOSE		- kills monster if they're close to protect the town!
 */
 enum {

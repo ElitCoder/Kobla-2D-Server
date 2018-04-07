@@ -26,7 +26,7 @@ class Map {
 public:
 	void setID(int id);
 	void addNPC(const NPC& npc);
-	void addMonster(const Monster& monster, int number = 1, const MapSpawnPoint& point = MapSpawnPoint({ 0, 0 }, { 0, 0}));
+	void addMonster(const Monster& monster, int number = 1, const MapSpawnPoint& point = MapSpawnPoint({ 0, 0 }, { 0, 0 }));
 	void addSpawnPoint(const MapSpawnPoint& point);
 	void removeMonster(int id);
 	

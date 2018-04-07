@@ -168,12 +168,24 @@ vector<Monster*> Game::getCloseMonsters(const Character* character) {
 	for (auto& monster : monsters) {
 		auto distance = distanceTo(&monster, character);
 		
-		//Log(DEBUG) << "Distance: " << distance << endl;
-		
-		if (distanceTo(&monster, character) < CHARACTER_CLOSE_DISTANCE)
+		if (distance < CHARACTER_CLOSE_DISTANCE)
 			closest.push_back(&monster);
+	}
+	
+	return closest;
+}
 
+vector<Player*> Game::getClosePlayers(const Character *character) {
+	vector<Player*> closest;
+	
+	for (auto& player :players_) {
+		if (player.getMapID() != character->getMapID())
+			continue;
 			
+		auto distance = distanceTo(&player, character);
+		
+		if (distance < CHARACTER_CLOSE_DISTANCE)
+			closest.push_back(&player);
 	}
 	
 	return closest;
@@ -265,6 +277,13 @@ void Game::handleSpawn() {
 	});
 }
 
+void Game::updateMovement(Character* character, const vector<int>& sockets) {
+	auto answer = PacketCreator::move(character);
+	
+	// Send to all except the moving player
+	Base::network().sendToAllExcept(answer, sockets);
+}
+
 void Game::handleMove() {
 	if (current_player_ == nullptr)
 		Log(WARNING) << "Player is nullptr in moving\n";
@@ -275,8 +294,12 @@ void Game::handleMove() {
 	auto direction = current_packet_->getInt();
 	
 	current_player_->changeMoveStatus(moving, x, y, direction);
+	updateMovement(current_player_, { current_connection_->getSocket() });
+	
+	/*
 	auto answer = PacketCreator::move(current_player_);
 	
 	// Send to all except the moving player
 	Base::network().sendToAllExcept(answer, { current_connection_->getSocket() });
+	*/
 }

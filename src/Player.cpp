@@ -4,6 +4,9 @@
 Player::Player() {
 	connection_id_ = 0;
 	
+	// Set player movement a little higher for now
+	moving_speed_ *= 2;
+	
 	Log(DEBUG) << "Running constructor for Player\n";
 }
 

@@ -6,10 +6,11 @@
 #include <string>
 
 enum {
-	PLAYER_MOVE_UP,
+	PLAYER_MOVE_RIGHT,
 	PLAYER_MOVE_DOWN,
 	PLAYER_MOVE_LEFT,
-	PLAYER_MOVE_RIGHT
+	PLAYER_MOVE_UP,
+	PLAYER_MOVE_MAX
 };
 
 class Character {
@@ -35,6 +36,7 @@ public:
 	bool getCollision() const;
 	double getCurrentHealth() const;
 	double getFullHealth() const;
+	double getDistanceMoved() const;
 	
 	void setValidID();
 	
@@ -45,10 +47,11 @@ protected:
 	size_t id_;
 	
 	Timer started_moving_;
-	int direction_;
-	bool moving_;
+	int direction_			= -1;
+	bool moving_			= false;
 	double moving_speed_;
-	bool collision_;
+	bool collision_			= false;
+	double distance_moved_	= 0;
 	
 	double x_;
 	double y_;

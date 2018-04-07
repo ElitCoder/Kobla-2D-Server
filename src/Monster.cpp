@@ -1,13 +1,25 @@
 #include "Monster.h"
 #include "Base.h"
-#include "Log.h"
+#include "Random.h"
 
 using namespace std;
 
 void Monster::setMonsterID(int id) {
-	id_ = id;
+	monster_id_ = id;
 }
 
 int Monster::getMonsterID() const {
-	return id_;
+	return monster_id_;
+}
+
+void Monster::startStrollingWaiting() {
+	next_strolling_.start(Random::getRandomInteger(0, CHARACTER_CASUAL_STROLLING_WAITING_MS));
+}
+
+bool Monster::strollingWaitingElapsed() {
+	return next_strolling_.elapsed();
+}
+
+bool Monster::isFollowing() const {
+	return following_;
 }
