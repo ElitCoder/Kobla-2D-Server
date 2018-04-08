@@ -2,6 +2,7 @@
 #include "Random.h"
 #include "Log.h"
 #include "AI.h"
+#include "Base.h"
 
 #include <algorithm>
 
@@ -54,7 +55,7 @@ void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& po
 			
 			new_monster.setPosition(x, y);
 			
-			Log(DEBUG) << "Adding monster " << new_monster.getID() << " at " << x << " " << y << endl;
+			//Log(DEBUG) << "Adding monster " << new_monster.getID() << " at " << x << " " << y << endl;
 		}
 		
 		// Set AI for monster
@@ -83,6 +84,22 @@ void Map::removeMonster(int id) {
 	monsters_.erase(remove_if(monsters_.begin(), monsters_.end(), [&id] (auto& monster) {
 		return monster.getID() == (unsigned int)id;
 	}));
+}
+
+// Is it possible to move this distance in any direction without causing collision?
+int Map::getPossibleMove(const Character* character, double distance, int desired_direction) {
+	int possible_direction = desired_direction;
+	
+	do {
+		// See distance to collision in desired_direction direction
+		if (Base::client().isMovePossible(character, distance, possible_direction))
+			return possible_direction;
+			
+		possible_direction++;
+		possible_direction %= PLAYER_MOVE_MAX;	
+	} while (possible_direction != desired_direction);
+	
+	return -1;
 }
 
 /*

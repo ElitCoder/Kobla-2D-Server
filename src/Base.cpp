@@ -10,6 +10,8 @@ Game Base::game_;
 
 Database* Base::database_ = nullptr;
 
+ClientData Base::client_;
+
 Config& Base::settings() {
 	return settings_;
 }
@@ -24,6 +26,10 @@ Game& Base::game() {
 
 Database* Base::database() {
 	return database_;
+}
+
+ClientData& Base::client() {
+	return client_;
 }
 
 void Base::createDatabase(int type) {

@@ -13,7 +13,7 @@ int Monster::getMonsterID() const {
 }
 
 void Monster::startStrollingWaiting() {
-	next_strolling_.start(Random::getRandomInteger(0, CHARACTER_CASUAL_STROLLING_WAITING_MS));
+	next_strolling_.start(Random::getRandomInteger(CHARACTER_CASUAL_STROLLING_WAITING_MIN_MS, CHARACTER_CASUAL_STROLLING_WAITING_MAX_MS));
 }
 
 bool Monster::strollingWaitingElapsed() {

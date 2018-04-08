@@ -35,10 +35,13 @@ public:
 	std::vector<Monster>& getMonsters();
 	std::array<int, 2> getSpawnPoint();
 	
+	int getPossibleMove(const Character* character, double distance, int desired_direction);
+	
 	void react();
 		
 private:
 	int id_;
+	
 	std::vector<NPC> npcs_;
 	std::vector<Monster> monsters_;
 	std::vector<MapSpawnPoint> player_spawn_points_;

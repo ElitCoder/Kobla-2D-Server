@@ -1,6 +1,8 @@
 #include "AI.h"
 #include "Base.h"
 #include "PacketCreator.h"
+#include "Random.h"
+#include "Log.h"
 
 AI::AI() {
 	type_ = AI_TYPE_NONE;
@@ -25,17 +27,27 @@ static void strollingMove(Monster* me) {
 		// Have we waited long enough?
 		if (!me->strollingWaitingElapsed())
 			return;
-			
-		me->changeMoveStatus(true, me->getX(), me->getY(), (me->getMovingDirection() + 1) % PLAYER_MOVE_MAX);
-		me->setPredeterminedDistance(CHARACTER_CASUAL_STROLLING_DISTANCE);
+		
+		auto desired_direction = (me->getMovingDirection() + 1) % PLAYER_MOVE_MAX;
+		auto distance_to_move = Random::getRandomInteger(CHARACTER_CASUAL_STROLLING_DISTANCE / 10, CHARACTER_CASUAL_STROLLING_DISTANCE);
+		auto possible_move = Base::game().getMap(me->getMapID()).getPossibleMove(me, distance_to_move, desired_direction);
+				
+		if (possible_move < 0)
+			// No moves available
+			return;
+
+		me->changeMoveStatus(true, me->getX(), me->getY(), possible_move);
+		me->setPredeterminedDistance(distance_to_move);
 		
 		Base::game().updateMovement(me, {});
 	} else {
-		if (me->getDistanceMoved() >= CHARACTER_CASUAL_STROLLING_DISTANCE) {
+		if (me->getDistanceMoved() >= me->getPredeterminedDistance()) {
 			// Stop movement
 			me->startStrollingWaiting();
 			
 			me->changeMoveStatus(false, me->getX(), me->getY(), me->getMovingDirection());
+			
+			// No need to send stop packet, the Client takes care of it
 			//Base::game().updateMovement(me, {});
 		}
 	}

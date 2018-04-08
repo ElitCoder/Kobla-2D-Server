@@ -5,6 +5,7 @@
 #include "NetworkCommunication.h"
 #include "Game.h"
 #include "Database.h"
+#include "ClientData.h"
 
 class Base {
 public:
@@ -12,6 +13,7 @@ public:
 	static NetworkCommunication& network();
 	static Game& game();
 	static Database* database();
+	static ClientData& client();
 	
 	static void createDatabase(int type);
 	static void destroyDatabase();
@@ -23,6 +25,8 @@ private:
 	
 	// Database is an abstract class to enable different types
 	static Database* database_;
+	
+	static ClientData client_;
 };
 
 #endif

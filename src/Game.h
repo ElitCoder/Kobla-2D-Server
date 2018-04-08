@@ -8,9 +8,10 @@
 #include "Map.h"
 
 enum {
-	CHARACTER_CLOSE_DISTANCE = 100,
+	CHARACTER_CLOSE_DISTANCE = 50,
 	CHARACTER_CASUAL_STROLLING_DISTANCE = 100,
-	CHARACTER_CASUAL_STROLLING_WAITING_MS = 1500
+	CHARACTER_CASUAL_STROLLING_WAITING_MIN_MS = 500,
+	CHARACTER_CASUAL_STROLLING_WAITING_MAX_MS = 1500,
 };
 
 class Game {
@@ -33,10 +34,9 @@ public:
 	
 	// For easy access in AI
 	void updateMovement(Character* character, const std::vector<int>& sockets);
-	
-private:
 	Map& getMap(int map_id);
 	
+private:
 	std::vector<NPC>& getNPCsOnMap(int map_id);
 	std::vector<Monster>& getMonstersOnMap(int map_id);
 	

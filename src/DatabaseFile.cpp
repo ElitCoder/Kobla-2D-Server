@@ -137,7 +137,7 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				
 				map.addNPC(npc);
 				
-				Log(DEBUG) << "Added NPC " << npc.getName() << " on map " << id << endl;
+				//Log(DEBUG) << "Added NPC " << npc.getName() << " on map " << id << endl;
 			} else if (tokens.front() == "player_spawn") {
 				// Where the player can be spawned (random here)
 				auto from_x = stoi(tokens.at(1));
@@ -147,7 +147,7 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				
 				Log(DEBUG) << "Adding spawning point from " << from_x << endl;
 				
-				map.addSpawnPoint(MapSpawnPoint({ from_x, from_y }, { to_x, to_y }));
+				map.addSpawnPoint(MapSpawnPoint({{ from_x, from_y }}, {{ to_x, to_y }}));
 			} else if (tokens.front() == "monster") {
 				auto monster_id = stoi(tokens.at(1));
 				auto from_x = stoi(tokens.at(2));
@@ -159,7 +159,7 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				Monster monster = Base::game().getReferenceMonster(monster_id);
 				monster.setMapID(id);
 				
-				map.addMonster(monster, number, MapSpawnPoint({ from_x, from_y }, { to_x, to_y }));
+				map.addMonster(monster, number, MapSpawnPoint({{ from_x, from_y }}, {{ to_x, to_y }}));
 			}
 		}
 		
