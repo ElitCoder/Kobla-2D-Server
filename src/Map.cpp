@@ -34,7 +34,7 @@ array<int, 2> Map::getSpawnPoint() {
 	int x = Random::getRandomInteger(point.getFromX(), point.getToX());
 	int y = Random::getRandomInteger(point.getFromY(), point.getToY());
 	
-	return { x, y };
+	return {{ x, y }};
 }
 
 vector<Monster>& Map::getMonsters() {

@@ -2,7 +2,8 @@
 #include "Base.h"
 
 // How long to wait before doing other server related things, in ms
-#define PACKET_WAIT_TIME	(20)
+// In order for smooth movements, this needs to be < (1000 / 60) (if Client is running 60 FPS)
+#define PACKET_WAIT_TIME	(50)
 
 using namespace std;
 
