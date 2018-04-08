@@ -2,8 +2,8 @@
 #include "Base.h"
 
 // How long to wait before doing other server related things, in ms
-// In order for smooth movements, this needs to be < (1000 / 60) (if Client is running 60 FPS)
-#define PACKET_WAIT_TIME	(50)
+// Too high values will make monsters move at the same time
+#define PACKET_WAIT_TIME	(100)
 
 using namespace std;
 

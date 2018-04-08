@@ -63,6 +63,7 @@ Packet PacketCreator::move(const Character* character) {
 	packet.addFloat(character->getY());
 	packet.addInt(character->getMovingDirection());
 	packet.addInt(character->getID());
+	packet.addFloat(character->getPredeterminedDistance());
 	packet.finalize();
 	
 	return packet;

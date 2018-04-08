@@ -295,11 +295,4 @@ void Game::handleMove() {
 	
 	current_player_->changeMoveStatus(moving, x, y, direction);
 	updateMovement(current_player_, { current_connection_->getSocket() });
-	
-	/*
-	auto answer = PacketCreator::move(current_player_);
-	
-	// Send to all except the moving player
-	Base::network().sendToAllExcept(answer, { current_connection_->getSocket() });
-	*/
 }

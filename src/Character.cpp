@@ -47,9 +47,33 @@ void Character::changeMoveStatus(bool moving, double x, double y, int direction)
 	}
 	
 	moving_ = moving;
-	x_ = x;
-	y_ = y;
+	
+	if (!moving && predetermined_distance_ > 0) {
+		// We had a predetermined distance to move, just set it to that value
+		switch (direction_) {
+			case PLAYER_MOVE_UP: y_ = original_y_ - predetermined_distance_;
+				break;
+				
+			case PLAYER_MOVE_DOWN: y_ = original_y_ + predetermined_distance_;
+				break;
+				
+			case PLAYER_MOVE_LEFT: x_ = original_x_ - predetermined_distance_;
+				break;
+				
+			case PLAYER_MOVE_RIGHT: x_ = original_x_ + predetermined_distance_;
+				break;
+		}
+	} else {
+		x_ = x;
+		y_ = y;
+	}
+	
 	direction_ = direction;
+	
+	original_x_ = x_;
+	original_y_ = y_;
+	
+	predetermined_distance_ = -1;
 	
 	// Character stopped in this direction, let's reset total distance moved for monsters
 	distance_moved_= 0;
@@ -150,4 +174,12 @@ double Character::getFullHealth() const {
 
 double Character::getDistanceMoved() const {
 	return distance_moved_;
+}
+
+void Character::setPredeterminedDistance(double distance) {
+	predetermined_distance_ = distance;
+}
+
+double Character::getPredeterminedDistance() const {
+	return predetermined_distance_;
 }

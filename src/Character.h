@@ -17,6 +17,7 @@ class Character {
 public:
 	void changeMoveStatus(bool moving, double x, double y, int direction);
 	void move();
+	void setPredeterminedDistance(double distance);
 	
 	void setPosition(double x, double y);
 	void setName(const std::string& name);
@@ -37,6 +38,7 @@ public:
 	double getCurrentHealth() const;
 	double getFullHealth() const;
 	double getDistanceMoved() const;
+	double getPredeterminedDistance() const;
 	
 	void setValidID();
 	
@@ -47,14 +49,19 @@ protected:
 	size_t id_;
 	
 	Timer started_moving_;
-	int direction_			= -1;
-	bool moving_			= false;
+	int direction_					= -1;
+	bool moving_					= false;
 	double moving_speed_;
-	bool collision_			= false;
-	double distance_moved_	= 0;
+	bool collision_					= false;
+	double distance_moved_			= 0;
+	double predetermined_distance_	= -1;
 	
 	double x_;
 	double y_;
+	
+	// Coordinates before moving, for calculating smooth Monster movement
+	double original_x_;
+	double original_y_;
 	
 	int texture_id_;
 	int map_id_;

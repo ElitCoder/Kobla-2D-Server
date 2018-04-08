@@ -10,6 +10,37 @@ void AI::setAI(int type) {
 	type_ = type;
 }
 
+static void strollingMove(Monster* me) {
+	// Following trumps everything else
+	if (me->isFollowing()) {
+		// Get distance to player and calculate curve to player's location
+		
+	} else {
+		// Are any players close? Let's follow them in that case
+		auto players = Base::game().getClosePlayers(me);
+	}
+	
+	// Let's update direction
+	if (!me->isMoving()) {
+		// Have we waited long enough?
+		if (!me->strollingWaitingElapsed())
+			return;
+			
+		me->changeMoveStatus(true, me->getX(), me->getY(), (me->getMovingDirection() + 1) % PLAYER_MOVE_MAX);
+		me->setPredeterminedDistance(CHARACTER_CASUAL_STROLLING_DISTANCE);
+		
+		Base::game().updateMovement(me, {});
+	} else {
+		if (me->getDistanceMoved() >= CHARACTER_CASUAL_STROLLING_DISTANCE) {
+			// Stop movement
+			me->startStrollingWaiting();
+			
+			me->changeMoveStatus(false, me->getX(), me->getY(), me->getMovingDirection());
+			//Base::game().updateMovement(me, {});
+		}
+	}
+}
+
 void AI::react() {
 	if (type_ == AI_NPC_TYPE_KILL_CLOSE) {
 		// Remove monsters on sight
@@ -21,31 +52,6 @@ void AI::react() {
 		// This AI is Monster-exclusive, we know it's a Monster
 		Monster* me = (Monster*)this;
 		
-		// Following trumps everything else
-		if (me->isFollowing()) {
-			// Get distance to player and calculate curve to player's location
-			
-		} else {
-			// Are any players close? Let's follow them in that case
-			auto players = Base::game().getClosePlayers(this);
-		}
-		
-		// Let's update direction
-		if (!me->isMoving()) {
-			// Have we waited long enough?
-			if (!me->strollingWaitingElapsed())
-				return;
-				
-			me->changeMoveStatus(true, me->getX(), me->getY(), (me->getMovingDirection() + 1) % PLAYER_MOVE_MAX);
-			Base::game().updateMovement(me, {});
-		} else {
-			if (me->getDistanceMoved() >= CHARACTER_CASUAL_STROLLING_DISTANCE) {
-				// Stop movement
-				me->startStrollingWaiting();
-				
-				me->changeMoveStatus(false, me->getX(), me->getY(), me->getMovingDirection());
-				Base::game().updateMovement(me, {});
-			}
-		}
+		strollingMove(me);
 	}
 }
