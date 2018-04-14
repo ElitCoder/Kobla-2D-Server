@@ -17,7 +17,7 @@ Character::Character() {
 	y_ = 100;
 	texture_id_ = 0;
 	map_id_ = 0;
-	moving_speed_ = 80;
+	moving_speed_ = 200;
 	collision_ = false;
 	full_health_ = 100;
 	current_health_ = full_health_;
