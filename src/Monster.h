@@ -6,6 +6,8 @@
 
 class Monster : public AI {
 public:
+	Monster();
+	
 	void setMonsterID(int id);
 	int getMonsterID() const;
 	

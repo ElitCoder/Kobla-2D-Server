@@ -3,8 +3,7 @@
 
 // How long to wait before doing other server related things, in ms
 // Too high values will make monsters move at the same time
-// Should be at most half of desired timeouts
-#define PACKET_WAIT_TIME	(250)
+#define PACKET_WAIT_TIME	(50)
 
 using namespace std;
 
