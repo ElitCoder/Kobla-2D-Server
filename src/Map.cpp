@@ -67,6 +67,10 @@ void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& po
 
 // Do logic stuff on map
 void Map::react() {
+	// Do Object movement (bullets etc)
+	for (auto& object : objects_)
+		object.move();
+	
 	// Do Monster AI & movement
 	for (auto& monster : monsters_) {
 		monster.react();
@@ -100,6 +104,10 @@ int Map::getPossibleMove(const Character* character, double distance, int desire
 	} while (possible_direction != desired_direction);
 	
 	return -1;
+}
+
+void Map::addObject(const Object& object) {
+	objects_.push_back(object);
 }
 
 /*

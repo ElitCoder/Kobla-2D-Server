@@ -14,7 +14,8 @@ enum {
 	HEADER_MOVE,
 	HEADER_ADD_PLAYER,
 	HEADER_REMOVE_CHARACTER,
-	HEADER_UPDATE_HEALTH
+	HEADER_UPDATE_HEALTH,
+	HEADER_SHOOT
 };
 
 class PacketCreator {
@@ -26,6 +27,7 @@ public:
 	static Packet addPlayer(const Character* character);
 	static Packet remove(const Character* character);
 	static Packet health(const Character* character);
+	static Packet shoot(const Character* character);
 };
 
 #endif

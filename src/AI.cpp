@@ -5,18 +5,17 @@
 #include "Log.h"
 
 AI::AI() {
-	type_ = AI_TYPE_NONE;
+	ai_type_ = AI_TYPE_NONE;
 }
 
 void AI::setAI(int type) {
-	type_ = type;
+	ai_type_ = type;
 }
 
 static void strollingMove(Monster* me) {
 	// Following trumps everything else
 	if (me->isFollowing()) {
 		// Get distance to player and calculate curve to player's location
-		
 	} else {
 		// Are any players close? Let's follow them in that case
 		auto players = Base::game().getClosePlayers(me);
@@ -54,13 +53,13 @@ static void strollingMove(Monster* me) {
 }
 
 void AI::react() {
-	if (type_ == AI_NPC_TYPE_KILL_CLOSE) {
+	if (ai_type_ == AI_NPC_TYPE_KILL_CLOSE) {
 		// Remove monsters on sight
 		auto monsters = Base::game().getCloseMonsters(this);
 		
 		for (auto& monster : monsters)
 			Base::game().removeMonster(monster->getID());
-	} else if (type_ == AI_MONSTER_TYPE_NORMAL) {
+	} else if (ai_type_ == AI_MONSTER_TYPE_NORMAL) {
 		// This AI is Monster-exclusive, we know it's a Monster
 		Monster* me = (Monster*)this;
 		

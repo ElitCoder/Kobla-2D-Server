@@ -31,6 +31,9 @@ void Game::process(Connection& connection, Packet& packet) {
 		case HEADER_MOVE: handleMove();
 			break;
 			
+		case HEADER_SHOOT: handleShoot();
+			break;
+			
 		default: {
 			Log(NETWORK) << "Unrecognized packet header " << header << endl;
 			handleUnknownPacket();
@@ -295,4 +298,19 @@ void Game::handleMove() {
 	
 	current_player_->changeMoveStatus(moving, x, y, direction);
 	updateMovement(current_player_, { current_connection_->getSocket() });
+}
+
+void Game::handleShoot() {
+	// Shoot something
+	// Create a bullet object with direction and speed
+	Object bullet(OBJECT_TYPE_BULLET);
+	bullet.setMovementDirection(current_player_->getMovingDirection());
+	
+	auto& map = getMap(current_player_->getMapID());
+	map.addObject(bullet);
+	
+	// Propagate the effect to other Clients
+	Base::network().sendToAll(PacketCreator::shoot(current_player_));
+	
+	Log(DEBUG) << "Player is shooting\n";
 }

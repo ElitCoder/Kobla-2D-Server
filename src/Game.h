@@ -49,6 +49,7 @@ private:
 	void handleUnknownPacket();
 	void handleSpawn();
 	void handleMove();
+	void handleShoot();
 	
 	std::vector<Player> players_;
 	std::vector<Map> maps_;

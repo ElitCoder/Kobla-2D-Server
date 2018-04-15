@@ -24,7 +24,7 @@ public:
 	void setAI(int type);
 
 private:
-	int type_;
+	int ai_type_;
 };
 
 #endif
