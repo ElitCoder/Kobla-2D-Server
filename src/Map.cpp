@@ -106,7 +106,7 @@ int Map::getPossibleMove(const Character* character, double distance, int desire
 	return -1;
 }
 
-void Map::addObject(const Object& object) {
+void Map::addObject(const TemporaryObject& object) {
 	objects_.push_back(object);
 }
 

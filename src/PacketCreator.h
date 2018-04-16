@@ -27,7 +27,7 @@ public:
 	static Packet addPlayer(const Character* character);
 	static Packet remove(const Character* character);
 	static Packet health(const Character* character);
-	static Packet shoot(const Character* character);
+	static Packet shoot(const Object& bullet);
 };
 
 #endif

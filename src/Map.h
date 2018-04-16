@@ -3,7 +3,7 @@
 
 #include "NPC.h"
 #include "Monster.h"
-#include "Object.h"
+#include "TemporaryObject.h"
 
 #include <vector>
 #include <cstddef>
@@ -30,7 +30,7 @@ public:
 	void addMonster(const Monster& monster, int number = 1, const MapSpawnPoint& point = MapSpawnPoint({{ 0, 0 }}, {{ 0, 0 }}));
 	void addSpawnPoint(const MapSpawnPoint& point);
 	void removeMonster(int id);
-	void addObject(const Object& object);
+	void addObject(const TemporaryObject& object);
 	
 	int getID() const;
 	std::vector<NPC>& getNPCs();
@@ -47,7 +47,7 @@ private:
 	std::vector<NPC> npcs_;
 	std::vector<Monster> monsters_;
 	std::vector<MapSpawnPoint> player_spawn_points_;
-	std::vector<Object> objects_;
+	std::vector<TemporaryObject> objects_;
 };
 
 #endif

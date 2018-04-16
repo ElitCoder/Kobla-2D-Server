@@ -296,6 +296,10 @@ void Game::handleMove() {
 	auto y = current_packet_->getFloat();
 	auto direction = current_packet_->getInt();
 	
+	if (!moving)
+		// Player stops moving, don't set the direction to undefined
+		direction = current_player_->getMovingDirection();
+	
 	current_player_->changeMoveStatus(moving, x, y, direction);
 	updateMovement(current_player_, { current_connection_->getSocket() });
 }
@@ -303,14 +307,15 @@ void Game::handleMove() {
 void Game::handleShoot() {
 	// Shoot something
 	// Create a bullet object with direction and speed
-	Object bullet(OBJECT_TYPE_BULLET);
-	bullet.setMovementDirection(current_player_->getMovingDirection());
+	TemporaryObject bullet;
+	bullet.setType(TEMP_OBJECT_BULLET);
+	bullet.changeMoveStatus(true, current_player_->getX(), current_player_->getY(), current_player_->getMovingDirection());
 	
 	auto& map = getMap(current_player_->getMapID());
 	map.addObject(bullet);
 	
 	// Propagate the effect to other Clients
-	Base::network().sendToAll(PacketCreator::shoot(current_player_));
+	Base::network().sendToAll(PacketCreator::shoot(bullet));
 	
 	Log(DEBUG) << "Player is shooting\n";
 }
