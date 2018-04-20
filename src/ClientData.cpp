@@ -1,7 +1,9 @@
 #include "ClientData.h"
 #include "Log.h"
-#include "Config.h"
+#include "Object.h"
+#include "Character.h"
 #include "Base.h"
+#include "Game.h"
 
 using namespace std;
 
@@ -10,7 +12,8 @@ using namespace std;
 */
 
 ClientData::MapData::MapData(int id) :
-	map_loader_("client_data/maps") {
+	map_loader_("client_data/maps")
+{
 	id_ = id;
 }
 

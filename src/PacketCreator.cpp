@@ -1,5 +1,7 @@
 #include "PacketCreator.h"
-
+#include "Packet.h"
+#include "Player.h"
+#include "TemporaryObject.h"
 Packet PacketCreator::answerLogin(bool success) {
 	Packet packet;
 	packet.addHeader(HEADER_LOGIN);

@@ -1,6 +1,7 @@
 #include "Object.h"
 #include "Base.h"
 #include "Log.h"
+#include "ClientData.h"
 
 using namespace std;
 

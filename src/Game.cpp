@@ -2,6 +2,15 @@
 #include "Log.h"
 #include "Base.h"
 #include "PacketCreator.h"
+#include "Connection.h"
+#include "Map.h"
+#include "NPC.h"
+#include "Monster.h"
+#include "Database.h"
+#include "NetworkCommunication.h"
+#include "Packet.h"
+#include "Player.h"
+#include "TemporaryObject.h"
 
 #include <algorithm>
 #include <cmath>

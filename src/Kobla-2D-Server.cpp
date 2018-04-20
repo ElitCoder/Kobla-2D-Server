@@ -1,5 +1,13 @@
 #include "Log.h"
 #include "Base.h"
+#include "Game.h"
+#include "Database.h"
+#include "NetworkCommunication.h"
+#include "Config.h"
+#include "Packet.h"
+#include "Connection.h"
+
+#include <thread>
 
 // How long to wait before doing other server related things, in ms
 // Too high values will make monsters move at the same time and make collision not working properly

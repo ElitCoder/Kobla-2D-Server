@@ -1,8 +1,8 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include "Timer.h"
 #include "Config.h"
+#include "Timer.h"
 
 #include <string>
 

@@ -1,7 +1,6 @@
 #ifndef NPC_H
 #define NPC_H
 
-#include "Character.h"
 #include "AI.h"
 
 class NPC : public AI {

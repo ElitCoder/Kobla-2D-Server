@@ -3,6 +3,10 @@
 #include "Log.h"
 #include "AI.h"
 #include "Base.h"
+#include "Monster.h"
+#include "TemporaryObject.h"
+#include "NPC.h"
+#include "ClientData.h"
 
 #include <algorithm>
 

@@ -2,6 +2,11 @@
 #include "Config.h"
 #include "Log.h"
 #include "Base.h"
+#include "NPC.h"
+#include "Monster.h"
+#include "Map.h"
+#include "Game.h"
+#include "TemporaryObject.h"
 
 #include <deque>
 #include <fstream>

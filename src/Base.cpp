@@ -1,6 +1,9 @@
 #include "Base.h"
 #include "Log.h"
 #include "DatabaseFile.h"
+#include "Config.h"
+#include "NetworkCommunication.h"
+#include "Game.h"
 
 using namespace std;
 

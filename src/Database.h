@@ -1,13 +1,16 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include "Map.h"
-
 #include <string>
+#include <vector>
 
 enum {
 	DATABASE_TYPE_FILE
 };
+
+class Map;
+class NPC;
+class Monster;
 
 class Database {
 public:

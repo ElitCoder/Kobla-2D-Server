@@ -1,13 +1,15 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include "NPC.h"
-#include "Monster.h"
 #include "TemporaryObject.h"
 
 #include <vector>
 #include <cstddef>
 #include <array>
+
+class NPC;
+class Monster;
+class Character;
 
 class MapSpawnPoint {
 public:

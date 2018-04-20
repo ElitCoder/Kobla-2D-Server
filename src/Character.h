@@ -1,8 +1,16 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
-#include "Timer.h"
 #include "Object.h"
+
+enum {
+	CHARACTER_CLOSE_DISTANCE = 50,
+	CHARACTER_CASUAL_STROLLING_DISTANCE = 150,
+	CHARACTER_CASUAL_STROLLING_WAITING_MIN_MS = 100,
+	CHARACTER_CASUAL_STROLLING_WAITING_MAX_MS = 2000,
+};
+
+class Timer;
 
 class Character : public Object {
 public:

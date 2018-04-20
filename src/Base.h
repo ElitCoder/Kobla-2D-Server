@@ -1,11 +1,11 @@
 #ifndef BASE_H
 #define BASE_H
 
-#include "Config.h"
-#include "NetworkCommunication.h"
-#include "Game.h"
-#include "Database.h"
-#include "ClientData.h"
+class NetworkCommunication;
+class Game;
+class Database;
+class ClientData;
+class Config;
 
 class Base {
 public:

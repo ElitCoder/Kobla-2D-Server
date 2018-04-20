@@ -1,19 +1,18 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "Connection.h"
-#include "Packet.h"
+#include "ClientData.h"
+#include "Monster.h"
 #include "Player.h"
 #include "NPC.h"
 #include "Map.h"
-#include "ClientData.h"
 
-enum {
-	CHARACTER_CLOSE_DISTANCE = 50,
-	CHARACTER_CASUAL_STROLLING_DISTANCE = 150,
-	CHARACTER_CASUAL_STROLLING_WAITING_MIN_MS = 100,
-	CHARACTER_CASUAL_STROLLING_WAITING_MAX_MS = 2000,
-};
+#include <vector>
+
+class Connection;
+class Packet;
+class Character;
+class Object;
 
 class Game {
 public:

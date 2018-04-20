@@ -1,6 +1,11 @@
 #include "NetworkCommunication.h"
 #include "Base.h"
 #include "Log.h"
+#include "Connection.h"
+#include "Config.h"
+#include "Packet.h"
+#include "PartialPacket.h"
+#include "Game.h"
 
 #include <algorithm>
 #include <csignal>

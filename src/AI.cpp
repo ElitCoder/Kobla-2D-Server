@@ -1,8 +1,9 @@
 #include "AI.h"
-#include "Base.h"
-#include "PacketCreator.h"
 #include "Random.h"
-#include "Log.h"
+#include "Base.h"
+#include "Game.h"
+#include "Monster.h"
+#include "Map.h"
 
 AI::AI() {
 	ai_type_ = AI_TYPE_NONE;

@@ -1,5 +1,6 @@
 #include "Packet.h"
 #include "Log.h"
+#include "PartialPacket.h"
 
 #include <array>
 #include <cstring>

@@ -1,12 +1,11 @@
 #ifndef NETWORK_COMMUNICATION_H
 #define NETWORK_COMMUNICATION_H
 
-#include "Connection.h"
-
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <deque>
+#include <vector>
 
 enum NetworkConstants {
     BUFFER_SIZE = 4096,
@@ -26,6 +25,10 @@ public:
 private:
     int mPipes[2];
 };
+
+class Connection;
+class Packet;
+class PartialPacket;
 
 class NetworkCommunication {
 public:

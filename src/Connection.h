@@ -1,11 +1,11 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
-#include "Packet.h"
-#include "PartialPacket.h"
-
 #include <deque>
 #include <mutex>
+
+class Packet;
+class PartialPacket;
 
 class Connection {
 public:

@@ -1,11 +1,6 @@
 #ifndef PACKET_CREATOR_H
 #define PACKET_CREATOR_H
 
-#include "Packet.h"
-#include "Character.h"
-#include "Player.h"
-#include "TemporaryObject.h"
-
 enum {
 	HEADER_LOGIN,
 	HEADER_GET_CHARACTERS,
@@ -18,6 +13,11 @@ enum {
 	HEADER_UPDATE_HEALTH,
 	HEADER_SHOOT
 };
+
+class Packet;
+class Player;
+class Character;
+class TemporaryObject;
 
 class PacketCreator {
 public:

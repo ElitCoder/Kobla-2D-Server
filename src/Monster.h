@@ -1,7 +1,6 @@
 #ifndef MONSTER_H
 #define MONSTER_H
 
-#include "Character.h"
 #include "AI.h"
 
 class Monster : public AI {

@@ -1,10 +1,16 @@
 #ifndef CLIENT_DATA_H
 #define CLIENT_DATA_H
 
-#include "Character.h"
-
 // Needed for map information
 #include <tmx/MapLoader.hpp>
+
+#include <string>
+#include <memory>
+#include <vector>
+
+class Object;
+class ObjectInformation;
+class Character;
 
 class ClientData {
 public:
