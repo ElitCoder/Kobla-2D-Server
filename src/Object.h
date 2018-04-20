@@ -15,6 +15,8 @@ enum {
 
 class Object {
 public:
+	virtual ~Object();
+	
 	void changeMoveStatus(bool moving, double x, double y, int direction);
 	void move();
 	void setPredeterminedDistance(double distance);
@@ -24,6 +26,7 @@ public:
 	void setTextureID(int texture_id);
 	void setMapID(int map_id);
 	void setCollision(bool collision);
+	void setMovingSpeed(double speed);
 	
 	bool isMoving() const;
 	double getX() const;
@@ -41,13 +44,15 @@ public:
 	void setValidID();
 	
 protected:
+	Object();
+	
 	std::string name_;
 	size_t id_;
 	
 	Timer started_moving_;
-	int direction_					= -1;
+	int direction_					= PLAYER_MOVE_RIGHT;
 	bool moving_					= false;
-	double moving_speed_;
+	double moving_speed_			= 200;
 	bool collision_					= false;
 	double distance_moved_			= 0;
 	double predetermined_distance_	= -1;

@@ -4,6 +4,11 @@ using namespace std;
 
 extern size_t g_character_id;
 
+// It's not possible to make objects of this type
+Object::Object() {}
+
+Object::~Object() {}
+
 void Object::setValidID() {
 	id_ = g_character_id++;
 }
@@ -153,4 +158,8 @@ void Object::setPredeterminedDistance(double distance) {
 
 double Object::getPredeterminedDistance() const {
 	return predetermined_distance_;
+}
+
+void Object::setMovingSpeed(double speed) {
+	moving_speed_ = speed;
 }

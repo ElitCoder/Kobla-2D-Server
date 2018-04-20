@@ -4,6 +4,7 @@
 #include "Packet.h"
 #include "Character.h"
 #include "Player.h"
+#include "TemporaryObject.h"
 
 enum {
 	HEADER_LOGIN,
@@ -27,7 +28,7 @@ public:
 	static Packet addPlayer(const Character* character);
 	static Packet remove(const Character* character);
 	static Packet health(const Character* character);
-	static Packet shoot(const Object& bullet);
+	static Packet shoot(const TemporaryObject& bullet);
 };
 
 #endif

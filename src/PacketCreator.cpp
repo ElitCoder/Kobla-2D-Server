@@ -89,10 +89,13 @@ Packet PacketCreator::health(const Character* character) {
 	return packet;
 }
 
-Packet PacketCreator::shoot(const Object& bullet) {
+Packet PacketCreator::shoot(const TemporaryObject& bullet) {
 	Packet packet;
 	packet.addHeader(HEADER_SHOOT);
 	packet.addInt(bullet.getMovingDirection());
+	packet.addFloat(bullet.getMovingSpeed());
+	packet.addInt(bullet.getType());
+	packet.addInt(bullet.getID());
 	packet.addFloat(bullet.getX());
 	packet.addFloat(bullet.getY());
 	packet.finalize();

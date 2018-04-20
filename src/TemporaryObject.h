@@ -4,7 +4,7 @@
 #include "Object.h"
 
 enum {
-	TEMP_OBJECT_BULLET
+	TEMP_OBJECT_BULLET = 4
 };
 
 /*
@@ -13,6 +13,8 @@ enum {
 class TemporaryObject : public Object {
 public:
 	void setType(int type);
+	int getType() const;
+	
 	void react();
 	
 private:
