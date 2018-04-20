@@ -15,8 +15,6 @@ public:
 	void setType(int type);
 	int getType() const;
 	
-	void react();
-	
 private:
 	int object_type_ = -1;	
 };

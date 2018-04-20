@@ -68,10 +68,16 @@ void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& po
 // Do logic stuff on map
 void Map::react() {
 	// Do Object movement (bullets etc) and collision detection, etc
+	vector<int> remove_object_ids;
+	
 	for (auto& object : objects_) {
-		object.react();
-		object.move();
+		if (!object.move()) {
+			// We hit something
+			remove_object_ids.push_back(object.getID());
+		}
 	}
+	
+	removeObjects(remove_object_ids);
 	
 	// Do Monster AI & movement
 	for (auto& monster : monsters_) {
@@ -84,6 +90,15 @@ void Map::react() {
 		npc.react();
 		npc.move();
 	}
+}
+
+void Map::removeObjects(const vector<int>& ids) {
+	if (ids.empty())
+		return;
+
+	objects_.erase(remove_if(objects_.begin(), objects_.end(), [&ids] (auto& object) { 
+		return find(ids.begin(), ids.end(), object.getID()) != ids.end();
+	}), objects_.end());
 }
 
 void Map::removeMonster(int id) {

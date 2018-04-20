@@ -6,7 +6,7 @@ void TemporaryObject::setType(int type) {
 	setObjectID(type);
 	
 	switch (type) {
-		case TEMP_OBJECT_BULLET: setMovingSpeed(400);
+		case TEMP_OBJECT_BULLET: setMovingSpeed(1000);
 		break;
 	}
 	
@@ -16,8 +16,4 @@ void TemporaryObject::setType(int type) {
 
 int TemporaryObject::getType() const {
 	return object_type_;
-}
-
-// Check for collision with monsters, outside of map etc.
-void TemporaryObject::react() {
 }

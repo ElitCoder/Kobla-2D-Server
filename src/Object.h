@@ -39,7 +39,7 @@ public:
 	virtual ~Object();
 	
 	void changeMoveStatus(bool moving, double x, double y, int direction);
-	void move();
+	bool move();
 	void setPredeterminedDistance(double distance);
 	
 	void setPosition(double x, double y);

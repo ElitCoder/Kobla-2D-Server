@@ -130,9 +130,9 @@ void Object::setPosition(double x, double y) {
 	y_ = y;
 }
 
-void Object::move() {
+bool Object::move() {
 	if (!moving_)
-		return;
+		return false;
 		
 	auto time_elapsed = started_moving_.restart();
 	double pixels = moving_speed_ * time_elapsed;
@@ -158,9 +158,11 @@ void Object::move() {
 	
 	// Check collision
 	if (Base::client().isCollision(this, x, y))
-		return;
+		return false;
 	
 	setPosition(x, y);
+	
+	return true;
 }
 
 bool Object::isMoving() const {

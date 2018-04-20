@@ -30,6 +30,7 @@ public:
 	void addMonster(const Monster& monster, int number = 1, const MapSpawnPoint& point = MapSpawnPoint({{ 0, 0 }}, {{ 0, 0 }}));
 	void addSpawnPoint(const MapSpawnPoint& point);
 	void removeMonster(int id);
+	void removeObjects(const std::vector<int>& ids);
 	void addObject(const TemporaryObject& object);
 	
 	int getID() const;
