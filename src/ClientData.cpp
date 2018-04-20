@@ -80,8 +80,8 @@ sf::FloatRect ClientData::getScaledCollisionBoxSize(const Object* object, double
 	auto total_size = getObjectInformation(object->getObjectID()).getSize();
 	
 	sf::FloatRect box;
-	box.top = x;
-	box.left = y;
+	box.top = y;
+	box.left = x;
 	box.width = total_size.front();
 	box.height = total_size.back();
 	

@@ -4,7 +4,7 @@
 // How long to wait before doing other server related things, in ms
 // Too high values will make monsters move at the same time and make collision not working properly
 // Too low values will put strain on the Server
-#define PACKET_WAIT_TIME	(20)
+#define PACKET_WAIT_TIME	(50)
 
 using namespace std;
 
@@ -33,8 +33,10 @@ static void logic() {
 }
 
 static void process() {
+	const unsigned int STANDARD_PORT = 11000;
+	
 	Log(DEBUG) << "Getting port information\n";
-	const unsigned int port = Base::settings().get<unsigned short>("port");
+	const unsigned int port = Base::settings().get<unsigned short>("port", STANDARD_PORT);
 	
 	// Create the database (using file-based for now)
 	Base::createDatabase(DATABASE_TYPE_FILE);

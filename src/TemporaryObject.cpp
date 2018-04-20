@@ -3,9 +3,11 @@
 void TemporaryObject::setType(int type) {
 	object_type_ = type;
 	
+	setObjectID(type);
+	
 	switch (type) {
 		case TEMP_OBJECT_BULLET: setMovingSpeed(400);
-			break;
+		break;
 	}
 	
 	// Bullets should hit everything

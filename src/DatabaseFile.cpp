@@ -45,8 +45,8 @@ void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {
 		Config config;
 		config.parse("data/npcs/" + name);
 		
-		auto real_name = config.get<string>("name");
-		auto object_id = config.get<int>("object_id");
+		auto real_name = config.get<string>("name", "");
+		auto object_id = config.get<int>("object_id", -1);
 		
 		NPC npc;
 		npc.setNPCID(id);
@@ -67,8 +67,8 @@ void DatabaseFile::parseMonsters(vector<Monster>& reference_monsters) {
 		Config config;
 		config.parse("data/monsters/" + name);
 		
-		auto real_name = config.get<string>("name");
-		auto object_id = config.get<int>("object_id");
+		auto real_name = config.get<string>("name", "");
+		auto object_id = config.get<int>("object_id", -1);
 		
 		Monster monster;
 		monster.setMonsterID(id);

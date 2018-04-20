@@ -1,13 +1,12 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "Log.h"
+
 #include <map>
 #include <sstream>
 #include <deque>
 #include <vector>
-
-struct NoConfigException {
-};
 
 class Config {
 public:
@@ -17,11 +16,14 @@ public:
 	std::map<std::string, std::deque<std::string>>& internal();
 	
 	template<class T>
-	T get(const std::string& key) {
+	T get(const std::string& key, const T& default_value) {
 		auto iterator = configs_.find(key);
 		
-		if (iterator == configs_.end())
-			throw NoConfigException();
+		if (iterator == configs_.end()) {
+			Log(WARNING) << "No config value for key " << key << std::endl;
+			
+			return default_value;
+		}
 			
 		std::istringstream stream(iterator->second.front());
 		T value;
@@ -31,11 +33,14 @@ public:
 	}
 	
 	template<class T>
-	std::vector<T> getAll(const std::string& key) {
+	std::vector<T> getAll(const std::string& key, const std::vector<T>& default_value) {
 		auto iterator = configs_.find(key);
 		
-		if (iterator == configs_.end())
-			throw NoConfigException();
+		if (iterator == configs_.end()) {
+			Log(WARNING) << "No config value for key " << key << std::endl;
+			
+			return default_value;
+		}
 			
 		std::vector<T> values;
 		

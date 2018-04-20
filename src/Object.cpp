@@ -13,36 +13,36 @@ extern int g_character_id;
 void ObjectInformation::setConfig(const Config& config) {
 	config_ = config;
 	
-	try {
-		texture_id_ = config_.get<int>("texture");
-		scale_ = config_.get<double>("scale");
-		bool animated = config_.get<bool>("animated");
+	texture_id_ = config_.get<int>("texture", -1);
+	scale_ = config_.get<double>("scale", 1);
+	bool animated = config_.get<bool>("animated", false);
+	
+	auto* texture = Base::client().getTexture(texture_id_);
+	
+	// Set size
+	if (animated) {
+		vector<int> animation_lines;
 		
-		auto* texture = Base::client().getTexture(texture_id_);
+		animation_lines.push_back(config_.get<int>("animation_right", -1));
+		animation_lines.push_back(config_.get<int>("animation_down", -1));
+		animation_lines.push_back(config_.get<int>("animation_left", -1));
+		animation_lines.push_back(config_.get<int>("animation_up", -1));
 		
-		// Set size
-		if (animated) {
-			vector<int> animation_lines;
-			
-			animation_lines.push_back(config_.get<int>("animation_right"));
-			animation_lines.push_back(config_.get<int>("animation_down"));
-			animation_lines.push_back(config_.get<int>("animation_left"));
-			animation_lines.push_back(config_.get<int>("animation_up"));
-			
-			auto size = texture->getSize().y / animation_lines.size();
-			
-			size_x_ = size;
-			size_y_ = size;
-		} else {
-			size_x_ = texture->getSize().x;
-			size_y_ = texture->getSize().y;
-		}
+		auto size = texture->getSize().y / animation_lines.size();
 		
-		collision_scale_x = config_.get<double>("collision_scale_x");
-		collision_scale_y = config_.get<double>("collision_scale_y");
-	} catch (NoConfigException& exception) {
-		// Config doesn't need to hold these values
+		size_x_ = size;
+		size_y_ = size;
+	} else {
+		size_x_ = texture->getSize().x;
+		size_y_ = texture->getSize().y;
 	}
+	
+	collision_scale_x = config_.get<double>("collision_scale_x", 1);
+	collision_scale_y = config_.get<double>("collision_scale_y", 1);
+	
+	// Multiply with scaling
+	size_x_ *= scale_;
+	size_y_ *= scale_;
 }
 
 array<double, 2> ObjectInformation::getSize() const {
@@ -62,7 +62,9 @@ array<double, 2> ObjectInformation::getCollisionScale() const {
 */
 
 // It's not possible to make objects of this type
-Object::Object() {}
+Object::Object() {
+	id_ = g_character_id++;
+}
 
 Object::~Object() {}
 
@@ -155,11 +157,8 @@ void Object::move() {
 	distance_moved_ += pixels;
 	
 	// Check collision
-	if (Base::client().isCollision(this, x, y)) {
-		Log(DEBUG) << "Collision with object ID " << id_ << endl;
-		
+	if (Base::client().isCollision(this, x, y))
 		return;
-	}
 	
 	setPosition(x, y);
 }

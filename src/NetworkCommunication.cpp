@@ -57,7 +57,7 @@ vector<string> NetworkCommunication::getStats() {
 }
 
 static void statsThread(NetworkCommunication& network) {
-    if (!Base::settings().get<bool>("stats"))
+    if (!Base::settings().get<bool>("stats", false))
         return;
         
     auto next_sync = chrono::system_clock::now() + chrono::milliseconds(3000);

@@ -335,8 +335,8 @@ void Game::handleMove() {
 	auto y = current_packet_->getFloat();
 	auto direction = current_packet_->getInt();
 	
+	// Player stops moving, don't set the direction to undefined
 	if (!moving)
-		// Player stops moving, don't set the direction to undefined
 		direction = current_player_->getMovingDirection();
 	
 	current_player_->changeMoveStatus(moving, x, y, direction);
@@ -357,6 +357,4 @@ void Game::handleShoot() {
 	
 	// Propagate the effect to other Clients
 	Base::network().sendToAll(PacketCreator::shoot(bullet));
-	
-	Log(DEBUG) << "Player is shooting\n";
 }

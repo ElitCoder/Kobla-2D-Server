@@ -69,8 +69,8 @@ public:
 protected:
 	Object();
 	
-	std::string name_;
-	int id_;
+	std::string name_				= "";
+	int id_							= -1;
 	
 	Timer started_moving_;
 	int direction_					= PLAYER_MOVE_RIGHT;
@@ -81,15 +81,15 @@ protected:
 	double distance_moved_			= 0;
 	double predetermined_distance_	= -1;
 	
-	double x_;
-	double y_;
+	double x_						= 0;
+	double y_						= 0;
 	
 	// Coordinates before moving, for calculating smooth Monster movement
-	double original_x_;
-	double original_y_;
+	double original_x_				= 0;
+	double original_y_				= 0;
 	
-	int object_id_;
-	int map_id_;
+	int object_id_					= -1;
+	int map_id_						= -1;
 };
 
 #endif
