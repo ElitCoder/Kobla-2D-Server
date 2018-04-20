@@ -1,3 +1,4 @@
+#pragma once
 #ifndef PACKET_CREATOR_H
 #define PACKET_CREATOR_H
 

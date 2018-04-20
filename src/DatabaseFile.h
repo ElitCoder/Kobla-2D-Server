@@ -1,3 +1,4 @@
+#pragma once
 #ifndef DATABASE_FILE_H
 #define DATABASE_FILE_H
 
