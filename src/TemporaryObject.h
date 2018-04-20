@@ -13,6 +13,7 @@ enum {
 class TemporaryObject : public Object {
 public:
 	void setType(int type);
+	void react();
 	
 private:
 	int object_type_ = -1;	

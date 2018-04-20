@@ -67,9 +67,11 @@ void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& po
 
 // Do logic stuff on map
 void Map::react() {
-	// Do Object movement (bullets etc)
-	for (auto& object : objects_)
+	// Do Object movement (bullets etc) and collision detection, etc
+	for (auto& object : objects_) {
+		object.react();
 		object.move();
+	}
 	
 	// Do Monster AI & movement
 	for (auto& monster : monsters_) {

@@ -307,11 +307,13 @@ void Game::handleMove() {
 void Game::handleShoot() {
 	// Shoot something
 	// Create a bullet object with direction and speed
+	auto& map = getMap(current_player_->getMapID());
+	
 	TemporaryObject bullet;
 	bullet.setType(TEMP_OBJECT_BULLET);
+	bullet.setMapID(map.getID());
 	bullet.changeMoveStatus(true, current_player_->getX(), current_player_->getY(), current_player_->getMovingDirection());
 	
-	auto& map = getMap(current_player_->getMapID());
 	map.addObject(bullet);
 	
 	// Propagate the effect to other Clients

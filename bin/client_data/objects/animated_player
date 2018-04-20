@@ -1,0 +1,9 @@
+texture: 3
+animated: 1
+animation_up: 0
+animation_left: 1
+animation_down: 2
+animation_right: 3
+scale: 0.9
+collision_scale_x: 0.6
+collision_scale_y: 0.6
