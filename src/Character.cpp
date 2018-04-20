@@ -15,7 +15,7 @@ Character::Character() {
 	// Hard coded for now
 	x_ = 100;
 	y_ = 100;
-	texture_id_ = 0;
+	object_id_ = 0;
 	map_id_ = 0;
 	moving_speed_ = 200;
 	collision_ = false;

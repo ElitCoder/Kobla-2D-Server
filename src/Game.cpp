@@ -53,6 +53,45 @@ void Game::logic() {
 		map.react();
 }
 
+bool Game::isCollision(const sf::FloatRect& box, const Object* object) {
+	// Collide with Players
+	auto players = getPlayersOnMap({ object->getID() }, object->getMapID());
+	
+	for (auto* player : players) {
+		if (player->getCollision() || object->isCollidingEverything())
+			if (Base::client().isCollision(box, player))
+				return true;
+	}
+	
+	// Collide with NPCs
+	auto npcs = getNPCsOnMap(object->getMapID());
+	
+	for (auto& npc : npcs) {
+		if (npc.getID() == object->getID())
+			continue;
+			
+		if (npc.getCollision() || object->isCollidingEverything())
+			if (Base::client().isCollision(box, &npc))
+				return true;
+	}
+	
+	// Collide with Monsters
+	auto monsters = getMonstersOnMap(object->getMapID());
+	
+	for (auto& monster : monsters) {
+		if (monster.getID() == object->getID())
+			continue;
+			
+		if (monster.getCollision() || object->isCollidingEverything())
+			if (Base::client().isCollision(box, &monster))
+				return true;
+	}
+	
+	// TODO: Collide with other TemporaryObjects?
+	
+	return false;
+}
+
 const NPC& Game::getReferenceNPC(int id) const {
 	auto iterator = find_if(reference_npcs_.begin(), reference_npcs_.end(), [&id] (auto& npc) {
 		return npc.getNPCID() == (unsigned int)id;
@@ -119,7 +158,7 @@ Player* Game::getPlayer(const Connection& connection) {
 	return &(*iterator);
 }
 
-vector<Player*> Game::getPlayersOnMap(const vector<Player*>& except, int map_id) {
+vector<Player*> Game::getPlayersOnMap(const vector<int>& except_ids, int map_id) {
 	vector<Player*> players;
 	
 	for (auto& player : players_) {
@@ -127,9 +166,9 @@ vector<Player*> Game::getPlayersOnMap(const vector<Player*>& except, int map_id)
 			continue;
 			
 		// The player exists in except
-		if (find_if(except.begin(), except.end(), [&player] (auto& other) {
-			return player.getID() == other->getID();
-		}) != except.end())
+		if (find_if(except_ids.begin(), except_ids.end(), [&player] (auto& id) {
+			return (int)player.getID() == id;
+		}) != except_ids.end())
 			continue;
 			
 		players.push_back(&player);	
@@ -199,7 +238,7 @@ void Game::removeMonster(int id) {
 	
 	for (auto& map : maps_) {
 		auto iterator = find_if(map.getMonsters().begin(), map.getMonsters().end(), [&id] (auto& monster) {
-			return monster.getID() == (unsigned int)id;
+			return monster.getID() == id;
 		});
 		
 		if (iterator == map.getMonsters().end())
@@ -256,7 +295,7 @@ void Game::handleSpawn() {
 	Base::network().sendToAllExcept(other, { current_connection_->getSocket() });
 	
 	// Add the already spawned players
-	auto players = getPlayersOnMap({ &player }, player.getMapID());
+	auto players = getPlayersOnMap({ player.getID() }, player.getMapID());
 	
 	for_each(players.begin(), players.end(), [this] (auto* other) {
 		auto add_player_packet = PacketCreator::addPlayer(other);

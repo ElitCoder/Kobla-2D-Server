@@ -88,7 +88,7 @@ void Map::react() {
 
 void Map::removeMonster(int id) {
 	monsters_.erase(remove_if(monsters_.begin(), monsters_.end(), [&id] (auto& monster) {
-		return monster.getID() == (unsigned int)id;
+		return monster.getID() == id;
 	}));
 }
 

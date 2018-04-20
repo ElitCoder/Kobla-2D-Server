@@ -26,7 +26,7 @@ void Config::parse(const string& filename) {
 	ifstream file(filename);
 	
 	if (!file.is_open()) {
-		Log(WARNING) << "Could not open config\n";
+		Log(WARNING) << "Could not open config " << filename << endl;
 		
 		return;
 	}

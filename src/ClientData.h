@@ -18,6 +18,11 @@ public:
 	bool operator=(const ClientData&& client) = delete;
 	
 	bool isMovePossible(const Character* character, double distance, int direction);
+	bool isCollision(const Object* object, double x, double y);
+	bool isCollision(const sf::FloatRect& box, const Object* target);
+	
+	// Taken from Client
+	sf::Texture* getTexture(int id);
 	
 private:
 	class MapData {
@@ -36,19 +41,28 @@ private:
 	};
 	
 	// Taken from Client
-	sf::Texture* getTexture(const std::string& filename);
+	ObjectInformation& getObjectInformation(int id);
+	
 	std::string getMapName(int id);
 	std::string getTextureName(int id);
+	std::string getObjectInformationName(int id);
+	
+	std::string getMapPath();
 	std::string getTexturePath();
+	std::string getObjectInformationPath();
+	
+	sf::FloatRect getScaledCollisionBoxSize(const Object* object, double x, double y, bool only_boots);
 	
 	std::shared_ptr<MapData>& getMapData(int map_id);
 	
 	std::vector<std::shared_ptr<MapData>> maps_;
 	
 	std::vector<std::pair<std::string, sf::Texture*>> textures_;
+	std::vector<std::pair<std::string, ObjectInformation>> objects_;
 	
 	std::vector<std::pair<int, std::string>> map_names_;
 	std::vector<std::pair<int, std::string>> texture_names_;
+	std::vector<std::pair<int, std::string>> object_names_;
 };
 
 #endif

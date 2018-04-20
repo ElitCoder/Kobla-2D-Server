@@ -7,6 +7,9 @@ void TemporaryObject::setType(int type) {
 		case TEMP_OBJECT_BULLET: setMovingSpeed(400);
 			break;
 	}
+	
+	// Bullets should hit everything
+	setCollidingEverything(true);
 }
 
 int TemporaryObject::getType() const {

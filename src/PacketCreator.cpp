@@ -20,7 +20,7 @@ Packet PacketCreator::unknown() {
 // Adding the same things anyway
 static void playerAddInformation(Packet& packet, const Character* player) {
 	packet.addInt(player->getID());
-	packet.addInt(player->getTextureID());
+	packet.addInt(player->getObjectID());
 	packet.addFloat(player->getX());
 	packet.addFloat(player->getY());
 	packet.addString(player->getName());

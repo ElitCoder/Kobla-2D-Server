@@ -1,8 +1,65 @@
 #include "Object.h"
+#include "Base.h"
+#include "Log.h"
 
 using namespace std;
 
-extern size_t g_character_id;
+extern int g_character_id;
+
+/*
+	ObjectInformation
+*/
+
+void ObjectInformation::setConfig(const Config& config) {
+	config_ = config;
+	
+	try {
+		texture_id_ = config_.get<int>("texture");
+		scale_ = config_.get<double>("scale");
+		bool animated = config_.get<bool>("animated");
+		
+		auto* texture = Base::client().getTexture(texture_id_);
+		
+		// Set size
+		if (animated) {
+			vector<int> animation_lines;
+			
+			animation_lines.push_back(config_.get<int>("animation_right"));
+			animation_lines.push_back(config_.get<int>("animation_down"));
+			animation_lines.push_back(config_.get<int>("animation_left"));
+			animation_lines.push_back(config_.get<int>("animation_up"));
+			
+			auto size = texture->getSize().y / animation_lines.size();
+			
+			size_x_ = size;
+			size_y_ = size;
+		} else {
+			size_x_ = texture->getSize().x;
+			size_y_ = texture->getSize().y;
+		}
+		
+		collision_scale_x = config_.get<double>("collision_scale_x");
+		collision_scale_y = config_.get<double>("collision_scale_y");
+	} catch (NoConfigException& exception) {
+		// Config doesn't need to hold these values
+	}
+}
+
+array<double, 2> ObjectInformation::getSize() const {
+	return {{ size_x_, size_y_ }};
+}
+
+double ObjectInformation::getScale() const {
+	return scale_;
+}
+
+array<double, 2> ObjectInformation::getCollisionScale() const {
+	return {{ collision_scale_x, collision_scale_y }};
+}
+
+/*
+	Object
+*/
 
 // It's not possible to make objects of this type
 Object::Object() {}
@@ -97,6 +154,13 @@ void Object::move() {
 	
 	distance_moved_ += pixels;
 	
+	// Check collision
+	if (Base::client().isCollision(this, x, y)) {
+		Log(DEBUG) << "Collision with object ID " << id_ << endl;
+		
+		return;
+	}
+	
 	setPosition(x, y);
 }
 
@@ -116,12 +180,12 @@ int Object::getMovingDirection() const {
 	return direction_;
 }
 
-size_t Object::getID() const {
+int Object::getID() const {
 	return id_;
 }
 
-int Object::getTextureID() const {
-	return texture_id_;
+int Object::getObjectID() const {
+	return object_id_;
 }
 
 int Object::getMapID() const {
@@ -140,8 +204,8 @@ void Object::setName(const string& name) {
 	name_ = name;
 }
 
-void Object::setTextureID(int texture_id) {
-	texture_id_ = texture_id;
+void Object::setObjectID(int id) {
+	object_id_ = id;
 }
 
 void Object::setMapID(int map_id) {
@@ -162,4 +226,16 @@ double Object::getPredeterminedDistance() const {
 
 void Object::setMovingSpeed(double speed) {
 	moving_speed_ = speed;
+}
+
+bool Object::isCollidingEverything() const {
+	return collision_everything_;
+}
+
+void Object::setCollidingEverything(bool status) {
+	collision_everything_ = status;
+	
+	// If we're colliding with everything, set normal collision to true as well
+	if (status)
+		collision_ = true;
 }

@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "NPC.h"
 #include "Map.h"
+#include "ClientData.h"
 
 enum {
 	CHARACTER_CLOSE_DISTANCE = 50,
@@ -36,13 +37,16 @@ public:
 	void updateMovement(Character* character, const std::vector<int>& sockets);
 	Map& getMap(int map_id);
 	
+	// For collision detection
+	bool isCollision(const sf::FloatRect& box, const Object* object);
+	
 private:
 	std::vector<NPC>& getNPCsOnMap(int map_id);
 	std::vector<Monster>& getMonstersOnMap(int map_id);
 	
 	void addPlayer(const Player& player);
 	Player* getPlayer(const Connection& connection);
-	std::vector<Player*> getPlayersOnMap(const std::vector<Player*>& except, int map_id);
+	std::vector<Player*> getPlayersOnMap(const std::vector<int>& except_ids, int map_id);
 	
 	void handleLogin();
 	void handleGetCharacters();

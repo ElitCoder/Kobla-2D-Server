@@ -46,12 +46,12 @@ void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {
 		config.parse("data/npcs/" + name);
 		
 		auto real_name = config.get<string>("name");
-		auto texture_id = config.get<int>("texture_id");
+		auto object_id = config.get<int>("object_id");
 		
 		NPC npc;
 		npc.setNPCID(id);
 		npc.setName(real_name);
-		npc.setTextureID(texture_id);
+		npc.setObjectID(object_id);
 		
 		reference_npcs.push_back(npc);
 	}
@@ -68,12 +68,12 @@ void DatabaseFile::parseMonsters(vector<Monster>& reference_monsters) {
 		config.parse("data/monsters/" + name);
 		
 		auto real_name = config.get<string>("name");
-		auto texture_id = config.get<int>("texture_id");
+		auto object_id = config.get<int>("object_id");
 		
 		Monster monster;
 		monster.setMonsterID(id);
 		monster.setName(real_name);
-		monster.setTextureID(texture_id);
+		monster.setObjectID(object_id);
 		
 		reference_monsters.push_back(monster);
 	}

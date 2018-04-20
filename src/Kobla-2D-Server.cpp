@@ -2,8 +2,9 @@
 #include "Base.h"
 
 // How long to wait before doing other server related things, in ms
-// Too high values will make monsters move at the same time
-#define PACKET_WAIT_TIME	(50)
+// Too high values will make monsters move at the same time and make collision not working properly
+// Too low values will put strain on the Server
+#define PACKET_WAIT_TIME	(20)
 
 using namespace std;
 
