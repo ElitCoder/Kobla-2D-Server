@@ -2,11 +2,12 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "ClientData.h"
 #include "Monster.h"
 #include "Player.h"
 #include "NPC.h"
 #include "Map.h"
+
+#include <SFML/Graphics/Rect.hpp>
 
 #include <vector>
 

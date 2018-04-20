@@ -11,6 +11,7 @@
 #include "Packet.h"
 #include "Player.h"
 #include "TemporaryObject.h"
+#include "ClientData.h"
 
 #include <algorithm>
 #include <cmath>

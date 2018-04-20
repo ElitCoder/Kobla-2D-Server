@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "NetworkCommunication.h"
 #include "Game.h"
+#include "ClientData.h"
 
 using namespace std;
 
