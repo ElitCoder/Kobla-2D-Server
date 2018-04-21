@@ -28,6 +28,8 @@ public:
 	bool isCollision(const Object* object, double x, double y);
 	bool isCollision(const sf::FloatRect& box, const Object* target);
 	
+	std::pair<double, double> getBulletPosition(const Object* shooter);
+	
 	// Taken from Client
 	sf::Texture* getTexture(int id);
 	

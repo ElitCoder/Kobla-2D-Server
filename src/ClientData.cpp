@@ -151,6 +151,52 @@ bool ClientData::isCollision(const Object* object, double x, double y) {
 	return false;
 }
 
+// Calculates where the bullet should be shot from depending on direction, etc
+pair<double, double> ClientData::getBulletPosition(const Object* shooter) {
+	double x = 0;
+	double y = 0;
+	
+	auto object = getObjectInformation(shooter->getObjectID()).getSize();
+	auto bullet = getObjectInformation(TEMP_OBJECT_BULLET).getSize();
+	
+	switch (shooter->getMovingDirection()) {
+		case PLAYER_MOVE_DOWN: {
+			x = object.front() / 2 - bullet.front() / 2;
+			y = object.back();
+			
+			break;
+		}
+		
+		case PLAYER_MOVE_LEFT: {
+			x = -bullet.front();
+			y = object.back() / 2 - bullet.back() / 2;
+			
+			break;
+		}
+		
+		case PLAYER_MOVE_RIGHT: {
+			x = object.front();
+			y = object.back() / 2 - bullet.back() / 2;
+			
+			break;
+		}
+		
+		case PLAYER_MOVE_UP: {
+			x = object.front() / 2 - bullet.front() / 2;
+			y = -bullet.back();
+			
+			break;
+		}
+		
+		default: Log(WARNING) << "Bullet position with direction < 0\n";
+	}
+	
+	x += shooter->getX();
+	y += shooter->getY();
+	
+	return { x, y };
+}
+
 bool ClientData::isCollision(const sf::FloatRect& box, const Object* object) {
 	auto object_size = getObjectInformation(object->getObjectID()).getSize();
 	

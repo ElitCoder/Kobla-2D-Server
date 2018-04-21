@@ -361,7 +361,10 @@ void Game::handleShoot() {
 	TemporaryObject bullet;
 	bullet.setType(TEMP_OBJECT_BULLET);
 	bullet.setMapID(map.getID());
-	bullet.changeMoveStatus(true, current_player_->getX(), current_player_->getY(), current_player_->getMovingDirection());
+	bullet.setOwner(current_player_->getID());
+	
+	auto position = Base::client().getBulletPosition(current_player_);
+	bullet.changeMoveStatus(true, position.first, position.second, current_player_->getMovingDirection());
 	
 	map.addObject(bullet);
 	
