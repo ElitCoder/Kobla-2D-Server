@@ -77,11 +77,13 @@ void Map::react() {
 	
 	for (auto& object : objects_) {
 		if (!object.move()) {
+			// Tell the Clients that this Object is gone
+			Base::game().removeObject(&object);
+			
 			// We hit something
 			auto& information = object.getCollisionInformation();
 			
 			if (information.getType() == COLLISION_MONSTERS) {
-				Base::game().removeObject(&object);
 				Base::game().removeMonster(information.getID());
 			}
 			
