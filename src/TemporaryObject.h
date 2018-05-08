@@ -13,14 +13,15 @@ enum {
 */
 class TemporaryObject : public Object {
 public:
+	TemporaryObject();
+	
 	void setType(int type);
 	int getType() const;
 	
 	void setOwner(int id);
 	
 private:
-	int object_type_	= -1;
-	int owner_			= -1;
+	int owner_	= -1;
 };
 
 #endif

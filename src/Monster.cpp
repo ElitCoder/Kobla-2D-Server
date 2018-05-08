@@ -7,6 +7,8 @@ using namespace std;
 Monster::Monster() {
 	// Monster should have lower movement speed
 	moving_speed_ /= 2;
+	
+	object_type_ = OBJECT_TYPE_MONSTER;
 }
 
 void Monster::setMonsterID(int id) {

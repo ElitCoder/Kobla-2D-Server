@@ -41,7 +41,7 @@ private:
 		void load(const std::string& filename);
 		
 		int getID() const;
-		bool isCollision(double x, double y, double width, double height);
+		bool isCollision(double x, double y, double width, double height, bool collision = true);
 		
 	private:	
 		tmx::MapLoader map_loader_;

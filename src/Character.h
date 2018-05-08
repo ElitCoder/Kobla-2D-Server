@@ -18,11 +18,16 @@ public:
 	double getCurrentHealth() const;
 	double getFullHealth() const;
 	
+	void setColliding(bool status);
+	bool isColliding() const;
+	
 protected:
 	Character();
 	
 	double full_health_;
 	double current_health_;
+	
+	bool colliding_	= false;
 };
 
 #endif

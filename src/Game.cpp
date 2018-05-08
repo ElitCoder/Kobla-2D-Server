@@ -64,13 +64,15 @@ void Game::logic() {
 }
 
 bool Game::isCollision(const sf::FloatRect& box, const Object* object) {
-	// Collide with Players
-	auto players = getPlayersOnMap({ object->getID() }, object->getMapID());
-	
-	for (auto* player : players) {
-		if (player->getCollision() || object->isCollidingEverything())
+	if (object->getCollision(COLLISION_PLAYERS)) {
+		// Collide with Players
+		auto players = getPlayersOnMap({ object->getID() }, object->getMapID());
+		
+		for (auto* player : players) {
+			
 			if (Base::client().isCollision(box, player))
-				return true;
+			return true;
+		}
 	}
 	
 	// Collide with NPCs
@@ -79,22 +81,23 @@ bool Game::isCollision(const sf::FloatRect& box, const Object* object) {
 	for (auto& npc : npcs) {
 		if (npc.getID() == object->getID())
 			continue;
-			
-		if (npc.getCollision() || object->isCollidingEverything())
+		
+		if (object->getCollision(COLLISION_NPCS) || npc.isColliding())
 			if (Base::client().isCollision(box, &npc))
 				return true;
 	}
 	
-	// Collide with Monsters
-	auto monsters = getMonstersOnMap(object->getMapID());
-	
-	for (auto& monster : monsters) {
-		if (monster.getID() == object->getID())
+	if (object->getCollision(COLLISION_MONSTERS)) {
+		// Collide with Monsters
+		auto monsters = getMonstersOnMap(object->getMapID());
+		
+		for (auto& monster : monsters) {
+			if (monster.getID() == object->getID())
 			continue;
 			
-		if (monster.getCollision() || object->isCollidingEverything())
 			if (Base::client().isCollision(box, &monster))
-				return true;
+			return true;
+		}
 	}
 	
 	// TODO: Collide with other TemporaryObjects?

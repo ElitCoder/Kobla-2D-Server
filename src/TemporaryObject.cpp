@@ -1,21 +1,26 @@
 #include "TemporaryObject.h"
 
+TemporaryObject::TemporaryObject() {
+	object_type_ = OBJECT_TYPE_TEMP;
+}
+
 void TemporaryObject::setType(int type) {
-	object_type_ = type;
-	
 	setObjectID(type);
 	
 	switch (type) {
-		case TEMP_OBJECT_BULLET: setMovingSpeed(1000);
+		case TEMP_OBJECT_BULLET: setMovingSpeed(1500);
 		break;
 	}
 	
 	// Bullets should hit everything
-	setCollidingEverything(true);
+	setCollision(COLLISION_MAP, false);
+	setCollision(COLLISION_MONSTERS, true);
+	setCollision(COLLISION_NPCS, true);
+	setCollision(COLLISION_PLAYERS, true);
 }
 
 int TemporaryObject::getType() const {
-	return object_type_;
+	return object_id_;
 }
 
 void TemporaryObject::setOwner(int id) {

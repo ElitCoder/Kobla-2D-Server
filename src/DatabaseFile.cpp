@@ -132,7 +132,7 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				NPC npc = Base::game().getReferenceNPC(npc_id);
 				npc.setPosition(x, y);
 				npc.setMapID(id);
-				npc.setCollision(collision);
+				npc.setColliding(collision);
 				// Otherwise the NPC will have the same ID as the reference
 				npc.setValidID();
 				

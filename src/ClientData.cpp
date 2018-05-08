@@ -21,7 +21,7 @@ int ClientData::MapData::getID() const {
 	return id_;
 }
 
-bool ClientData::MapData::isCollision(double x, double y, double width, double height) {
+bool ClientData::MapData::isCollision(double x, double y, double width, double height, bool collision) {
 	sf::FloatRect bound(x, y, width, height);
 	
 	// Is the bound outside of the map?
@@ -31,6 +31,10 @@ bool ClientData::MapData::isCollision(double x, double y, double width, double h
 	if (x + width > map_loader_.getMapSize().x || y + height > map_loader_.getMapSize().y)
 		return true;
 	
+	// Don't check for map collisions if the Object does not collide with the map
+	if (!collision)
+		return false;
+
 	const auto& layers = map_loader_.getLayers();
 	
 	for (const auto& layer : layers) {
@@ -141,7 +145,7 @@ bool ClientData::isCollision(const Object* object, double x, double y) {
 	auto& map_data = getMapData(object->getMapID());
 	auto box = getScaledCollisionBoxSize(object, x, y, true);
 	
-	if (map_data->isCollision(box.left, box.top, box.width, box.height))
+	if (map_data->isCollision(box.left, box.top, box.width, box.height, object->getCollision(COLLISION_MAP)))
 		return true;
 		
 	// Check for other players, monsters and NPCs

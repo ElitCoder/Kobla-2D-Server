@@ -6,6 +6,8 @@
 
 class NPC : public AI {
 public:
+	NPC();
+	
 	void setNPCID(size_t id);
 	size_t getNPCID() const;
 	

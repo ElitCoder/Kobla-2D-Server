@@ -65,6 +65,8 @@ array<double, 2> ObjectInformation::getCollisionScale() const {
 // It's not possible to make objects of this type
 Object::Object() {
 	id_ = g_character_id++;
+	
+	collisions_ = array<bool, COLLISION_MAX>{{ false }};
 }
 
 Object::~Object() {}
@@ -73,12 +75,12 @@ void Object::setValidID() {
 	id_ = g_character_id++;
 }
 
-void Object::setCollision(bool collision) {
-	collision_ = collision;
+void Object::setCollision(int type, bool collision) {
+	collisions_.at(type) = collision;
 }
 
-bool Object::getCollision() const {
-	return collision_;
+bool Object::getCollision(int type) const {
+	return collisions_.at(type);
 }
 
 void Object::changeMoveStatus(bool moving, double x, double y, int direction) {
@@ -230,14 +232,10 @@ void Object::setMovingSpeed(double speed) {
 	moving_speed_ = speed;
 }
 
-bool Object::isCollidingEverything() const {
-	return collision_everything_;
+const array<bool, COLLISION_MAX>& Object::getCollisions() const {
+	return collisions_;
 }
 
-void Object::setCollidingEverything(bool status) {
-	collision_everything_ = status;
-	
-	// If we're colliding with everything, set normal collision to true as well
-	if (status)
-		collision_ = true;
+int Object::getObjectType() const {
+	return object_type_;
 }

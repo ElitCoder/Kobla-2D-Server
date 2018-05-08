@@ -2,6 +2,9 @@
 #include "Packet.h"
 #include "Player.h"
 #include "TemporaryObject.h"
+
+using namespace std;
+
 Packet PacketCreator::answerLogin(bool success) {
 	Packet packet;
 	packet.addHeader(HEADER_LOGIN);
@@ -19,6 +22,13 @@ Packet PacketCreator::unknown() {
 	return packet;
 }
 
+static void addCollisionInformation(Packet& packet, const array<bool, COLLISION_MAX>& collisions) {
+	packet.addInt(collisions.size());
+	
+	for (const auto& collision : collisions)
+		packet.addBool(collision);
+}
+
 // Adding the same things anyway
 static void playerAddInformation(Packet& packet, const Character* player) {
 	packet.addInt(player->getID());
@@ -27,9 +37,14 @@ static void playerAddInformation(Packet& packet, const Character* player) {
 	packet.addFloat(player->getY());
 	packet.addString(player->getName());
 	packet.addFloat(player->getMovingSpeed());
-	packet.addBool(player->getCollision());
+	
+	// Add all collision information
+	addCollisionInformation(packet, player->getCollisions());
+	
+	packet.addBool(player->isColliding());
 	packet.addFloat(player->getFullHealth());
 	packet.addFloat(player->getCurrentHealth());
+	packet.addInt(player->getObjectType());
 }
 
 Packet PacketCreator::spawn(const Player& player) {
@@ -100,6 +115,9 @@ Packet PacketCreator::shoot(const TemporaryObject& bullet) {
 	packet.addInt(bullet.getID());
 	packet.addFloat(bullet.getX());
 	packet.addFloat(bullet.getY());
+	
+	addCollisionInformation(packet, bullet.getCollisions());
+	
 	packet.finalize();
 	
 	return packet;

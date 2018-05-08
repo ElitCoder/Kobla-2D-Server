@@ -6,6 +6,7 @@
 #include "Timer.h"
 
 #include <string>
+#include <array>
 
 enum {
 	PLAYER_MOVE_RIGHT,
@@ -13,6 +14,21 @@ enum {
 	PLAYER_MOVE_LEFT,
 	PLAYER_MOVE_UP,
 	PLAYER_MOVE_MAX
+};
+
+enum {
+	COLLISION_PLAYERS,
+	COLLISION_NPCS,
+	COLLISION_MONSTERS,
+	COLLISION_MAP,
+	COLLISION_MAX
+};
+
+enum {
+	OBJECT_TYPE_PLAYER,
+	OBJECT_TYPE_MONSTER,
+	OBJECT_TYPE_NPC,
+	OBJECT_TYPE_TEMP
 };
 
 class ObjectInformation {
@@ -47,9 +63,8 @@ public:
 	void setName(const std::string& name);
 	void setObjectID(int id);
 	void setMapID(int map_id);
-	void setCollision(bool collision);
+	void setCollision(int type, bool collision);
 	void setMovingSpeed(double speed);
-	void setCollidingEverything(bool status);
 	
 	bool isMoving() const;
 	double getX() const;
@@ -57,13 +72,14 @@ public:
 	int getMovingDirection() const;
 	int getID() const;
 	int getObjectID() const;
+	int getObjectType() const;
 	int getMapID() const;
 	const std::string& getName() const;
 	double getMovingSpeed() const;
-	bool getCollision() const;
+	bool getCollision(int type) const;
+	const std::array<bool, COLLISION_MAX>& getCollisions() const;
 	double getDistanceMoved() const;
 	double getPredeterminedDistance() const;
-	bool isCollidingEverything() const;
 	
 	void setValidID();
 	
@@ -77,10 +93,11 @@ protected:
 	int direction_					= PLAYER_MOVE_RIGHT;
 	bool moving_					= false;
 	double moving_speed_			= 200;
-	bool collision_					= false;
-	bool collision_everything_		= false;
 	double distance_moved_			= 0;
 	double predetermined_distance_	= -1;
+	
+	// Collision
+	std::array<bool, COLLISION_MAX> collisions_;
 	
 	double x_						= 0;
 	double y_						= 0;
@@ -91,6 +108,8 @@ protected:
 	
 	int object_id_					= -1;
 	int map_id_						= -1;
+	
+	int object_type_				= -1;
 };
 
 #endif
