@@ -19,6 +19,7 @@ class Packet;
 class Player;
 class Character;
 class TemporaryObject;
+class Object;
 
 class PacketCreator {
 public:
@@ -27,7 +28,7 @@ public:
 	static Packet spawn(const Player& player);
 	static Packet move(const Character* character);
 	static Packet addPlayer(const Character* character);
-	static Packet remove(const Character* character);
+	static Packet remove(const Object* object);
 	static Packet health(const Character* character);
 	static Packet shoot(const TemporaryObject& bullet);
 };

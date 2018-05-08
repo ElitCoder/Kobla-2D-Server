@@ -7,6 +7,7 @@
 #include "TemporaryObject.h"
 #include "NPC.h"
 #include "ClientData.h"
+#include "Game.h"
 
 #include <algorithm>
 
@@ -77,6 +78,13 @@ void Map::react() {
 	for (auto& object : objects_) {
 		if (!object.move()) {
 			// We hit something
+			auto& information = object.getCollisionInformation();
+			
+			if (information.getType() == COLLISION_MONSTERS) {
+				Base::game().removeObject(&object);
+				Base::game().removeMonster(information.getID());
+			}
+			
 			remove_object_ids.push_back(object.getID());
 		}
 	}

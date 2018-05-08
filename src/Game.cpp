@@ -63,15 +63,18 @@ void Game::logic() {
 		map.react();
 }
 
-bool Game::isCollision(const sf::FloatRect& box, const Object* object) {
+bool Game::isCollision(const sf::FloatRect& box, Object* object) {
 	if (object->getCollision(COLLISION_PLAYERS)) {
 		// Collide with Players
 		auto players = getPlayersOnMap({ object->getID() }, object->getMapID());
 		
 		for (auto* player : players) {
-			
-			if (Base::client().isCollision(box, player))
-			return true;
+			if (Base::client().isCollision(box, player)) {
+				object->getCollisionInformation().setID(player->getID());
+				object->getCollisionInformation().setType(COLLISION_PLAYERS);
+				
+				return true;
+			}
 		}
 	}
 	
@@ -82,9 +85,14 @@ bool Game::isCollision(const sf::FloatRect& box, const Object* object) {
 		if (npc.getID() == object->getID())
 			continue;
 		
-		if (object->getCollision(COLLISION_NPCS) || npc.isColliding())
-			if (Base::client().isCollision(box, &npc))
+		if (object->getCollision(COLLISION_NPCS) || npc.isColliding()) {
+			if (Base::client().isCollision(box, &npc)) {
+				object->getCollisionInformation().setID(npc.getID());
+				object->getCollisionInformation().setType(COLLISION_NPCS);
+				
 				return true;
+			}
+		}
 	}
 	
 	if (object->getCollision(COLLISION_MONSTERS)) {
@@ -93,10 +101,14 @@ bool Game::isCollision(const sf::FloatRect& box, const Object* object) {
 		
 		for (auto& monster : monsters) {
 			if (monster.getID() == object->getID())
-			continue;
+				continue;
 			
-			if (Base::client().isCollision(box, &monster))
-			return true;
+			if (Base::client().isCollision(box, &monster)) {
+				object->getCollisionInformation().setID(monster.getID());
+				object->getCollisionInformation().setType(COLLISION_MONSTERS);
+				
+				return true;
+			}
 		}
 	}
 	
@@ -265,6 +277,12 @@ void Game::removeMonster(int id) {
 	}
 }
 
+// This is just a safeguard that the TemporaryObject actually disappears, compensating for network lagging
+void Game::removeObject(const Object* object) {
+	auto packet = PacketCreator::remove(object);
+	Base::network().sendToAll(packet);
+}
+
 void Game::handleLogin() {
 	auto username = current_packet_->getString();
 	auto password = current_packet_->getString();
@@ -373,4 +391,6 @@ void Game::handleShoot() {
 	
 	// Propagate the effect to other Clients
 	Base::network().sendToAll(PacketCreator::shoot(bullet));
+	
+	Log(DEBUG) << "Player " << current_player_->getID() << " shot bullet at X: " << current_player_->getX() << " Y: " << current_player_->getY() << endl;
 }

@@ -141,12 +141,16 @@ bool ClientData::isMovePossible(const Character* character, double distance, int
 	return false;
 }
 
-bool ClientData::isCollision(const Object* object, double x, double y) {
+bool ClientData::isCollision(Object* object, double x, double y) {
 	auto& map_data = getMapData(object->getMapID());
 	auto box = getScaledCollisionBoxSize(object, x, y, true);
 	
-	if (map_data->isCollision(box.left, box.top, box.width, box.height, object->getCollision(COLLISION_MAP)))
+	if (map_data->isCollision(box.left, box.top, box.width, box.height, object->getCollision(COLLISION_MAP))) {
+		object->getCollisionInformation().setID(-1);
+		object->getCollisionInformation().setType(COLLISION_MAP);
+		
 		return true;
+	}
 		
 	// Check for other players, monsters and NPCs
 	if (Base::game().isCollision(box, object))

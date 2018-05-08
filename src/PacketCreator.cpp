@@ -86,10 +86,10 @@ Packet PacketCreator::move(const Character* character) {
 	return packet;
 }
 
-Packet PacketCreator::remove(const Character* character) {
+Packet PacketCreator::remove(const Object* object) {
 	Packet packet;
 	packet.addHeader(HEADER_REMOVE_CHARACTER);
-	packet.addInt(character->getID());
+	packet.addInt(object->getID());
 	packet.finalize();
 	
 	return packet;

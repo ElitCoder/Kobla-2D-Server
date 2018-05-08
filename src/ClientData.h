@@ -25,7 +25,7 @@ public:
 	bool operator=(const ClientData&& client) = delete;
 	
 	bool isMovePossible(const Character* character, double distance, int direction);
-	bool isCollision(const Object* object, double x, double y);
+	bool isCollision(Object* object, double x, double y);
 	bool isCollision(const sf::FloatRect& box, const Object* target);
 	
 	std::pair<double, double> getBulletPosition(const Object* shooter);

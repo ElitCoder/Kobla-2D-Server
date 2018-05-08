@@ -33,13 +33,14 @@ public:
 	std::vector<Player*> getClosePlayers(const Character* character);
 	
 	void removeMonster(int id);
+	void removeObject(const Object* object);
 	
 	// For easy access in AI
 	void updateMovement(Character* character, const std::vector<int>& sockets);
 	Map& getMap(int map_id);
 	
 	// For collision detection
-	bool isCollision(const sf::FloatRect& box, const Object* object);
+	bool isCollision(const sf::FloatRect& box, Object* object);
 	
 private:
 	std::vector<NPC>& getNPCsOnMap(int map_id);

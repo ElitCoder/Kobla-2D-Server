@@ -31,6 +31,19 @@ enum {
 	OBJECT_TYPE_TEMP
 };
 
+class ObjectHit {
+public:
+	void setID(int id);
+	void setType(int type);
+	
+	int getID() const;
+	int getType() const;
+	
+private:
+	int by_id_		= -1;
+	int by_type_	= -1;
+};
+
 class ObjectInformation {
 public:
 	void setConfig(const Config& config);
@@ -80,6 +93,7 @@ public:
 	const std::array<bool, COLLISION_MAX>& getCollisions() const;
 	double getDistanceMoved() const;
 	double getPredeterminedDistance() const;
+	ObjectHit& getCollisionInformation();
 	
 	void setValidID();
 	
@@ -110,6 +124,9 @@ protected:
 	int map_id_						= -1;
 	
 	int object_type_				= -1;
+	
+	// Holds information about what caused the collision
+	ObjectHit collision_information_;
 };
 
 #endif

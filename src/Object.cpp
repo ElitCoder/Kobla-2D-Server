@@ -8,6 +8,26 @@ using namespace std;
 extern int g_character_id;
 
 /*
+	ObjectHit
+*/
+
+void ObjectHit::setID(int id) {
+	by_id_ = id;
+}
+
+void ObjectHit::setType(int type) {
+	by_type_ = type;
+}
+
+int ObjectHit::getID() const {
+	return by_id_;
+}
+
+int ObjectHit::getType() const {
+	return by_type_;
+}
+
+/*
 	ObjectInformation
 */
 
@@ -238,4 +258,8 @@ const array<bool, COLLISION_MAX>& Object::getCollisions() const {
 
 int Object::getObjectType() const {
 	return object_type_;
+}
+
+ObjectHit& Object::getCollisionInformation() {
+	return collision_information_;
 }
