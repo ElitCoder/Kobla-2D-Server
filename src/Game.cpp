@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <cmath>
 
+#define FORCED_LOGIC_WAIT_TIME	(50)
+
 using namespace std;
 
 extern mutex g_main_sync;
@@ -42,6 +44,9 @@ void Game::process(Connection& connection, Packet& packet) {
 			break;
 			
 		case HEADER_SHOOT: handleShoot();
+			break;
+			
+		case HEADER_HIT: handleHit();
 			break;
 			
 		default: {
@@ -406,4 +411,17 @@ void Game::handleShoot() {
 	Base::network().sendToAll(PacketCreator::shoot(bullet));
 	
 	//Log(DEBUG) << "Player " << current_player_->getID() << " shot bullet at X: " << current_player_->getX() << " Y: " << current_player_->getY() << endl;
+}
+
+void Game::handleHit() {
+	// Avoid running logic too often
+	if (!last_forced_logic_.elapsed())
+		return;
+
+	// Trigger logic twice to see if the bullet hits
+	// The first updates moves everything and the second update checks for the hit
+	logic();
+	logic();
+	
+	last_forced_logic_.start(FORCED_LOGIC_WAIT_TIME);
 }

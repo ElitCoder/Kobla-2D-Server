@@ -58,6 +58,7 @@ private:
 	void handleSpawn();
 	void handleMove();
 	void handleShoot();
+	void handleHit();
 	
 	std::vector<Player> players_;
 	std::vector<Map> maps_;
@@ -67,6 +68,8 @@ private:
 	Player* current_player_;
 	Connection* current_connection_;
 	Packet* current_packet_;
+	
+	Timer last_forced_logic_;
 };
 
 #endif

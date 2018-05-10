@@ -12,6 +12,7 @@ Timer::Timer(size_t ms) {
 
 void Timer::start() {
 	start_time_ = chrono::system_clock::now();
+	elapsed_time_ = start_time_;
 }
 
 void Timer::start(size_t ms) {
