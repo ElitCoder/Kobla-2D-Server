@@ -78,6 +78,7 @@ public:
 	void setMapID(int map_id);
 	void setCollision(int type, bool collision);
 	void setMovingSpeed(double speed);
+	void setMovingDirection(int direction);
 	
 	bool isMoving() const;
 	double getX() const;

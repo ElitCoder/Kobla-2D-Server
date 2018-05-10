@@ -23,6 +23,7 @@ public:
 	
 	void react();
 	void setAI(int type);
+	void initializeAI();
 
 private:
 	int ai_type_;

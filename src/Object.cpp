@@ -263,3 +263,7 @@ int Object::getObjectType() const {
 ObjectHit& Object::getCollisionInformation() {
 	return collision_information_;
 }
+
+void Object::setMovingDirection(int direction) {
+	direction_ = direction;
+}

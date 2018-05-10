@@ -53,6 +53,23 @@ static void strollingMove(Monster* me) {
 	}
 }
 
+void AI::initializeAI() {
+	switch (ai_type_) {
+		case AI_MONSTER_TYPE_NORMAL: {
+			// Set random movement direction so not every Monster starts with moving the same direction
+			auto direction = Random::getRandomInteger(PLAYER_MOVE_RIGHT, PLAYER_MOVE_UP);
+			
+			setMovingDirection(direction);
+			
+			// We know that this is a Monster AI
+			Monster* monster = (Monster*)this;
+			monster->startStrollingWaiting();
+			
+			break;
+		}
+	}
+}
+
 void AI::react() {
 	if (ai_type_ == AI_NPC_TYPE_KILL_CLOSE) {
 		// Remove monsters on sight

@@ -48,23 +48,20 @@ vector<Monster>& Map::getMonsters() {
 }
 
 void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& point) {
-	bool from_file = number > 1;
-	
-	for (int i = number; i > 0; i--) {
+	for (int i = 0; i < number; i++) {
 		Monster new_monster = monster;
 		new_monster.setValidID();
 		
-		if (from_file) {
-			int x = Random::getRandomInteger(point.getFromX(), point.getToX());
-			int y = Random::getRandomInteger(point.getFromY(), point.getToY());
-			
-			new_monster.setPosition(x, y);
-			
-			//Log(DEBUG) << "Adding monster " << new_monster.getID() << " at " << x << " " << y << endl;
-		}
+		int x = Random::getRandomInteger(point.getFromX(), point.getToX());
+		int y = Random::getRandomInteger(point.getFromY(), point.getToY());
+		
+		new_monster.setPosition(x, y);
 		
 		// Set AI for monster
 		new_monster.setAI(AI_MONSTER_TYPE_NORMAL);
+		new_monster.initializeAI();
+		
+		new_monster.setSpawnPoint(point);
 		
 		monsters_.push_back(new_monster);
 	}
@@ -104,6 +101,20 @@ void Map::react() {
 		npc.react();
 		npc.move();
 	}
+	
+	// Add respawn
+	auto spawn = spawn_handler_.getRespawn();
+	
+	if (spawn.empty())
+		return;
+		
+	for (auto& old_monster : spawn) {
+		Monster monster = Base::game().getReferenceMonster(old_monster.getMonsterID());
+		monster.setMapID(getID());
+				
+		addMonster(monster, 1, old_monster.getSpawnPoint());
+		Base::game().spawnCharacter(&monsters_.back());
+	}
 }
 
 void Map::removeObjects(const vector<int>& ids) {
@@ -116,6 +127,17 @@ void Map::removeObjects(const vector<int>& ids) {
 }
 
 void Map::removeMonster(int id) {
+	auto iterator = find_if(monsters_.begin(), monsters_.end(), [&id] (auto& monster) { return monster.getID() == id; });
+	
+	if (iterator == monsters_.end()) {
+		Log(WARNING) << "Trying to remove a monster that does not exist\n";
+		
+		return;
+	}
+	
+	// Add to respawn?
+	spawn_handler_.addToRespawn(*iterator);
+	
 	monsters_.erase(remove_if(monsters_.begin(), monsters_.end(), [&id] (auto& monster) {
 		return monster.getID() == id;
 	}));
@@ -144,6 +166,8 @@ void Map::addObject(const TemporaryObject& object) {
 /*
 	MapSpawnPoint
 */
+
+MapSpawnPoint::MapSpawnPoint() {}
 
 MapSpawnPoint::MapSpawnPoint(const array<int, 2>& from, const array<int, 2>& to) {
 	from_ = from;

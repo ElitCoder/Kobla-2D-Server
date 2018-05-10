@@ -150,7 +150,7 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				auto to_x = stoi(tokens.at(3));
 				auto to_y = stoi(tokens.at(4));
 				
-				Log(DEBUG) << "Adding spawning point from " << from_x << endl;
+				//Log(DEBUG) << "Adding spawning point from " << from_x << endl;
 				
 				map.addSpawnPoint(MapSpawnPoint({{ from_x, from_y }}, {{ to_x, to_y }}));
 			} else if (tokens.front() == "monster") {

@@ -3,6 +3,7 @@
 #define MAP_H
 
 #include "TemporaryObject.h"
+#include "SpawnHandler.h"
 
 #include <vector>
 #include <cstddef>
@@ -14,6 +15,7 @@ class Character;
 
 class MapSpawnPoint {
 public:
+	MapSpawnPoint();
 	MapSpawnPoint(const std::array<int, 2>& from, const std::array<int, 2>& to);
 	
 	int getFromX() const;
@@ -52,6 +54,8 @@ private:
 	std::vector<Monster> monsters_;
 	std::vector<MapSpawnPoint> player_spawn_points_;
 	std::vector<TemporaryObject> objects_;
+	
+	SpawnHandler spawn_handler_;
 };
 
 #endif

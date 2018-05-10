@@ -42,7 +42,7 @@ void Config::parse(const string& filename) {
 		// Remove ':' from the setting
 		tokens.front().pop_back();
 		
-		Log(DEBUG) << "Set key " << tokens.front() << " to value " << tokens.back() << endl;
+		//Log(DEBUG) << "Set key " << tokens.front() << " to value " << tokens.back() << endl;
 		string key = tokens.front();
 		tokens.pop_front();
 		

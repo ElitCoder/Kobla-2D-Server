@@ -8,7 +8,7 @@ size_t g_character_id = 0;
 Character::Character() {
 	id_ = g_character_id++;
 	
-	Log(DEBUG) << "Running constructor for Character\n";
+	//Log(DEBUG) << "Running constructor for Character\n";
 	
 	moving_ = false;
 	

@@ -35,6 +35,8 @@ public:
 	void removeMonster(int id);
 	void removeObject(const Object* object);
 	
+	void spawnCharacter(const Character* character);
+	
 	// For easy access in AI
 	void updateMovement(Character* character, const std::vector<int>& sockets);
 	Map& getMap(int map_id);

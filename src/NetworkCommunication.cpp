@@ -495,6 +495,33 @@ void NetworkCommunication::send(const Connection* connection, const Packet& pack
     addOutgoingPacket(connection->getSocket(), packet);
 }
 
+int NetworkCommunication::getConnectionSocket(size_t unique_id) {
+    lock_guard<mutex> guard(mConnectionsMutex);
+    
+    auto iterator = find_if(mConnections.begin(), mConnections.end(), [&unique_id] (auto& peer) {
+        auto& connection = peer.second;
+        
+        return connection.getUniqueID() == unique_id;
+    });
+    
+    if (iterator == mConnections.end())
+        return -1;
+        
+    return iterator->second.getSocket();
+}
+
+void NetworkCommunication::sendUnique(size_t id, const Packet& packet) {
+    auto fd = getConnectionSocket(id);
+    
+    if (fd < 0) {
+        Log(WARNING) << "Could not find connection with unique ID " << id << endl;
+        
+        return;
+    }
+        
+    addOutgoingPacket(fd, packet);
+}
+
 void NetworkCommunication::removeOutgoingPacket() {
     lock_guard<mutex> guard(mOutgoingMutex);
     

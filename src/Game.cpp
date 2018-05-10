@@ -141,8 +141,13 @@ const Monster& Game::getReferenceMonster(int id) const {
 
 void Game::load() {
 	// Load everything from database
+	Log(INFORMATION) << "Loading NPCs\n";
 	Base::database()->parseNPCs(reference_npcs_);
+	
+	Log(INFORMATION) << "Loading Monsters\n";
 	Base::database()->parseMonsters(reference_monsters_);
+	
+	Log(INFORMATION) << "Loading Maps\n";
 	Base::database()->parseMaps(maps_);
 }
 
@@ -259,7 +264,7 @@ vector<Player*> Game::getClosePlayers(const Character *character) {
 }
 
 void Game::removeMonster(int id) {
-	Log(DEBUG) << "Trying to remove monster ID " << id << endl;
+	//Log(DEBUG) << "Trying to remove monster ID " << id << endl;
 	
 	for (auto& map : maps_) {
 		auto iterator = find_if(map.getMonsters().begin(), map.getMonsters().end(), [&id] (auto& monster) {
@@ -281,6 +286,14 @@ void Game::removeMonster(int id) {
 void Game::removeObject(const Object* object) {
 	auto packet = PacketCreator::remove(object);
 	Base::network().sendToAll(packet);
+}
+
+void Game::spawnCharacter(const Character* character) {
+	auto players = getPlayersOnMap({}, character->getMapID());
+	auto packet = PacketCreator::addPlayer(character);
+	
+	for (auto* player : players)
+		Base::network().sendUnique(player->getConnectionID(), packet);
 }
 
 void Game::handleLogin() {
@@ -392,5 +405,5 @@ void Game::handleShoot() {
 	// Propagate the effect to other Clients
 	Base::network().sendToAll(PacketCreator::shoot(bullet));
 	
-	Log(DEBUG) << "Player " << current_player_->getID() << " shot bullet at X: " << current_player_->getX() << " Y: " << current_player_->getY() << endl;
+	//Log(DEBUG) << "Player " << current_player_->getID() << " shot bullet at X: " << current_player_->getX() << " Y: " << current_player_->getY() << endl;
 }

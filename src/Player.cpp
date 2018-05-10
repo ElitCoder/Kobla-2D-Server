@@ -6,7 +6,7 @@ Player::Player() {
 	object_type_ = OBJECT_TYPE_PLAYER;
 	
 	// Set player movement a little higher for now
-	moving_speed_ *= 2;
+	moving_speed_ *= 3;
 }
 
 void Player::setConnectionID(size_t id) {

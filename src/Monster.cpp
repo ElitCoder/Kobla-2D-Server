@@ -30,3 +30,11 @@ bool Monster::strollingWaitingElapsed() {
 bool Monster::isFollowing() const {
 	return following_;
 }
+
+void Monster::setSpawnPoint(const MapSpawnPoint &point) {
+	spawn_point_ = point;
+}
+
+const MapSpawnPoint& Monster::getSpawnPoint() const {
+	return spawn_point_;
+}

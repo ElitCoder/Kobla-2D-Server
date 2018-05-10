@@ -45,6 +45,7 @@ public:
     bool runSelectReceive(fd_set &readSet, fd_set &errorSet, unsigned char *buffer);
     
     int getSocket() const;
+    int getConnectionSocket(size_t unique_id);
     std::pair<std::mutex*, Connection>* getConnectionAndLock(const int fd);
     void unlockConnection(std::pair<std::mutex*, Connection> &connectionPair);
     
@@ -52,6 +53,7 @@ public:
     void removeOutgoingPacket();
     void addOutgoingPacket(const int fd, const Packet &packet);
     void send(const Connection* connection, const Packet& packet);
+    void sendUnique(size_t id, const Packet& packet);
     
     std::pair<int, Packet>& waitForProcessingPackets();
     void removeProcessingPacket();
