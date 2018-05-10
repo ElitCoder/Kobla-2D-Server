@@ -68,6 +68,8 @@ class Object {
 public:
 	virtual ~Object();
 	
+	static int translateObjectTypeToCollision(int type);
+	
 	void changeMoveStatus(bool moving, double x, double y, int direction);
 	bool move();
 	void setPredeterminedDistance(double distance);

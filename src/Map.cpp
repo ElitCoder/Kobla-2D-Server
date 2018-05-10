@@ -67,6 +67,18 @@ void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& po
 	}
 }
 
+void Map::objectHit(Object* object) {
+	// Tell the Clients that this Object is gone
+	Base::game().removeObject(object);
+	
+	// We hit something
+	auto& information = object->getCollisionInformation();
+	
+	if (information.getType() == COLLISION_MONSTERS) {
+		Base::game().removeMonster(information.getID());
+	}
+}
+
 // Do logic stuff on map
 void Map::react() {
 	// Do Object movement (bullets etc) and collision detection, etc
@@ -74,15 +86,7 @@ void Map::react() {
 	
 	for (auto& object : objects_) {
 		if (!object.move()) {
-			// Tell the Clients that this Object is gone
-			Base::game().removeObject(&object);
-			
-			// We hit something
-			auto& information = object.getCollisionInformation();
-			
-			if (information.getType() == COLLISION_MONSTERS) {
-				Base::game().removeMonster(information.getID());
-			}
+			objectHit(&object);
 			
 			remove_object_ids.push_back(object.getID());
 		}
@@ -165,6 +169,48 @@ void Map::addObject(const TemporaryObject& object) {
 
 vector<TemporaryObject>& Map::getObjects() {
 	return objects_;
+}
+
+TemporaryObject* Map::getObject(int id) {
+	auto iterator = find_if(objects_.begin(), objects_.end(), [&id] (auto& object) { return object.getID() == id; });
+	
+	if (iterator == objects_.end())
+		return nullptr;
+		
+	return &*iterator;
+}
+
+Character* Map::getCharacter(int id) {
+	auto npc_iterator = find_if(npcs_.begin(), npcs_.end(), [&id] (auto& npc) { return id == npc.getID(); });
+	
+	if (npc_iterator != npcs_.end())
+		return &*npc_iterator;
+		
+	auto monster_iterator = find_if(monsters_.begin(), monsters_.end(), [&id] (auto& monster) { return id == monster.getID(); });
+	
+	if (monster_iterator != monsters_.end())
+		return &* monster_iterator;
+		
+	return nullptr;
+}
+
+void Map::checkHit(const Character* shooter, int bullet_id, int hit_id) {
+	auto* bullet = getObject(bullet_id);
+	auto* hit = getCharacter(hit_id);
+	
+	if (bullet == nullptr || hit == nullptr) {
+		Log(DEBUG) << "Player " << shooter->getID() << " tries to shoot something that does not exist, " << bullet_id << " and " << hit_id << endl;
+		
+		return;
+	}
+	
+	// Trust the Client for now
+	bullet->getCollisionInformation().setID(hit->getID());
+	bullet->getCollisionInformation().setType(Object::translateObjectTypeToCollision(hit->getObjectType()));
+	
+	objectHit(bullet);
+	
+	removeObjects({ bullet_id });
 }
 
 /*

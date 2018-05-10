@@ -45,10 +45,16 @@ public:
 	std::vector<TemporaryObject>& getObjects();
 	
 	int getPossibleMove(const Character* character, double distance, int desired_direction);
+	void checkHit(const Character* shooter, int bullet_id, int hit_id);
 	
 	void react();
 		
 private:
+	void objectHit(Object* object);
+	
+	TemporaryObject* getObject(int id);
+	Character* getCharacter(int id);
+	
 	int id_;
 	
 	std::vector<NPC> npcs_;

@@ -33,7 +33,7 @@ vector<Monster> SpawnHandler::getRespawn() {
 			auto& timer = peer.second;
 			
 			return timer.elapsed();
-		}));
+		}), spawn_.end());
 	}
 	
 	return respawn;

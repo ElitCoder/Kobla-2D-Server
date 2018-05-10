@@ -430,6 +430,7 @@ void Game::handleShoot() {
 }
 
 void Game::handleHit() {
+	#if 0
 	// Avoid running logic too often
 	if (!last_forced_logic_.elapsed())
 		return;
@@ -440,4 +441,12 @@ void Game::handleHit() {
 	logic();
 	
 	last_forced_logic_.start(FORCED_LOGIC_WAIT_TIME);
+	#endif
+	
+	// Instead let the Map decide if the hit is legal
+	auto object_id = current_packet_->getInt();
+	auto hit_id = current_packet_->getInt();
+	
+	auto& map = getMap(current_player_->getMapID());
+	map.checkHit(current_player_, object_id, hit_id);
 }

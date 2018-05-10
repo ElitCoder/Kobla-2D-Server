@@ -91,6 +91,19 @@ Object::Object() {
 
 Object::~Object() {}
 
+// Static since translation doesn't need an instance
+int Object::translateObjectTypeToCollision(int type) {
+	switch (type) {
+		case OBJECT_TYPE_MONSTER:	return COLLISION_MONSTERS;
+		case OBJECT_TYPE_NPC:		return COLLISION_NPCS;
+		case OBJECT_TYPE_PLAYER:	return COLLISION_PLAYERS;
+	}
+	
+	Log(WARNING) << "Object type translation " << type << " failed\n";
+	
+	return -1;
+}
+
 void Object::setValidID() {
 	id_ = g_character_id++;
 }
