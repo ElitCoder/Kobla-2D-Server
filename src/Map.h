@@ -42,6 +42,7 @@ public:
 	std::vector<NPC>& getNPCs();
 	std::vector<Monster>& getMonsters();
 	std::array<int, 2> getSpawnPoint();
+	std::vector<TemporaryObject>& getObjects();
 	
 	int getPossibleMove(const Character* character, double distance, int desired_direction);
 	

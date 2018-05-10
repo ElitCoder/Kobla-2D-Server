@@ -26,3 +26,7 @@ int TemporaryObject::getType() const {
 void TemporaryObject::setOwner(int id) {
 	owner_ = id;
 }
+
+int TemporaryObject::getOwner() const {
+	return owner_;
+}

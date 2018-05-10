@@ -115,6 +115,7 @@ Packet PacketCreator::shoot(const TemporaryObject& bullet) {
 	packet.addInt(bullet.getID());
 	packet.addFloat(bullet.getX());
 	packet.addFloat(bullet.getY());
+	packet.addInt(bullet.getOwner());
 	
 	addCollisionInformation(packet, bullet.getCollisions());
 	

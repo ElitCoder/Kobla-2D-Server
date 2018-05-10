@@ -19,6 +19,7 @@ public:
 	int getType() const;
 	
 	void setOwner(int id);
+	int getOwner() const;
 	
 private:
 	int owner_	= -1;

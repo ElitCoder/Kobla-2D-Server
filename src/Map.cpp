@@ -163,6 +163,10 @@ void Map::addObject(const TemporaryObject& object) {
 	objects_.push_back(object);
 }
 
+vector<TemporaryObject>& Map::getObjects() {
+	return objects_;
+}
+
 /*
 	MapSpawnPoint
 */

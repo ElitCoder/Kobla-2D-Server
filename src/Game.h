@@ -47,6 +47,7 @@ public:
 private:
 	std::vector<NPC>& getNPCsOnMap(int map_id);
 	std::vector<Monster>& getMonstersOnMap(int map_id);
+	std::vector<TemporaryObject>& getObjectsOnMap(int map_id);
 	
 	void addPlayer(const Player& player);
 	Player* getPlayer(const Connection& connection);

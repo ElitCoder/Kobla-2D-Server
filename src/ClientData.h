@@ -33,6 +33,8 @@ public:
 	// Taken from Client
 	sf::Texture* getTexture(int id);
 	
+	void runWarm();
+	
 private:
 	class MapData {
 	public:

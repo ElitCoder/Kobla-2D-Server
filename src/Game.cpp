@@ -154,6 +154,9 @@ void Game::load() {
 	
 	Log(INFORMATION) << "Loading Maps\n";
 	Base::database()->parseMaps(maps_);
+	
+	// Run warm
+	Base::client().runWarm();
 }
 
 void Game::disconnected(const Connection& connection) {
@@ -232,6 +235,10 @@ vector<NPC>& Game::getNPCsOnMap(int map_id) {
 
 vector<Monster>& Game::getMonstersOnMap(int map_id) {
 	return getMap(map_id).getMonsters();
+}
+
+vector<TemporaryObject>& Game::getObjectsOnMap(int map_id) {
+	return getMap(map_id).getObjects();
 }
 
 static double distanceTo(const Character* from, const Character* to) {
@@ -327,7 +334,6 @@ void Game::handleSpawn() {
 	// Give the connection a temporary player
 	Player player;
 	player.setConnectionID(current_connection_->getUniqueID());
-	addPlayer(player);
 	
 	// Randomize position since it's not saved
 	auto position = getMap(player.getMapID()).getSpawnPoint();
@@ -336,6 +342,8 @@ void Game::handleSpawn() {
 	Log(DEBUG) << "Spawning player at " << position.front() << " " << position.back() << endl;
 	
 	Log(DEBUG) << "Player got connection ID " << current_connection_->getUniqueID() << endl;
+	
+	addPlayer(player);
 	
 	auto answer = PacketCreator::spawn(player);
 	Base::network().send(current_connection_, answer);
@@ -364,6 +372,14 @@ void Game::handleSpawn() {
 	
 	for_each(monsters.begin(), monsters.end(), [this] (auto& other) {
 		auto add_player_packet = PacketCreator::addPlayer(&other);
+		Base::network().send(current_connection_, add_player_packet);
+	});
+	
+	// Add TemporaryObjects
+	auto& objects = getObjectsOnMap(player.getMapID());
+	
+	for_each(objects.begin(), objects.end(), [this] (auto& other) {
+		auto add_player_packet = PacketCreator::shoot(other);
 		Base::network().send(current_connection_, add_player_packet);
 	});
 }
