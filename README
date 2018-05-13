@@ -1,6 +1,14 @@
 Kobla-2D-Server
 
 Back-end server for Kobla, rebase under development.
+Building essentials are only a subset of Kobla-2D-Client's essentials.
+
+ESSENTIALS:
+(Debian-based)
+./install.sh
 
 BUILDING:
 ./create.sh
+
+RUNNING:
+./create.sh run
