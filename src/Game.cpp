@@ -490,5 +490,8 @@ void Game::handleActivate() {
 	
 	auto* object = getObject(id);
 	
+	if (object == nullptr)
+		return;
+	
 	object->activate(current_player_);
 }

@@ -56,9 +56,16 @@ void Action::activate(Object* object, Object* activater) const {
 		// Send this text to activater
 		if (activater->getObjectType() == OBJECT_TYPE_PLAYER)
 			Base::network().sendUnique(((Player*)activater)->getConnectionID(), PacketCreator::text(object, actual, TEXT_DISAPPEAR_MS));
+			
+		if (response_type_)
+			Base::network().sendToAll(PacketCreator::text(object, actual, TEXT_DISAPPEAR_MS));
 	}
 }
 
 void Action::addText(const string& text) {
 	texts_.push_back(text);
+}
+
+void Action::setTextResponse(bool response_type) {
+	response_type_ = response_type;
 }

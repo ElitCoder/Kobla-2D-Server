@@ -16,10 +16,12 @@ public:
 	void setID(int id);
 	int getID() const;
 	
+	void setTextResponse(bool response_type);
 	void addText(const std::string& text);
 	
 private:
-	int id_ = -1;
+	int id_				= -1;
+	bool response_type_	= false;
 	
 	std::vector<std::string> texts_;
 };

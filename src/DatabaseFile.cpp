@@ -63,13 +63,25 @@ void DatabaseFile::parseActions(vector<Action>& reference_actions) {
 		config.parse("data/actions/" + name);
 		
 		auto text = flattenString(config.getAll<string>("text", vector<string>()));
+		auto send_all = config.get<string>("send", "") == "all";
 		
 		Action action;
 		action.setID(id);
 		action.addText(text);
+		action.setTextResponse(send_all);
 		
 		reference_actions.push_back(action);
 	}
+}
+
+static void parseCharacter(Character* character, Config& config) {
+	auto real_name = config.get<string>("name", "");
+	auto object_id = config.get<int>("object_id", -1);
+	auto activate_ids = config.getAll<int>("actions", vector<int>());
+	
+	character->setName(real_name);
+	character->setObjectID(object_id);
+	character->setActions(activate_ids);
 }
 
 void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {
@@ -82,15 +94,10 @@ void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {
 		Config config;
 		config.parse("data/npcs/" + name);
 		
-		auto real_name = config.get<string>("name", "");
-		auto object_id = config.get<int>("object_id", -1);
-		auto activate_ids = config.getAll<int>("actions", vector<int>());
-		
 		NPC npc;
 		npc.setNPCID(id);
-		npc.setName(real_name);
-		npc.setObjectID(object_id);
-		npc.setActions(activate_ids);
+		
+		parseCharacter(&npc, config);
 			
 		reference_npcs.push_back(npc);
 	}
@@ -106,13 +113,10 @@ void DatabaseFile::parseMonsters(vector<Monster>& reference_monsters) {
 		Config config;
 		config.parse("data/monsters/" + name);
 		
-		auto real_name = config.get<string>("name", "");
-		auto object_id = config.get<int>("object_id", -1);
-		
 		Monster monster;
 		monster.setMonsterID(id);
-		monster.setName(real_name);
-		monster.setObjectID(object_id);
+		
+		parseCharacter(&monster, config);
 		
 		reference_monsters.push_back(monster);
 	}
