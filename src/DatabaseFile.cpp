@@ -40,6 +40,38 @@ static DataContainer loadDataID(const string& path) {
 	return container;
 }
 
+template<class T>
+static T flattenString(const vector<T>& container) {
+	T value;
+	
+	for (auto& element : container) {
+		value += element;
+		value += " ";
+	}
+		
+	return value;
+}
+
+void DatabaseFile::parseActions(vector<Action>& reference_actions) {
+	auto data = loadDataID("data/actions/id");
+	
+	for (auto& peer : data) {
+		auto id = peer.first;
+		auto name = peer.second.front();
+		
+		Config config;
+		config.parse("data/actions/" + name);
+		
+		auto text = flattenString(config.getAll<string>("text", vector<string>()));
+		
+		Action action;
+		action.setID(id);
+		action.addText(text);
+		
+		reference_actions.push_back(action);
+	}
+}
+
 void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {
 	auto data = loadDataID("data/npcs/id");
 	
@@ -52,13 +84,13 @@ void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {
 		
 		auto real_name = config.get<string>("name", "");
 		auto object_id = config.get<int>("object_id", -1);
-		auto activate_ids = config.getAll<int>("activate", vector<int>());
+		auto activate_ids = config.getAll<int>("actions", vector<int>());
 		
 		NPC npc;
 		npc.setNPCID(id);
 		npc.setName(real_name);
 		npc.setObjectID(object_id);
-		npc.setActivatable(activate_ids);
+		npc.setActions(activate_ids);
 			
 		reference_npcs.push_back(npc);
 	}

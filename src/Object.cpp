@@ -2,6 +2,7 @@
 #include "Base.h"
 #include "Log.h"
 #include "ClientData.h"
+#include "Game.h"
 
 using namespace std;
 
@@ -285,14 +286,19 @@ void Object::activate(Object* activater) {
 	Log(DEBUG) << activater->getID() << " trying to activate " << getID() << endl;
 	
 	// Is the Object able to activate?
-	if (!isActivatable())
+	if (!hasActions())
 		return;
+		
+	// Activate first Action for now
+	auto& action = Base::game().getReferenceAction(actions_.front());
+	
+	action.activate(this, activater);
 }
 
-void Object::setActivatable(const vector<int>& actions) {
-	activate_actions_ = actions;
+void Object::setActions(const vector<int>& actions) {
+	actions_ = actions;
 }
 
-bool Object::isActivatable() const {
-	return !activate_actions_.empty();
+bool Object::hasActions() const {
+	return !actions_.empty();
 }

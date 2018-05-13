@@ -2,6 +2,8 @@
 #ifndef PACKET_CREATOR_H
 #define PACKET_CREATOR_H
 
+#include <string>
+
 enum {
 	HEADER_LOGIN,
 	HEADER_GET_CHARACTERS,
@@ -14,7 +16,8 @@ enum {
 	HEADER_UPDATE_HEALTH,
 	HEADER_SHOOT,
 	HEADER_HIT,
-	HEADER_ACTIVATE
+	HEADER_ACTIVATE,
+	HEADER_TEXT
 };
 
 class Packet;
@@ -33,6 +36,7 @@ public:
 	static Packet remove(const Object* object);
 	static Packet health(const Character* character);
 	static Packet shoot(const TemporaryObject& bullet);
+	static Packet text(const std::string& output);
 };
 
 #endif

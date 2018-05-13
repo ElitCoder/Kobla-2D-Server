@@ -270,16 +270,25 @@ static string findDataId(vector<pair<int, string>>& container, int id) {
 }
 
 void ClientData::runWarm() {
-	Log(INFORMATION) << "Preloading everything to avoid hiccups\n";
+	Log(DEBUG) << "Preloading everything to avoid hiccups\n";
 	
 	// Load up vectors
 	getTextureName(0);
 	getMapName(0);
 	getObjectInformationName(0);
 	
+	Log(INFORMATION) << "Loading MapData\n";
+	
+	for (auto& peer : map_names_)
+		getMapData(peer.first);
+	
+	Log(INFORMATION) << "Loading Textures\n";
+	
 	// Load data from disk
 	for (auto& peer : texture_names_)
 		getTexture(peer.first);
+		
+	Log(INFORMATION) << "Loading Objects\n";
 		
 	for (auto& peer : object_names_)
 		getObjectInformation(peer.first);

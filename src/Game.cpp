@@ -147,6 +147,17 @@ const Monster& Game::getReferenceMonster(int id) const {
 	return *iterator;	
 }
 
+const Action& Game::getReferenceAction(int id) const {
+	auto iterator = find_if(reference_actions_.begin(), reference_actions_.end(), [&id] (auto& action) { 
+		return action.getID() == id;
+	});
+	
+	if (iterator == reference_actions_.end())
+		Log(ERROR) << "Could not find reference Action " << id << endl;
+		
+	return *iterator;
+}
+
 void Game::load() {
 	// Load everything from database
 	Log(INFORMATION) << "Loading NPCs\n";
@@ -157,6 +168,9 @@ void Game::load() {
 	
 	Log(INFORMATION) << "Loading Maps\n";
 	Base::database()->parseMaps(maps_);
+	
+	Log(INFORMATION) << "Loading Actions\n";
+	Base::database()->parseActions(reference_actions_);
 	
 	// Run warm
 	Base::client().runWarm();

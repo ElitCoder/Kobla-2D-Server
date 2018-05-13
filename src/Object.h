@@ -81,7 +81,7 @@ public:
 	void setCollision(int type, bool collision);
 	void setMovingSpeed(double speed);
 	void setMovingDirection(int direction);
-	void setActivatable(const std::vector<int>& actions);
+	void setActions(const std::vector<int>& actions);
 	
 	bool isMoving() const;
 	double getX() const;
@@ -98,7 +98,7 @@ public:
 	double getDistanceMoved() const;
 	double getPredeterminedDistance() const;
 	ObjectHit& getCollisionInformation();
-	bool isActivatable() const;
+	bool hasActions() const;
 	
 	void setValidID();
 	
@@ -136,7 +136,7 @@ protected:
 	ObjectHit collision_information_;
 	
 	// Activation actions
-	std::vector<int> activate_actions_;
+	std::vector<int> actions_;
 };
 
 #endif

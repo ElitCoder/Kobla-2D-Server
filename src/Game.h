@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "NPC.h"
 #include "Map.h"
+#include "Action.h"
 
 #include <SFML/Graphics/Rect.hpp>
 
@@ -27,6 +28,7 @@ public:
 	// For parsing
 	const NPC& getReferenceNPC(int id) const;
 	const Monster& getReferenceMonster(int id) const;
+	const Action& getReferenceAction(int id) const;
 	
 	// For Monster & NPC	
 	std::vector<Monster*> getCloseMonsters(const Character* character);
@@ -68,6 +70,7 @@ private:
 	std::vector<Map> maps_;
 	std::vector<NPC> reference_npcs_;
 	std::vector<Monster> reference_monsters_;
+	std::vector<Action> reference_actions_;
 	
 	Player* current_player_;
 	Connection* current_connection_;

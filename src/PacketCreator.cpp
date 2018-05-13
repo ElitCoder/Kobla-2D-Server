@@ -123,3 +123,12 @@ Packet PacketCreator::shoot(const TemporaryObject& bullet) {
 	
 	return packet;
 }
+
+Packet PacketCreator::text(const string& output) {
+	Packet packet;
+	packet.addHeader(HEADER_TEXT);
+	packet.addString(output);
+	packet.finalize();
+	
+	return packet;
+}
