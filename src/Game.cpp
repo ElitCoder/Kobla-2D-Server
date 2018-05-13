@@ -49,6 +49,9 @@ void Game::process(Connection& connection, Packet& packet) {
 		case HEADER_HIT: handleHit();
 			break;
 			
+		case HEADER_ACTIVATE: handleActivate();
+			break;
+			
 		default: {
 			Log(NETWORK) << "Unrecognized packet header " << header << endl;
 			handleUnknownPacket();
@@ -238,7 +241,7 @@ vector<Monster>& Game::getMonstersOnMap(int map_id) {
 }
 
 vector<TemporaryObject>& Game::getObjectsOnMap(int map_id) {
-	return getMap(map_id).getObjects();
+	return getMap(map_id).getTemporaryObjects();
 }
 
 static double distanceTo(const Character* from, const Character* to) {
@@ -306,6 +309,22 @@ void Game::spawnCharacter(const Character* character) {
 	
 	for (auto* player : players)
 		Base::network().sendUnique(player->getConnectionID(), packet);
+}
+
+Object* Game::getObject(int id) {
+	auto player_iterator = find_if(players_.begin(), players_.end(), [&id] (auto& player) { return player.getID() == id; });
+	
+	if (player_iterator != players_.end())
+		return &*player_iterator;
+		
+	for (auto& map : maps_) {
+		auto* object = map.getObject(id);
+		
+		if (object != nullptr)
+			return object;
+	}
+	
+	return nullptr;
 }
 
 void Game::handleLogin() {
@@ -449,4 +468,13 @@ void Game::handleHit() {
 	
 	auto& map = getMap(current_player_->getMapID());
 	map.checkHit(current_player_, object_id, hit_id);
+}
+
+void Game::handleActivate() {
+	// Activate something
+	auto id = current_packet_->getInt();
+	
+	auto* object = getObject(id);
+	
+	object->activate(current_player_);
 }

@@ -167,11 +167,11 @@ void Map::addObject(const TemporaryObject& object) {
 	objects_.push_back(object);
 }
 
-vector<TemporaryObject>& Map::getObjects() {
+vector<TemporaryObject>& Map::getTemporaryObjects() {
 	return objects_;
 }
 
-TemporaryObject* Map::getObject(int id) {
+TemporaryObject* Map::getTemporaryObject(int id) {
 	auto iterator = find_if(objects_.begin(), objects_.end(), [&id] (auto& object) { return object.getID() == id; });
 	
 	if (iterator == objects_.end())
@@ -189,13 +189,13 @@ Character* Map::getCharacter(int id) {
 	auto monster_iterator = find_if(monsters_.begin(), monsters_.end(), [&id] (auto& monster) { return id == monster.getID(); });
 	
 	if (monster_iterator != monsters_.end())
-		return &* monster_iterator;
+		return &*monster_iterator;
 		
 	return nullptr;
 }
 
 void Map::checkHit(const Character* shooter, int bullet_id, int hit_id) {
-	auto* bullet = getObject(bullet_id);
+	auto* bullet = getTemporaryObject(bullet_id);
 	auto* hit = getCharacter(hit_id);
 	
 	if (bullet == nullptr || hit == nullptr) {
@@ -211,6 +211,25 @@ void Map::checkHit(const Character* shooter, int bullet_id, int hit_id) {
 	objectHit(bullet);
 	
 	removeObjects({ bullet_id });
+}
+
+Object* Map::getObject(int id) {
+	auto monster_iterator = find_if(monsters_.begin(), monsters_.end(), [&id] (auto& monster) { return monster.getID() == id; });
+	
+	if (monster_iterator != monsters_.end())
+		return &*monster_iterator;
+		
+	auto npc_iterator = find_if(npcs_.begin(), npcs_.end(), [&id] (auto npc) { return npc.getID() == id; });
+	
+	if (npc_iterator != npcs_.end())
+		return &*npc_iterator;
+		
+	auto object_iterator = find_if(objects_.begin(), objects_.end(), [&id] (auto& object) { return object.getID() == id; });
+	
+	if (object_iterator != objects_.end())
+		return &*object_iterator;
+		
+	return nullptr;
 }
 
 /*

@@ -42,7 +42,8 @@ public:
 	std::vector<NPC>& getNPCs();
 	std::vector<Monster>& getMonsters();
 	std::array<int, 2> getSpawnPoint();
-	std::vector<TemporaryObject>& getObjects();
+	std::vector<TemporaryObject>& getTemporaryObjects();
+	Object* getObject(int id);
 	
 	int getPossibleMove(const Character* character, double distance, int desired_direction);
 	void checkHit(const Character* shooter, int bullet_id, int hit_id);
@@ -52,7 +53,7 @@ public:
 private:
 	void objectHit(Object* object);
 	
-	TemporaryObject* getObject(int id);
+	TemporaryObject* getTemporaryObject(int id);
 	Character* getCharacter(int id);
 	
 	int id_;

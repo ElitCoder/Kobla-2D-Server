@@ -52,12 +52,14 @@ void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {
 		
 		auto real_name = config.get<string>("name", "");
 		auto object_id = config.get<int>("object_id", -1);
+		auto activate_ids = config.getAll<int>("activate", vector<int>());
 		
 		NPC npc;
 		npc.setNPCID(id);
 		npc.setName(real_name);
 		npc.setObjectID(object_id);
-		
+		npc.setActivatable(activate_ids);
+			
 		reference_npcs.push_back(npc);
 	}
 }

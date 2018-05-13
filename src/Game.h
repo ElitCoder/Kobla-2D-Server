@@ -49,6 +49,8 @@ private:
 	std::vector<Monster>& getMonstersOnMap(int map_id);
 	std::vector<TemporaryObject>& getObjectsOnMap(int map_id);
 	
+	Object* getObject(int id);
+	
 	void addPlayer(const Player& player);
 	Player* getPlayer(const Connection& connection);
 	std::vector<Player*> getPlayersOnMap(const std::vector<int>& except_ids, int map_id);
@@ -60,6 +62,7 @@ private:
 	void handleMove();
 	void handleShoot();
 	void handleHit();
+	void handleActivate();
 	
 	std::vector<Player> players_;
 	std::vector<Map> maps_;

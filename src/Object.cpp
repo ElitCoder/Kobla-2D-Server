@@ -280,3 +280,19 @@ ObjectHit& Object::getCollisionInformation() {
 void Object::setMovingDirection(int direction) {
 	direction_ = direction;
 }
+
+void Object::activate(Object* activater) {
+	Log(DEBUG) << activater->getID() << " trying to activate " << getID() << endl;
+	
+	// Is the Object able to activate?
+	if (!isActivatable())
+		return;
+}
+
+void Object::setActivatable(const vector<int>& actions) {
+	activate_actions_ = actions;
+}
+
+bool Object::isActivatable() const {
+	return !activate_actions_.empty();
+}
