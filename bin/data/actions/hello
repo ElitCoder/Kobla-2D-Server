@@ -1,1 +1,1 @@
-text: Hello $$PLAYER_NAME$$! I am $$OWN_NAME$$ - welcome to Kobla-2D-Online!
+text: Hello $$PLAYER_NAME$$!$$LINE_BREAK$$I am $$OWN_NAME$$, welcome to Kobla-2D-Online!

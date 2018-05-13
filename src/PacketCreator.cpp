@@ -124,10 +124,12 @@ Packet PacketCreator::shoot(const TemporaryObject& bullet) {
 	return packet;
 }
 
-Packet PacketCreator::text(const string& output) {
+Packet PacketCreator::text(const Object* object, const string& output, int ms) {
 	Packet packet;
 	packet.addHeader(HEADER_TEXT);
 	packet.addString(output);
+	packet.addInt(ms);
+	packet.addInt(object->getID());
 	packet.finalize();
 	
 	return packet;

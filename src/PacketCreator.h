@@ -36,7 +36,7 @@ public:
 	static Packet remove(const Object* object);
 	static Packet health(const Character* character);
 	static Packet shoot(const TemporaryObject& bullet);
-	static Packet text(const std::string& output);
+	static Packet text(const Object* object, const std::string& output, int ms);
 };
 
 #endif

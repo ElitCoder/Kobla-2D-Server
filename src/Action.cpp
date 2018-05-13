@@ -44,6 +44,9 @@ void Action::activate(Object* object, Object* activater) const {
 				else if (variable_name == "OWN_NAME")
 					actual += object->getName();
 					
+				else if (variable_name == "LINE_BREAK")
+					actual += "\n";
+					
 				continue;
 			}
 			
@@ -52,7 +55,7 @@ void Action::activate(Object* object, Object* activater) const {
 		
 		// Send this text to activater
 		if (activater->getObjectType() == OBJECT_TYPE_PLAYER)
-			Base::network().sendUnique(((Player*)activater)->getConnectionID(), PacketCreator::text(actual));
+			Base::network().sendUnique(((Player*)activater)->getConnectionID(), PacketCreator::text(object, actual, TEXT_DISAPPEAR_MS));
 	}
 }
 

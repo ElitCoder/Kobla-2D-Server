@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#define TEXT_DISAPPEAR_MS	(10000)
+
 class Object;
 
 class Action {
