@@ -138,6 +138,8 @@ bool ClientData::isMovePossible(const Character* character, double distance, int
 		constraint.left = monster->getSpawnPoint().getFromX();
 		constraint.width = monster->getSpawnPoint().getToX() - constraint.left + object_size.front();
 		constraint.height = monster->getSpawnPoint().getToY() - constraint.top + object_size.back();
+		
+		is_monster = monster->getSpawnPoint().hasLimit();
 	}
 	
 	switch (direction) {

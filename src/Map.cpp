@@ -260,6 +260,8 @@ int MapSpawnPoint::getToY() const {
 
 void MapSpawnPoint::setLimit(bool limit) {
 	limit_ = limit;
+	
+	Log(DEBUG) << "Set monster spawn limit to " << limit << endl;
 }
 
 bool MapSpawnPoint::hasLimit() const {
