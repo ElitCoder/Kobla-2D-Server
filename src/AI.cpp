@@ -28,7 +28,8 @@ static void strollingMove(Monster* me) {
 		if (!me->strollingWaitingElapsed())
 			return;
 		
-		auto desired_direction = (me->getMovingDirection() + 1) % PLAYER_MOVE_MAX;
+		//auto desired_direction = (me->getMovingDirection() + 1) % PLAYER_MOVE_MAX;
+		auto desired_direction = Random::getRandomInteger(PLAYER_MOVE_RIGHT, PLAYER_MOVE_UP);
 		auto distance_to_move = Random::getRandomInteger(CHARACTER_CASUAL_STROLLING_DISTANCE / 10, CHARACTER_CASUAL_STROLLING_DISTANCE);
 		auto possible_move = Base::game().getMap(me->getMapID()).getPossibleMove(me, distance_to_move, desired_direction);
 				

@@ -15,3 +15,12 @@ void NPC::setNPCID(size_t id) {
 size_t NPC::getNPCID() const {
 	return npc_id_;
 }
+
+void NPC::setPatrol(const vector<pair<double, double>>& patrol) {
+	patrolling_area_ = patrol;
+}
+
+void NPC::setPatrolWaitTime(int min, int max) {
+	patrol_wait_min_ = min;
+	patrol_wait_max_ = max;
+}

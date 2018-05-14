@@ -162,10 +162,40 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 			
 			// Add NPC
 			if (tokens.front() == "npc") {
-				auto npc_id = stoi(tokens.at(1));
-				auto x = stoi(tokens.at(2));
-				auto y = stoi(tokens.at(3));
-				auto collision = stoi(tokens.at(4));
+				tokens.pop_front();
+				
+				vector<pair<double, double>> patrol;
+				int patrol_wait_min = 1000;
+				int patrol_wait_max = 2000;
+				int npc_id = -1;
+				double x = -1;
+				double y = -1;
+				bool collision = false;
+				
+				for (size_t i = 0; i < tokens.size(); i++) {
+					auto& key = tokens.at(i);
+					i += 1;
+					
+					if (key == "ID") {
+						npc_id = stoi(tokens.at(i));
+					} else if (key == "X") {
+						x = stod(tokens.at(i));	
+					} else if (key == "Y") {
+						y = stod(tokens.at(i));
+					} else if (key == "COLLISION") {
+						collision = stoi(tokens.at(i));
+					} else if (key == "PATROL") {
+						auto patrol_x = stod(tokens.at(i));
+						auto patrol_y = stod(tokens.at(i + 1));
+						i++;
+						
+						patrol.push_back({ patrol_x, patrol_y });
+					} else if (key == "PATROL_WAIT") {
+						patrol_wait_min = stoi(tokens.at(i));
+						patrol_wait_max = stoi(tokens.at(i + 1));
+						i++;
+					}
+				}
 				
 				NPC npc = Base::game().getReferenceNPC(npc_id);
 				npc.setPosition(x, y);
@@ -173,14 +203,14 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				npc.setColliding(collision);
 				// Otherwise the NPC will have the same ID as the reference
 				npc.setValidID();
+				npc.setPatrol(patrol);
+				npc.setPatrolWaitTime(patrol_wait_min, patrol_wait_max);
 				
 				// Set NPC AI type to Basic for now
 				// TODO: Change this
 				npc.setAI(AI_NPC_TYPE_KILL_CLOSE);
 				
 				map.addNPC(npc);
-				
-				//Log(DEBUG) << "Added NPC " << npc.getName() << " on map " << id << endl;
 			} else if (tokens.front() == "player_spawn") {
 				// Where the player can be spawned (random here)
 				auto from_x = stoi(tokens.at(1));
