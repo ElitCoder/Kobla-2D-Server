@@ -1,3 +1,7 @@
-animated: 0
-texture: 1
-scale: 0.8
+animated: 1
+animation_up: 3
+animation_left: 1
+animation_down: 0
+animation_right: 2
+texture: 6
+scale: 1
