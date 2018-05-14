@@ -26,7 +26,7 @@ Character::Character() {
 	// Collide with everything except Monsters & Players
 	setCollision(COLLISION_MAP, true);
 	setCollision(COLLISION_MONSTERS, false);
-	setCollision(COLLISION_NPCS, true);
+	setCollision(COLLISION_NPCS, false);
 	setCollision(COLLISION_PLAYERS, false);
 }
 

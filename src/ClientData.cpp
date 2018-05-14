@@ -21,8 +21,13 @@ int ClientData::MapData::getID() const {
 	return id_;
 }
 
-bool ClientData::MapData::isCollision(double x, double y, double width, double height, bool collision) {
+bool ClientData::MapData::isCollision(double x, double y, double width, double height, bool collision, bool has_constraint, const sf::FloatRect& constraint) {
 	sf::FloatRect bound(x, y, width, height);
+	
+	// Check extra constraint first
+	if (has_constraint)
+		if (x < constraint.left || x + width > constraint.left + constraint.width || y < constraint.top || y + height > constraint.top + constraint.height)
+			return true;
 	
 	// Is the bound outside of the map?
 	if (x < 0 || y < 0)
@@ -122,18 +127,24 @@ bool ClientData::isMovePossible(const Character* character, double distance, int
 	double x = character->getX();
 	double y = character->getY();
 	
+	bool is_monster = character->getObjectType() == OBJECT_TYPE_MONSTER;
+	sf::FloatRect constraint;
+	
+	if (is_monster) {
+		// We know it's a Monster
+		Monster* monster = (Monster*)character;
+		
+		constraint.top = monster->getSpawnPoint().getFromY();
+		constraint.left = monster->getSpawnPoint().getFromX();
+		constraint.width = monster->getSpawnPoint().getToX() - constraint.left + object_size.front();
+		constraint.height = monster->getSpawnPoint().getToY() - constraint.top + object_size.back();
+	}
+	
 	switch (direction) {
-		case PLAYER_MOVE_DOWN: return !map_data->isCollision(x, y, object_size.front(), object_size.back() + distance);
-			break;
-			
-		case PLAYER_MOVE_LEFT: return !map_data->isCollision(x - distance, y, distance + object_size.front(), object_size.back());
-			break;
-			
-		case PLAYER_MOVE_RIGHT: return !map_data->isCollision(x, y, distance + object_size.front(), object_size.back());
-			break;
-			
-		case PLAYER_MOVE_UP: return !map_data->isCollision(x, y - distance, object_size.front(), object_size.back() + distance);
-			break;
+		case PLAYER_MOVE_DOWN:	return !map_data->isCollision(x, y, object_size.front(), object_size.back() + distance, true, is_monster, constraint);
+		case PLAYER_MOVE_LEFT:	return !map_data->isCollision(x - distance, y, distance + object_size.front(), object_size.back(), true, is_monster, constraint);
+		case PLAYER_MOVE_RIGHT: return !map_data->isCollision(x, y, distance + object_size.front(), object_size.back(), true, is_monster, constraint);
+		case PLAYER_MOVE_UP:	return !map_data->isCollision(x, y - distance, object_size.front(), object_size.back() + distance, true, is_monster, constraint);
 	}
 	
 	Log(WARNING) << "Logic should not get here, isMovePossible()\n";

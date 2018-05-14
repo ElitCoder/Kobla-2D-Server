@@ -23,9 +23,14 @@ public:
 	int getToX() const;
 	int getToY() const;
 	
+	void setLimit(bool limit);
+	bool hasLimit() const;
+	
 private:
 	std::array<int, 2> from_;
 	std::array<int, 2> to_;
+	
+	bool limit_ = false;
 };
 
 class Map {

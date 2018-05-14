@@ -59,7 +59,6 @@ void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& po
 		
 		// Set AI for monster
 		new_monster.setAI(AI_MONSTER_TYPE_NORMAL);
-		new_monster.initializeAI();
 		
 		new_monster.setSpawnPoint(point);
 		
@@ -257,4 +256,12 @@ int MapSpawnPoint::getToX() const {
 
 int MapSpawnPoint::getToY() const {
 	return to_.back();
+}
+
+void MapSpawnPoint::setLimit(bool limit) {
+	limit_ = limit;
+}
+
+bool MapSpawnPoint::hasLimit() const {
+	return limit_;
 }

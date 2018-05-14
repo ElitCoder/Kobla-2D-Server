@@ -43,7 +43,7 @@ private:
 		void load(const std::string& filename);
 		
 		int getID() const;
-		bool isCollision(double x, double y, double width, double height, bool collision = true);
+		bool isCollision(double x, double y, double width, double height, bool collision = true, bool has_constraint = false, const sf::FloatRect& constraint = sf::FloatRect());
 		
 	private:	
 		tmx::MapLoader map_loader_;

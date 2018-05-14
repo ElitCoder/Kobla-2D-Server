@@ -5,6 +5,8 @@
 #include "Monster.h"
 #include "Map.h"
 
+using namespace std;
+
 AI::AI() {
 	ai_type_ = AI_TYPE_NONE;
 }
@@ -26,16 +28,6 @@ bool AI::AIWaitingElapsed() {
 }
 
 static void strollingMove(Monster* me) {
-	#if 0
-	// Following trumps everything else
-	if (me->isFollowing()) {
-		// Get distance to player and calculate curve to player's location
-	} else {
-		// Are any players close? Let's follow them in that case
-		auto players = Base::game().getClosePlayers(me);
-	}
-	#endif
-	
 	// Let's update direction
 	if (!me->isMoving()) {
 		// Have we waited long enough?
@@ -44,7 +36,7 @@ static void strollingMove(Monster* me) {
 		
 		//auto desired_direction = (me->getMovingDirection() + 1) % PLAYER_MOVE_MAX;
 		auto desired_direction = Random::getRandomInteger(PLAYER_MOVE_RIGHT, PLAYER_MOVE_UP);
-		auto distance_to_move = Random::getRandomInteger(CHARACTER_CASUAL_STROLLING_DISTANCE / 10, CHARACTER_CASUAL_STROLLING_DISTANCE);
+		auto distance_to_move = Random::getRandomInteger(1, CHARACTER_CASUAL_STROLLING_DISTANCE);
 		auto possible_move = Base::game().getMap(me->getMapID()).getPossibleMove(me, distance_to_move, desired_direction);
 				
 		if (possible_move < 0)
@@ -52,15 +44,17 @@ static void strollingMove(Monster* me) {
 			return;
 
 		me->changeMoveStatus(true, me->getX(), me->getY(), possible_move);
-		me->setPredeterminedDistance(distance_to_move);
+		me->setDeterminedDestination(possible_move, distance_to_move);
 		
 		Base::game().updateMovement(me, {});
 	} else {
-		if (me->getDistanceMoved() >= me->getPredeterminedDistance()) {
+		//if (me->getDistanceMoved() >= me->getPredeterminedDistance()) {
+		if (me->reachedDeterminedDistance()) {
+			// Set to destination position
+			me->changeMoveStatus(false, me->getDeterminedDestination().first, me->getDeterminedDestination().second, me->getMovingDirection());
+			
 			// Stop movement
 			me->startAIWaiting();
-			
-			me->changeMoveStatus(false, me->getX(), me->getY(), me->getMovingDirection());
 			
 			// No need to send stop packet, the Client takes care of it
 			//Base::game().updateMovement(me, {});
@@ -69,34 +63,20 @@ static void strollingMove(Monster* me) {
 }
 
 static void patrol(NPC* npc) {
-	if (npc->isMoving()) {
-		// Are we moving?
-		//if (npc->getDistanceMoved() >= npc->getPredeterminedDistance()) {
-		if (npc->reachedPatrolPosition()) {
-			npc->changeMoveStatus(false, npc->getX(), npc->getY(), npc->getMovingDirection());
-			Base::game().updateMovement(npc, {});
-			
-			npc->startAIWaiting();
-		} else {
-			auto changed = npc->changeMoveStatus(true, npc->getX(), npc->getY(), npc->getPatrolDirection());
-			
-			if (changed) {
-				Log(DEBUG) << "Updated movement\n";
-				
-				Base::game().updateMovement(npc, {});
-			}
-		}
-	} else {
-		// Should we start moving?
+	if (!npc->isMoving()) {
 		if (!npc->AIWaitingElapsed())
 			return;
 			
-		// Set target to
-		npc->setNextPatrolPosition();
-		auto direction = npc->getPatrolDirection();
+		npc->changeMoveStatus(true, npc->getX(), npc->getY(), npc->getMovingDirection());
+		npc->setDeterminedDestination(npc->setNextPatrolPosition());
 		
-		npc->changeMoveStatus(true, npc->getX(), npc->getY(), direction);
 		Base::game().updateMovement(npc, {});
+	} else {
+		if (npc->reachedDeterminedDistance()) {
+			npc->changeMoveStatus(false, npc->getDeterminedDestination().first, npc->getDeterminedDestination().second, npc->getMovingDirection());
+			
+			npc->startAIWaiting();
+		}
 	}
 }
 

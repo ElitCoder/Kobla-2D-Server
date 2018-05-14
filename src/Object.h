@@ -72,7 +72,8 @@ public:
 	
 	bool changeMoveStatus(bool moving, double x, double y, int direction);
 	bool move();
-	void setPredeterminedDistance(double distance);
+	void setDeterminedDestination(int direction, double distance);
+	void setDeterminedDestination(const std::pair<double, double>& destination);
 	
 	void setPosition(double x, double y);
 	void setName(const std::string& name);
@@ -95,10 +96,11 @@ public:
 	double getMovingSpeed() const;
 	bool getCollision(int type) const;
 	const std::array<bool, COLLISION_MAX>& getCollisions() const;
-	double getDistanceMoved() const;
-	double getPredeterminedDistance() const;
+	std::pair<double, double> getDeterminedDestination() const;
 	ObjectHit& getCollisionInformation();
 	bool hasActions() const;
+	bool reachedDeterminedDistance() const;
+	bool hasDeterminedDestination() const;
 	
 	void setValidID();
 	
@@ -114,8 +116,11 @@ protected:
 	int direction_					= PLAYER_MOVE_RIGHT;
 	bool moving_					= false;
 	double moving_speed_			= 200;
-	double distance_moved_			= 0;
-	double predetermined_distance_	= -1;
+	double destination_x_			= -1;
+	double destination_y_			= -1;
+	bool reached_distance_x_		= false;
+	bool reached_distance_y_		= false;
+	bool determined_destination_	= false;
 	
 	// Collision
 	std::array<bool, COLLISION_MAX> collisions_;

@@ -17,10 +17,7 @@ public:
 	int getPatrolWaitMinTime() const;
 	int getPatrolWaitMaxTime() const;
 	
-	void setNextPatrolPosition();
-	
-	bool reachedPatrolPosition() const;
-	int getPatrolDirection() const;
+	const std::pair<double, double>& setNextPatrolPosition();
 	
 private:
 	size_t npc_id_ = 0;

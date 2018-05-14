@@ -65,6 +65,12 @@ Packet PacketCreator::addPlayer(const Character* player) {
 	packet.addBool(player->isMoving());
 	packet.addInt(player->getMovingDirection());
 	
+	auto destination = player->getDeterminedDestination();
+	
+	packet.addBool(player->hasDeterminedDestination());
+	packet.addFloat(destination.first);
+	packet.addFloat(destination.second);
+	
 	playerAddInformation(packet, player);
 
 	packet.finalize();
@@ -80,7 +86,13 @@ Packet PacketCreator::move(const Character* character) {
 	packet.addFloat(character->getY());
 	packet.addInt(character->getMovingDirection());
 	packet.addInt(character->getID());
-	packet.addFloat(character->getPredeterminedDistance());
+	
+	auto destination = character->getDeterminedDestination();
+	
+	packet.addBool(character->hasDeterminedDestination());
+	packet.addFloat(destination.first);
+	packet.addFloat(destination.second);
+	
 	packet.finalize();
 	
 	return packet;

@@ -203,9 +203,6 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				npc.setColliding(collision);
 				// Otherwise the NPC will have the same ID as the reference
 				npc.setValidID();
-				npc.setPatrol(patrol);
-				npc.setPatrolWaitTime(patrol_wait_min, patrol_wait_max);
-				
 				npc.setAI(AI_NPC_TYPE_KILL_CLOSE);
 				
 				// Set NPC AI type to Basic for now
@@ -213,6 +210,9 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				if (!patrol.empty()) {
 					// Add the position as first patrol position
 					patrol.insert(patrol.begin(), { x, y });
+					
+					npc.setPatrol(patrol);
+					npc.setPatrolWaitTime(patrol_wait_min, patrol_wait_max);
 					
 					npc.setAI(AI_NPC_TYPE_PATROL);
 				}
@@ -235,11 +235,15 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				auto to_x = stoi(tokens.at(4));
 				auto to_y = stoi(tokens.at(5));
 				auto number = stoi(tokens.at(6));
+				auto limit = stoi(tokens.at(7));
 				
 				Monster monster = Base::game().getReferenceMonster(monster_id);
 				monster.setMapID(id);
 				
-				map.addMonster(monster, number, MapSpawnPoint({{ from_x, from_y }}, {{ to_x, to_y }}));
+				MapSpawnPoint spawn({{ from_x, from_y }}, {{ to_x, to_y }});
+				spawn.setLimit(limit);
+				
+				map.addMonster(monster, number, spawn);
 			}
 		}
 		
