@@ -176,6 +176,11 @@ bool Object::move() {
 		
 		double distance = diff_x_squared + diff_y_squared;
 		
+		if (sqrt(distance) < 1) {
+			is_reaching_x = true;
+			is_reaching_y = true;
+		}
+		
 		double move_x = diff_x_squared / distance * pixels;
 		double move_y = diff_y_squared / distance * pixels;
 		
