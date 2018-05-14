@@ -12,18 +12,12 @@ public:
 	void setMonsterID(int id);
 	int getMonsterID() const;
 	
-	bool isFollowing() const;
-	
-	void startStrollingWaiting();
-	bool strollingWaitingElapsed();
-	
 	void setSpawnPoint(const MapSpawnPoint& point);
 	const MapSpawnPoint& getSpawnPoint() const;
 	
 private:
-	int monster_id_			= -1;
-	Timer next_strolling_;
-	bool following_			= false;
+	int monster_id_ = -1;
+
 	MapSpawnPoint spawn_point_;
 };
 

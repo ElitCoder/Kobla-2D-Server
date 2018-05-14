@@ -165,8 +165,8 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				tokens.pop_front();
 				
 				vector<pair<double, double>> patrol;
-				int patrol_wait_min = 1000;
-				int patrol_wait_max = 2000;
+				int patrol_wait_min = 10000;
+				int patrol_wait_max = 20000;
 				int npc_id = -1;
 				double x = -1;
 				double y = -1;
@@ -206,9 +206,16 @@ void DatabaseFile::parseMaps(vector<Map>& maps) {
 				npc.setPatrol(patrol);
 				npc.setPatrolWaitTime(patrol_wait_min, patrol_wait_max);
 				
+				npc.setAI(AI_NPC_TYPE_KILL_CLOSE);
+				
 				// Set NPC AI type to Basic for now
 				// TODO: Change this
-				npc.setAI(AI_NPC_TYPE_KILL_CLOSE);
+				if (!patrol.empty()) {
+					// Add the position as first patrol position
+					patrol.insert(patrol.begin(), { x, y });
+					
+					npc.setAI(AI_NPC_TYPE_PATROL);
+				}
 				
 				map.addNPC(npc);
 			} else if (tokens.front() == "player_spawn") {

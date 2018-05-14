@@ -117,13 +117,13 @@ bool Object::getCollision(int type) const {
 	return collisions_.at(type);
 }
 
-void Object::changeMoveStatus(bool moving, double x, double y, int direction) {
+bool Object::changeMoveStatus(bool moving, double x, double y, int direction) {
 	if (moving == moving_) {
 		if (moving && direction == direction_)
-			return;
+			return false;
 			
 		if (!moving)
-			return;
+			return false;
 	}
 	
 	moving_ = moving;
@@ -160,6 +160,8 @@ void Object::changeMoveStatus(bool moving, double x, double y, int direction) {
 	
 	if (moving)
 		started_moving_.start();
+		
+	return true;
 }
 
 void Object::setPosition(double x, double y) {

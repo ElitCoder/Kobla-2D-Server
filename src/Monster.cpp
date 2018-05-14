@@ -19,18 +19,6 @@ int Monster::getMonsterID() const {
 	return monster_id_;
 }
 
-void Monster::startStrollingWaiting() {
-	next_strolling_.start(Random::getRandomInteger(CHARACTER_CASUAL_STROLLING_WAITING_MIN_MS, CHARACTER_CASUAL_STROLLING_WAITING_MAX_MS));
-}
-
-bool Monster::strollingWaitingElapsed() {
-	return next_strolling_.elapsed();
-}
-
-bool Monster::isFollowing() const {
-	return following_;
-}
-
 void Monster::setSpawnPoint(const MapSpawnPoint &point) {
 	spawn_point_ = point;
 }
