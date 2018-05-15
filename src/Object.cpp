@@ -205,11 +205,17 @@ bool Object::move() {
 		double move_x = diff_x_squared / distance * pixels;
 		double move_y = diff_y_squared / distance * pixels;
 		
-		if (move_x >= abs(diff_x))
+		if (move_x >= abs(diff_x)) {
 			is_reaching_x = true;
 			
-		if (move_y >= abs(diff_y))
+			move_x = abs(diff_x);
+		}
+			
+		if (move_y >= abs(diff_y)) {
 			is_reaching_y = true;
+			
+			move_y = abs(diff_y);
+		}
 		
 		if (diff_x < 0)
 			x -= move_x;
