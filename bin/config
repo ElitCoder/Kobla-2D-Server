@@ -1,3 +1,6 @@
 # Network
 port: 11000
 stats: 0
+
+# Game settings
+player_base_damage: 2

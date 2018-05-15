@@ -1,6 +1,7 @@
 #include "Character.h"
 #include "Log.h"
 #include "Random.h"
+#include "Base.h"
 
 using namespace std;
 
@@ -22,6 +23,9 @@ Character::Character() {
 	full_health_ = 100;
 	current_health_ = full_health_;
 	
+	// Set base damage
+	setAttack(Base::settings().get<double>("player_base_damage", 1));
+	
 	name_ = "Igge" + to_string(getID());
 	
 	// Collide with everything except Monsters & Players
@@ -29,6 +33,17 @@ Character::Character() {
 	setCollision(COLLISION_MONSTERS, false);
 	setCollision(COLLISION_NPCS, false);
 	setCollision(COLLISION_PLAYERS, false);
+}
+
+void Character::setFullHealth(double health, bool heal) {
+	full_health_ = health;
+	
+	if (heal)
+		current_health_ = full_health_;
+}
+
+void Character::setCurrentHealth(double health) {
+	current_health_ = health;
 }
 
 double Character::getCurrentHealth() const {
@@ -51,7 +66,7 @@ void Character::setAttackSpeed(int ms) {
 	attack_speed_ms_ = ms;
 }
 
-bool Character::attack() {
+bool Character::canAttack() {
 	if (!attack_timer_.elapsed())
 		return false;
 		
@@ -62,10 +77,15 @@ bool Character::attack() {
 	return true;	
 }
 
-void Character::reduceHealth(double amount) {
+bool Character::reduceHealth(double amount) {
 	current_health_ -= amount;
 	
-	if (current_health_ < 0)
+	if (current_health_ < 0) {
 		// Died
 		current_health_ = 0;
+		
+		return true;
+	}
+		
+	return false;
 }

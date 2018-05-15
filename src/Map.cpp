@@ -72,10 +72,8 @@ void Map::objectHit(Object* object) {
 	
 	// We hit something
 	auto& information = object->getCollisionInformation();
-	
-	if (information.getType() == COLLISION_MONSTERS) {
-		Base::game().removeMonster(information.getID());
-	}
+		
+	object->attack(Base::game().getObject(information.getID()));
 }
 
 // Do logic stuff on map

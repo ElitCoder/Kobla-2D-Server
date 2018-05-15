@@ -3,6 +3,9 @@
 #include "Log.h"
 #include "ClientData.h"
 #include "Game.h"
+#include "NetworkCommunication.h"
+#include "PacketCreator.h"
+#include "Packet.h"
 
 using namespace std;
 
@@ -405,4 +408,38 @@ void Object::setDeterminedDestination(const std::pair<double, double>& destinati
 	reached_distance_x_ = false;
 	reached_distance_y_ = false;
 	determined_destination_ = true;
+}
+
+void Object::setAttack(double value) {
+	attack_ = value;
+}
+
+double Object::getAttack() const {
+	return attack_;
+}
+
+void Object::attack(Object* target) {
+	if (target == nullptr || getID() == target->getID())
+		return;
+
+	auto type = target->getObjectType();
+	
+	if (!(type == OBJECT_TYPE_NPC || type == OBJECT_TYPE_PLAYER || type == OBJECT_TYPE_MONSTER))
+		return;
+		
+	// Don't attack NPCs for now
+	if (type == OBJECT_TYPE_NPC)
+		return;
+		
+	Character* character = (Character*)target;
+	
+	auto died = character->reduceHealth(getAttack());
+	Base::network().sendToAll(PacketCreator::health(character));
+	
+	// Don't kill Players for now
+	if (type == OBJECT_TYPE_PLAYER)
+		return;
+
+	if (died)
+		Base::game().removeCharacter(character->getID());
 }

@@ -35,7 +35,9 @@ public:
 	std::vector<Player*> getClosePlayers(const Character* character);
 	std::vector<Player*> getContactPlayers(const Character* character);
 	
-	void removeMonster(int id);
+	Object* getObject(int id);
+	
+	void removeCharacter(int id);
 	void removeObject(const Object* object);
 	
 	void spawnCharacter(const Character* character);
@@ -51,8 +53,6 @@ private:
 	std::vector<NPC>& getNPCsOnMap(int map_id);
 	std::vector<Monster>& getMonstersOnMap(int map_id);
 	std::vector<TemporaryObject>& getObjectsOnMap(int map_id);
-	
-	Object* getObject(int id);
 	
 	void addPlayer(const Player& player);
 	Player* getPlayer(const Connection& connection);

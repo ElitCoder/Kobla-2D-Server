@@ -1,3 +1,5 @@
 name: Uwaga
 object_id: 5
 attack_speed: 2000
+attack: 1
+health: 5

@@ -2,3 +2,5 @@ name: Jako
 object_id: 2
 actions: 1
 attack_speed: 250
+attack: 2
+health: 50

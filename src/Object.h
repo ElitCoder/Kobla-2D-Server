@@ -83,6 +83,7 @@ public:
 	void setMovingSpeed(double speed);
 	void setMovingDirection(int direction);
 	void setActions(const std::vector<int>& actions);
+	void setAttack(double value);
 	
 	bool isMoving() const;
 	double getX() const;
@@ -98,6 +99,8 @@ public:
 	const std::array<bool, COLLISION_MAX>& getCollisions() const;
 	std::pair<double, double> getDeterminedDestination() const;
 	ObjectHit& getCollisionInformation();
+	double getAttack() const;
+	
 	bool hasActions() const;
 	bool reachedDeterminedDistance() const;
 	bool hasDeterminedDestination() const;
@@ -105,6 +108,7 @@ public:
 	void setValidID();
 	
 	void activate(Object* activater);
+	void attack(Object* target);
 	
 protected:
 	Object();
@@ -142,6 +146,8 @@ protected:
 	
 	// Activation actions
 	std::vector<int> actions_;
+	
+	double attack_ = 1;
 };
 
 #endif

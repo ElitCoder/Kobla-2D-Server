@@ -306,21 +306,21 @@ vector<Player*> Game::getClosePlayers(const Character *character) {
 	return closest;
 }
 
-void Game::removeMonster(int id) {
-	//Log(DEBUG) << "Trying to remove monster ID " << id << endl;
-	
+void Game::removeCharacter(int id) {
 	for (auto& map : maps_) {
-		auto iterator = find_if(map.getMonsters().begin(), map.getMonsters().end(), [&id] (auto& monster) {
-			return monster.getID() == id;
-		});
+		auto* character = map.getCharacter(id);
 		
-		if (iterator == map.getMonsters().end())
+		if (character == nullptr)
 			continue;
 			
-		auto packet = PacketCreator::remove(&*iterator);
-		Base::network().sendToAllExcept(packet, {});
+		auto packet = PacketCreator::remove(character);
+		Base::network().sendToAll(packet);
+			
+		switch (character->getObjectType()) {
+			case OBJECT_TYPE_MONSTER: map.removeMonster(id);
+				break;
+		}
 		
-		map.removeMonster(id);
 		break;
 	}
 }
@@ -464,6 +464,7 @@ void Game::handleShoot() {
 	bullet.setType(TEMP_OBJECT_BULLET);
 	bullet.setMapID(map.getID());
 	bullet.setOwner(current_player_->getID());
+	bullet.setAttack(current_player_->getAttack());
 	
 	auto position = Base::client().getBulletPosition(current_player_);
 	bullet.changeMoveStatus(true, position.first, position.second, current_player_->getMovingDirection());

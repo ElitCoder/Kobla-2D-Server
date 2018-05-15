@@ -5,7 +5,7 @@
 #include "Object.h"
 
 enum {
-	CHARACTER_CLOSE_DISTANCE = 50,
+	CHARACTER_CLOSE_DISTANCE = 100,
 	CHARACTER_CASUAL_STROLLING_DISTANCE = 200,
 };
 
@@ -16,13 +16,16 @@ public:
 	double getCurrentHealth() const;
 	double getFullHealth() const;
 	
-	void reduceHealth(double amount);
+	void setCurrentHealth(double health);
+	void setFullHealth(double health, bool heal);
+	
+	bool reduceHealth(double amount);
 	
 	void setColliding(bool status);
 	bool isColliding() const;
 	
 	void setAttackSpeed(int ms);
-	bool attack();
+	bool canAttack();
 	
 protected:
 	Character();

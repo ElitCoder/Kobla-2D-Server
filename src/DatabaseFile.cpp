@@ -79,11 +79,15 @@ static void parseCharacter(Character* character, Config& config) {
 	auto object_id = config.get<int>("object_id", -1);
 	auto activate_ids = config.getAll<int>("actions", vector<int>());
 	auto attack_speed = config.get<int>("attack_speed", 1000);
+	auto attack = config.get<double>("attack", 1);
+	auto health = config.get<double>("health", 100);
 	
 	character->setName(real_name);
 	character->setObjectID(object_id);
 	character->setActions(activate_ids);
 	character->setAttackSpeed(attack_speed);
+	character->setAttack(attack);
+	character->setFullHealth(health, true);
 }
 
 void DatabaseFile::parseNPCs(vector<NPC>& reference_npcs) {

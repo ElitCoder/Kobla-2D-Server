@@ -4,9 +4,6 @@
 #include "Game.h"
 #include "Monster.h"
 #include "Map.h"
-#include "NetworkCommunication.h"
-#include "PacketCreator.h"
-#include "Packet.h"
 
 using namespace std;
 
@@ -37,7 +34,6 @@ static void strollingMove(Monster* me) {
 		if (!me->AIWaitingElapsed())
 			return;
 		
-		//auto desired_direction = (me->getMovingDirection() + 1) % PLAYER_MOVE_MAX;
 		auto desired_direction = Random::getRandomInteger(PLAYER_MOVE_RIGHT, PLAYER_MOVE_UP);
 		auto distance_to_move = Random::getRandomInteger(1, CHARACTER_CASUAL_STROLLING_DISTANCE);
 		auto possible_move = Base::game().getMap(me->getMapID()).getPossibleMove(me, distance_to_move, desired_direction);
@@ -51,7 +47,6 @@ static void strollingMove(Monster* me) {
 		
 		Base::game().updateMovement(me, {});
 	} else {
-		//if (me->getDistanceMoved() >= me->getPredeterminedDistance()) {
 		if (me->reachedDeterminedDistance()) {
 			// Set to destination position
 			me->changeMoveStatus(false, me->getDeterminedDestination().first, me->getDeterminedDestination().second, me->getMovingDirection());
@@ -83,21 +78,28 @@ static void patrol(NPC* npc) {
 	}
 }
 
-static void hurtPlayers(Monster* monster) {
-	if (!monster->attack())
+static void hurtCharacters(int type, Character* character) {
+	if (!character->canAttack())
 		return;
 
-	auto close = Base::game().getContactPlayers(monster);
+	vector<Character*> close;
+	
+	if (type == OBJECT_TYPE_PLAYER) {
+		// Hurt Players in contact
+		auto players = Base::game().getContactPlayers(character);
+		for_each(players.begin(), players.end(), [&close] (auto* player) { close.push_back(player); });
+	} else {
+		// Remove monsters on sight
+		auto monsters = Base::game().getCloseMonsters(character);
+		for_each(monsters.begin(), monsters.end(), [&close] (auto* monster) { close.push_back(monster); });
+	}
 	
 	if (close.empty())
 		return;
 		
-	// Hurt the Players
-	for (auto* player : close) {
-		player->reduceHealth(1);
-		
-		Base::network().sendToAll(PacketCreator::health(player));
-	}
+	// Hurt the type
+	for (auto* player : close)
+		character->attack(player);
 }
 
 void AI::initializeAI() {
@@ -127,20 +129,12 @@ void AI::initializeAI() {
 void AI::react() {
 	// NPC AI
 	if (ai_type_ == AI_NPC_TYPE_KILL_CLOSE) {
-		// Remove monsters on sight
-		auto monsters = Base::game().getCloseMonsters(this);
-		
-		for (auto& monster : monsters)
-			Base::game().removeMonster(monster->getID());
+		hurtCharacters(OBJECT_TYPE_MONSTER, this);
 	} else if (ai_type_ == AI_NPC_TYPE_PATROL) {
-		// Change patrol direction?
 		NPC* npc = (NPC*)this;
-		patrol(npc);
 		
-		// Change AI type temporarily to run AI_NPC_TYPE_KILL_CLOSE
-		ai_type_ = AI_NPC_TYPE_KILL_CLOSE;
-		react();
-		ai_type_ = AI_NPC_TYPE_PATROL;
+		patrol(npc);
+		hurtCharacters(OBJECT_TYPE_MONSTER, this);
 	}
 	
 	// Monster AI
@@ -149,8 +143,6 @@ void AI::react() {
 		Monster* me = (Monster*)this;
 		
 		strollingMove(me);
-		
-		// Hurt Players in contact
-		hurtPlayers(me);
+		hurtCharacters(OBJECT_TYPE_PLAYER, me);
 	}
 }
