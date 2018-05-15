@@ -12,7 +12,7 @@
 // How long to wait before doing other server related things, in ms
 // Too high values will make monsters move at the same time and make collision not working properly
 // Too low values will put strain on the Server
-#define PACKET_WAIT_TIME	(250)
+#define PACKET_WAIT_TIME	(100)
 
 using namespace std;
 
@@ -24,19 +24,19 @@ static void printStart() {
 }
 
 static void logic() {
-	auto next_sync = chrono::system_clock::now();
+	Timer next_sync;
 	
 	while (true) {
-		if ((chrono::system_clock::now() - next_sync).count() > 0) {
-			next_sync += chrono::milliseconds(PACKET_WAIT_TIME);
+		if (next_sync.elapsed()) {
+			next_sync.start(PACKET_WAIT_TIME);
 			
 			// Handle logic
 			g_main_sync.lock();
 			Base::game().logic();
 			g_main_sync.unlock();
+		} else {
+			this_thread::sleep_for(chrono::milliseconds(1));
 		}
-		
-		this_thread::sleep_for(chrono::milliseconds(PACKET_WAIT_TIME));
 	}
 }
 
