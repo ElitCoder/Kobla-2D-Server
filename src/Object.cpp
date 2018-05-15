@@ -50,13 +50,32 @@ void ObjectInformation::setConfig(const Config& config) {
 		animation_lines.push_back(config_.get<int>("animation_left", -1));
 		animation_lines.push_back(config_.get<int>("animation_up", -1));
 		
-		auto size = texture->getSize().y / animation_lines.size();
+		auto animation_size = config_.getAll<int>("animation_size", vector<int>());
 		
-		size_x_ = size;
-		size_y_ = size;
+		if (!animation_size.empty()) {
+			auto animation_width = animation_size.front();
+			auto animation_height = animation_size.at(1);
+			
+			auto size_x = lround((double)texture->getSize().x / (double)animation_width);
+			auto size_y = lround((double)texture->getSize().y / (double)animation_height);
+			
+			sf::Sprite size_sprite(*texture, sf::IntRect(0, 0, size_x, size_y));
+			
+			size_x_ = size_sprite.getGlobalBounds().width;
+			size_y_ = size_sprite.getGlobalBounds().height;
+		} else {
+			auto size = lround((double)texture->getSize().y / (double)animation_lines.size());
+			
+			sf::Sprite size_sprite(*texture, sf::IntRect(0, 0, size, size));
+			
+			size_x_ = size_sprite.getGlobalBounds().width;
+			size_y_ = size_sprite.getGlobalBounds().height;
+		}
 	} else {
-		size_x_ = texture->getSize().x;
-		size_y_ = texture->getSize().y;
+		sf::Sprite size_sprite(*texture);
+		
+		size_x_ = size_sprite.getGlobalBounds().width;
+		size_y_ = size_sprite.getGlobalBounds().height;
 	}
 	
 	collision_scale_x = config_.get<double>("collision_scale_x", 1);
@@ -65,6 +84,8 @@ void ObjectInformation::setConfig(const Config& config) {
 	// Multiply with scaling
 	size_x_ *= scale_;
 	size_y_ *= scale_;
+	
+	//Log(DEBUG) << "Set size to " << size_x_ << " " << size_y_ << endl;
 }
 
 array<double, 2> ObjectInformation::getSize() const {
