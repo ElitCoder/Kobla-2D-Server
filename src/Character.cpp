@@ -1,5 +1,6 @@
 #include "Character.h"
 #include "Log.h"
+#include "Random.h"
 
 using namespace std;
 
@@ -53,8 +54,10 @@ void Character::setAttackSpeed(int ms) {
 bool Character::attack() {
 	if (!attack_timer_.elapsed())
 		return false;
+		
+	auto ms = Random::getRandomInteger(attack_speed_ms_ / 2, attack_speed_ms_ * 2);
 	
-	attack_timer_.start(attack_speed_ms_);
+	attack_timer_.start(ms);
 	
 	return true;	
 }
