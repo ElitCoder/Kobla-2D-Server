@@ -4,6 +4,9 @@
 #include "Game.h"
 #include "Monster.h"
 #include "Map.h"
+#include "NetworkCommunication.h"
+#include "PacketCreator.h"
+#include "Packet.h"
 
 using namespace std;
 
@@ -80,14 +83,29 @@ static void patrol(NPC* npc) {
 	}
 }
 
+static void hurtPlayers(Monster* monster) {
+	if (!monster->attack())
+		return;
+
+	auto close = Base::game().getContactPlayers(monster);
+	
+	if (close.empty())
+		return;
+		
+	// Hurt the Players
+	for (auto* player : close) {
+		player->reduceHealth(1);
+		
+		Base::network().sendToAll(PacketCreator::health(player));
+	}
+}
+
 void AI::initializeAI() {
 	switch (ai_type_) {
 		case AI_MONSTER_TYPE_NORMAL: {			
 			// Set waiting type to strolling waiting
 			waiting_min_ = CHARACTER_CASUAL_STROLLING_WAITING_MIN_MS;
 			waiting_max_ = CHARACTER_CASUAL_STROLLING_WAITING_MAX_MS;
-			
-			startAIWaiting();
 			
 			break;
 		}
@@ -99,11 +117,11 @@ void AI::initializeAI() {
 			waiting_min_ = npc->getPatrolWaitMinTime();
 			waiting_max_ = npc->getPatrolWaitMaxTime();
 			
-			startAIWaiting();
-			
 			break;
 		}
 	}
+	
+	startAIWaiting();
 }
 
 void AI::react() {
@@ -131,5 +149,8 @@ void AI::react() {
 		Monster* me = (Monster*)this;
 		
 		strollingMove(me);
+		
+		// Hurt Players in contact
+		hurtPlayers(me);
 	}
 }

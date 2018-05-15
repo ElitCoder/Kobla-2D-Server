@@ -276,10 +276,24 @@ vector<Monster*> Game::getCloseMonsters(const Character* character) {
 	return closest;
 }
 
+vector<Player*> Game::getContactPlayers(const Character* character) {
+	vector<Player*> close;
+	
+	for (auto& player : players_) {
+		if (character->getMapID() != player.getMapID())
+			continue;
+			
+		if (Base::client().isCollision(character, &player))
+			close.push_back(&player);
+	}
+	
+	return close;
+}
+
 vector<Player*> Game::getClosePlayers(const Character *character) {
 	vector<Player*> closest;
 	
-	for (auto& player :players_) {
+	for (auto& player : players_) {
 		if (player.getMapID() != character->getMapID())
 			continue;
 			

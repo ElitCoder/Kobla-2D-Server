@@ -33,6 +33,7 @@ public:
 	// For Monster & NPC	
 	std::vector<Monster*> getCloseMonsters(const Character* character);
 	std::vector<Player*> getClosePlayers(const Character* character);
+	std::vector<Player*> getContactPlayers(const Character* character);
 	
 	void removeMonster(int id);
 	void removeObject(const Object* object);

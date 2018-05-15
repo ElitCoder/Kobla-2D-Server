@@ -45,3 +45,24 @@ void Character::setColliding(bool status) {
 bool Character::isColliding() const {
 	return colliding_;
 }
+
+void Character::setAttackSpeed(int ms) {
+	attack_speed_ms_ = ms;
+}
+
+bool Character::attack() {
+	if (!attack_timer_.elapsed())
+		return false;
+	
+	attack_timer_.start(attack_speed_ms_);
+	
+	return true;	
+}
+
+void Character::reduceHealth(double amount) {
+	current_health_ -= amount;
+	
+	if (current_health_ < 0)
+		// Died
+		current_health_ = 0;
+}

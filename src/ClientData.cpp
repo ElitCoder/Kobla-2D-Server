@@ -224,6 +224,16 @@ bool ClientData::isCollision(const sf::FloatRect& box, const Object* object) {
 	return box.intersects(sf::FloatRect(object->getX(), object->getY(), object_size.front(), object_size.back()));
 }
 
+bool ClientData::isCollision(const Object* first, const Object* second) {
+	auto first_size = getObjectInformation(first->getObjectID()).getSize();
+	auto second_size = getObjectInformation(second->getObjectID()).getSize();
+	
+	auto first_box = sf::FloatRect(first->getX(), first->getY(), first_size.front(), first_size.back());
+	auto second_box = sf::FloatRect(second->getX(), second->getY(), second_size.front(), second_size.back());
+	
+	return first_box.intersects(second_box);
+}
+
 sf::Texture* ClientData::getTexture(int id) {
 	auto filename = getTextureName(id);
 	auto iterator = find_if(textures_.begin(), textures_.end(), [&filename] (auto& peer) { return peer.first == filename; });

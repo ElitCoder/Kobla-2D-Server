@@ -27,6 +27,7 @@ public:
 	bool isMovePossible(const Character* character, double distance, int direction);
 	bool isCollision(Object* object, double x, double y);
 	bool isCollision(const sf::FloatRect& box, const Object* target);
+	bool isCollision(const Object* first, const Object* second);
 	
 	std::pair<double, double> getBulletPosition(const Object* shooter);
 	

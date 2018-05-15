@@ -16,8 +16,13 @@ public:
 	double getCurrentHealth() const;
 	double getFullHealth() const;
 	
+	void reduceHealth(double amount);
+	
 	void setColliding(bool status);
 	bool isColliding() const;
+	
+	void setAttackSpeed(int ms);
+	bool attack();
 	
 protected:
 	Character();
@@ -26,6 +31,9 @@ protected:
 	double current_health_;
 	
 	bool colliding_	= false;
+	
+	Timer attack_timer_;
+	int attack_speed_ms_ = 0;
 };
 
 #endif
