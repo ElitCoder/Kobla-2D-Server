@@ -66,6 +66,7 @@ private:
 	void handleShoot();
 	void handleHit();
 	void handleActivate();
+	void handleChat();
 	
 	std::vector<Player> players_;
 	std::vector<Map> maps_;

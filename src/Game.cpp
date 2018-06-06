@@ -52,6 +52,9 @@ void Game::process(Connection& connection, Packet& packet) {
 		case HEADER_ACTIVATE: handleActivate();
 			break;
 			
+		case HEADER_CHAT: handleChat();
+			break;
+			
 		default: {
 			Log(NETWORK) << "Unrecognized packet header " << header << endl;
 			handleUnknownPacket();
@@ -509,4 +512,14 @@ void Game::handleActivate() {
 		return;
 	
 	object->activate(current_player_);
+}
+
+void Game::handleChat() {
+	auto message = current_packet_->getString();
+	
+	// Propagate to everyone
+	auto packet = PacketCreator::text(current_player_, message, TEXT_DISAPPEAR_MS);
+	Base::network().sendToAll(packet);
+	
+	Log(DEBUG) << "Got chat message: " << message << endl;
 }
