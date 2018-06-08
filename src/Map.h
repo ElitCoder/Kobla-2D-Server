@@ -57,7 +57,7 @@ public:
 	void react();
 		
 private:
-	void objectHit(Object* object);
+	bool objectHit(TemporaryObject* object);
 	
 	TemporaryObject* getTemporaryObject(int id);
 	

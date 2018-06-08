@@ -43,7 +43,7 @@ public:
 	void spawnCharacter(const Character* character);
 	
 	// For easy access in AI
-	void updateMovement(Character* character, const std::vector<int>& sockets);
+	void updateMovement(const Object* object, const std::vector<int>& sockets);
 	Map& getMap(int map_id);
 	
 	// For collision detection

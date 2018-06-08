@@ -28,6 +28,10 @@ bool AI::AIWaitingElapsed() {
 }
 
 static void strollingMove(Monster* me) {
+	// Following trumps strolling
+	if (me->isFollowing())
+		return;
+
 	// Let's update direction
 	if (!me->isMoving()) {
 		// Have we waited long enough?
@@ -104,7 +108,7 @@ static void hurtCharacters(int type, Character* character) {
 
 void AI::initializeAI() {
 	switch (ai_type_) {
-		case AI_MONSTER_TYPE_NORMAL: {			
+		case AI_MONSTER_TYPE_NORMAL: {
 			// Set waiting type to strolling waiting
 			waiting_min_ = CHARACTER_CASUAL_STROLLING_WAITING_MIN_MS;
 			waiting_max_ = CHARACTER_CASUAL_STROLLING_WAITING_MAX_MS;
@@ -141,6 +145,19 @@ void AI::react() {
 	if (ai_type_ == AI_MONSTER_TYPE_NORMAL) {
 		// This AI is Monster-exclusive, we know it's a Monster
 		Monster* me = (Monster*)this;
+		
+		// See if there's anyone to follow
+		if (!me->isFollowing()) {
+			// Were we attacked? In such case, follow the assailant
+			if (me->wasAttackedBy() > 0) {
+				me->setFollowing(true, me->wasAttackedBy());
+				
+				// Don't try to follow the same ID after removal
+				me->reactToDamage(-1);
+				
+				Base::game().updateMovement(me, {});
+			}
+		}
 		
 		strollingMove(me);
 		hurtCharacters(OBJECT_TYPE_PLAYER, me);

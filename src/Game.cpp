@@ -262,7 +262,7 @@ vector<TemporaryObject>& Game::getObjectsOnMap(int map_id) {
 }
 
 static double distanceTo(const Character* from, const Character* to) {
-	return sqrt((from->getX() - to->getX()) * (from->getX() - to->getX()) + (from->getY() - to->getY()) * (from->getY() - to->getY()));
+	return sqrt(pow(from->getMiddleX() - to->getMiddleX(), 2) + pow(from->getMiddleY() - to->getMiddleY(), 2));
 }
 
 vector<Monster*> Game::getCloseMonsters(const Character* character) {
@@ -434,8 +434,8 @@ void Game::handleSpawn() {
 	});
 }
 
-void Game::updateMovement(Character* character, const vector<int>& sockets) {
-	auto answer = PacketCreator::move(character);
+void Game::updateMovement(const Object* object, const vector<int>& sockets) {
+	auto answer = PacketCreator::move(object);
 	
 	// Send to all except the moving player
 	Base::network().sendToAllExcept(answer, sockets);

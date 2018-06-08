@@ -36,6 +36,8 @@ public:
 	
 	void runWarm();
 	
+	const ObjectInformation& getObjectInformation(int id);
+	
 private:
 	class MapData {
 	public:
@@ -53,8 +55,6 @@ private:
 	};
 	
 	// Taken from Client
-	ObjectInformation& getObjectInformation(int id);
-	
 	std::string getMapName(int id);
 	std::string getTextureName(int id);
 	std::string getObjectInformationName(int id);

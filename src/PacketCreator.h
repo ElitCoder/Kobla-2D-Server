@@ -32,7 +32,7 @@ public:
 	static Packet answerLogin(bool success);
 	static Packet unknown();
 	static Packet spawn(const Player& player);
-	static Packet move(const Character* character);
+	static Packet move(const Object* object);
 	static Packet addPlayer(const Character* character);
 	static Packet remove(const Object* object);
 	static Packet health(const Character* character);

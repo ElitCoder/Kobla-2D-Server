@@ -71,6 +71,9 @@ Packet PacketCreator::addPlayer(const Character* player) {
 	packet.addFloat(destination.first);
 	packet.addFloat(destination.second);
 	
+	packet.addBool(player->isFollowing());
+	packet.addInt(player->getFollowingID());
+	
 	playerAddInformation(packet, player);
 
 	packet.finalize();
@@ -78,20 +81,23 @@ Packet PacketCreator::addPlayer(const Character* player) {
 	return packet;
 }
 
-Packet PacketCreator::move(const Character* character) {
+Packet PacketCreator::move(const Object* object) {
 	Packet packet;
 	packet.addHeader(HEADER_MOVE);
-	packet.addBool(character->isMoving());
-	packet.addFloat(character->getX());
-	packet.addFloat(character->getY());
-	packet.addInt(character->getMovingDirection());
-	packet.addInt(character->getID());
+	packet.addBool(object->isMoving());
+	packet.addFloat(object->getX());
+	packet.addFloat(object->getY());
+	packet.addInt(object->getMovingDirection());
+	packet.addInt(object->getID());
 	
-	auto destination = character->getDeterminedDestination();
+	auto destination = object->getDeterminedDestination();
 	
-	packet.addBool(character->hasDeterminedDestination());
+	packet.addBool(object->hasDeterminedDestination());
 	packet.addFloat(destination.first);
 	packet.addFloat(destination.second);
+	
+	packet.addBool(object->isFollowing());
+	packet.addInt(object->getFollowingID());
 	
 	packet.finalize();
 	

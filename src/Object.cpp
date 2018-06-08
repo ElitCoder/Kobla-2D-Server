@@ -9,7 +9,7 @@
 
 using namespace std;
 
-extern int g_character_id;
+static int g_character_id = 0;
 
 /*
 	ObjectHit
@@ -165,6 +165,8 @@ bool Object::changeMoveStatus(bool moving, double x, double y, int direction) {
 	reached_distance_x_ = false;
 	reached_distance_y_ = false;
 	determined_destination_ = false;
+	following_ = false;
+	following_id_ = -1;
 	
 	if (moving)
 		started_moving_.start();
@@ -183,6 +185,25 @@ bool Object::move() {
 		
 	auto time_elapsed = started_moving_.restart();
 	double pixels = moving_speed_ * time_elapsed;
+	
+	// Update destination if we're following something
+	if (isFollowing()) {
+		// What Object are we following?
+		Object* following = Base::game().getObject(following_id_);
+		
+		if (following == nullptr) {
+			// There's nothing to follow
+			
+			Log(WARNING) << "There's no one to follow, disable it\n";
+			
+			changeMoveStatus(false, getX(), getY(), -1);
+			Base::game().updateMovement(this, {});
+			
+			return false;
+		} else {
+			setDeterminedDestination({ following->getX(), following->getY() });
+		}
+	}
 	
 	double x = x_;
 	double y = y_;
@@ -430,7 +451,8 @@ void Object::attack(Object* target) {
 	// Don't attack NPCs for now
 	if (type == OBJECT_TYPE_NPC)
 		return;
-		
+	
+	// We can't hit other things than Characters, so this is a safe cast
 	Character* character = (Character*)target;
 	
 	auto died = character->reduceHealth(getAttack());
@@ -440,6 +462,60 @@ void Object::attack(Object* target) {
 	if (type == OBJECT_TYPE_PLAYER)
 		return;
 
-	if (died)
+	if (died) {
 		Base::game().removeCharacter(character->getID());
+		
+		return;
+	}
+	
+	int attacker_id = getID();
+	
+	// If it's a TemporaryObject attacking, we should follow its' owner
+	if (getObjectType() == OBJECT_TYPE_TEMP) {
+		auto* temp = (TemporaryObject*)this;
+		
+		attacker_id = temp->getOwner();
+	}
+	
+	// React to the attack in target
+	character->reactToDamage(attacker_id);
+	
+	Log(DEBUG) << attacker_id << " attacked " << target->getID() << endl;
+}
+
+void Object::reactToDamage(int attacker_id) {
+	// Set which attacker we were attacked by
+	attacked_by_id_ = attacker_id;
+}
+
+int Object::wasAttackedBy() const {
+	return attacked_by_id_;
+}
+
+void Object::setFollowing(bool status, int id) {
+	// Say that we're moving unless we're not
+	changeMoveStatus(true, getX(), getY(), PLAYER_MOVE_DOWN);
+	
+	following_ = status;
+	following_id_ = id;
+}
+
+int Object::getFollowingID() const {
+	return following_id_;
+}
+
+bool Object::isFollowing() const {
+	return following_;
+}
+
+double Object::getMiddleX() const {
+	auto size = Base::client().getObjectInformation(object_id_).getSize();
+	
+	return getX() + size.front();
+}
+
+double Object::getMiddleY() const {
+	auto size = Base::client().getObjectInformation(object_id_).getSize();
+	
+	return getY() + size.back();
 }

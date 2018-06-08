@@ -84,6 +84,7 @@ public:
 	void setMovingDirection(int direction);
 	void setActions(const std::vector<int>& actions);
 	void setAttack(double value);
+	void setFollowing(bool status, int id = -1);
 	
 	bool isMoving() const;
 	double getX() const;
@@ -100,6 +101,8 @@ public:
 	std::pair<double, double> getDeterminedDestination() const;
 	ObjectHit& getCollisionInformation();
 	double getAttack() const;
+	bool isFollowing() const;
+	int getFollowingID() const;
 	
 	bool hasActions() const;
 	bool reachedDeterminedDistance() const;
@@ -109,6 +112,13 @@ public:
 	
 	void activate(Object* activater);
 	void attack(Object* target);
+	
+	void reactToDamage(int attacker_id);
+	int wasAttackedBy() const;
+	
+	// For distance formula
+	double getMiddleX() const;
+	double getMiddleY() const;
 	
 protected:
 	Object();
@@ -125,6 +135,10 @@ protected:
 	bool reached_distance_x_		= false;
 	bool reached_distance_y_		= false;
 	bool determined_destination_	= false;
+	bool following_					= false;
+	int following_id_				= -1;
+	
+	int attacked_by_id_				= -1;
 	
 	// Collision
 	std::array<bool, COLLISION_MAX> collisions_;

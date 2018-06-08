@@ -66,14 +66,23 @@ void Map::addMonster(const Monster& monster, int number, const MapSpawnPoint& po
 	}
 }
 
-void Map::objectHit(Object* object) {
+bool Map::objectHit(TemporaryObject* object) {
+	// We hit something
+	auto& information = object->getCollisionInformation();
+	
+	// It's not possible to hit yourself
+	if (information.getID() == object->getOwner())
+		return false;
+	
 	// Tell the Clients that this Object is gone
 	Base::game().removeObject(object);
 	
-	// We hit something
-	auto& information = object->getCollisionInformation();
+	if (information.getType() == COLLISION_MAP)
+		return true;
 		
 	object->attack(Base::game().getObject(information.getID()));
+	
+	return true;
 }
 
 // Do logic stuff on map
@@ -83,25 +92,27 @@ void Map::react() {
 	
 	for (auto& object : objects_) {
 		if (!object.move()) {
-			objectHit(&object);
-			
-			remove_object_ids.push_back(object.getID());
+			if (objectHit(&object))
+				remove_object_ids.push_back(object.getID());
 		}
 	}
 	
 	removeObjects(remove_object_ids);
 	
-	// Do Monster AI & movement
-	for (auto& monster : monsters_) {
-		monster.react();
+	// Do Monster movement
+	for (auto& monster : monsters_)
 		monster.move();
-	}
 		
-	// Do NPC AI & movement
-	for (auto& npc : npcs_) {
-		npc.react();
+	// Do NPC movement
+	for (auto& npc : npcs_)
 		npc.move();
-	}
+		
+	// Do Monster AI
+	for (auto& monster : monsters_)
+		monster.react();
+		
+	for (auto& npc : npcs_)
+		npc.react();
 	
 	// Add respawn
 	auto spawn = spawn_handler_.getRespawn();

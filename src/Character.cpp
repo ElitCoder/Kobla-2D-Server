@@ -5,10 +5,10 @@
 
 using namespace std;
 
-size_t g_character_id = 0;
+//int g_character_id = 0;
 
 Character::Character() {
-	id_ = g_character_id++;
+	//id_ = g_character_id++;
 	
 	//Log(DEBUG) << "Running constructor for Character\n";
 	

@@ -251,7 +251,7 @@ sf::Texture* ClientData::getTexture(int id) {
 	}
 }
 
-ObjectInformation& ClientData::getObjectInformation(int id) {
+const ObjectInformation& ClientData::getObjectInformation(int id) {
 	auto filename = getObjectInformationName(id);
 	auto iterator = find_if(objects_.begin(), objects_.end(), [&filename] (auto& peer) { return peer.first == filename; });
 	
