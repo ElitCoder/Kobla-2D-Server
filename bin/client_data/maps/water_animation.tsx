@@ -3,9 +3,9 @@
  <image source="../Hämtningar/water.gif" width="96" height="192"/>
  <tile id="17">
   <animation>
-   <frame tileid="16" duration="300"/>
-   <frame tileid="15" duration="300"/>
-   <frame tileid="17" duration="300"/>
+   <frame tileid="15" duration="500"/>
+   <frame tileid="16" duration="500"/>
+   <frame tileid="17" duration="500"/>
   </animation>
  </tile>
 </tileset>
