@@ -379,10 +379,10 @@ bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, u
         }
         
         if(removeConnection) {
+            lock_guard<mutex> removeGuard(*connectionMutex);
+            
             // Remove from game
             Base::game().disconnected(connection);
-            
-            lock_guard<mutex> removeGuard(*connectionMutex);
             
             if(close(connection.getSocket()) < 0) {
                 Log(ERROR) << "close() got errno = " << errno << endl;
@@ -395,21 +395,12 @@ bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, u
         
         if(removeConnection) {
             delete connectionMutex;
+            
+            break;
         }
     }
         
     return true;
-}
-
-// Needed for sending packets when NetworkCommunication is disconnecting client through the game
-void NetworkCommunication::sendToAllExceptUnsafe(const Packet &packet, const vector<int> &except) {
-    for_each(mConnections.begin(), mConnections.end(), [&packet, &except, this] (pair<mutex*, Connection> &connectionPair) {
-        if(find_if(except.begin(), except.end(), [&connectionPair] (const int fd) { return connectionPair.second == fd; }) != except.end()) {
-            return;
-        }
-                
-        addOutgoingPacket(connectionPair.second.getSocket(), packet);
-    });
 }
 
 void NetworkCommunication::sendToAllExcept(const Packet &packet, const std::vector<int> &except) {
@@ -463,6 +454,7 @@ bool NetworkCommunication::runSelectAccept(fd_set &readSet, fd_set &errorSet) {
             mConnections.push_back({ new mutex, Connection(newSocket) });
             
             Log(INFORMATION) << "Connection #" << mConnections.back().second.getUniqueID() << " added\n";
+            Log(DEBUG) << "Socket ID " << mConnections.back().second.getSocket() << endl;
         }
         
         mPipe.setPipe();

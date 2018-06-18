@@ -7,10 +7,11 @@
 #include <condition_variable>
 #include <deque>
 #include <vector>
+#include <list>
 
 enum NetworkConstants {
     BUFFER_SIZE = 4096,
-    MAX_WAITING_PACKETS_PER_CLIENT = 1000
+    MAX_WAITING_PACKETS_PER_CLIENT = 10
 };
 
 class EventPipe {
@@ -61,7 +62,6 @@ public:
     
     void sendToAll(const Packet& packet);
     void sendToAllExcept(const Packet &packet, const std::vector<int> &except);
-    void sendToAllExceptUnsafe(const Packet &packet, const std::vector<int> &except);
     
     std::vector<std::string> getStats();
     
@@ -84,7 +84,7 @@ private:
     std::deque<std::pair<int, Packet>> mOutgoingPackets;
     
     std::mutex mConnectionsMutex;
-    std::vector<std::pair<std::mutex*, Connection>> mConnections;
+    std::list<std::pair<std::mutex*, Connection>> mConnections;
     
     int wait_incoming_;
 };

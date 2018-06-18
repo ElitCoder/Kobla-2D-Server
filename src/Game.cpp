@@ -23,7 +23,7 @@ using namespace std;
 extern mutex g_main_sync;
 
 void Game::process(Connection& connection, Packet& packet) {
-	auto* player = connection.isVerified() ? getPlayer(connection) : nullptr;
+	auto* player = connection.isVerified() ? getPlayer(connection.getUniqueID()) : nullptr;
 	auto header = packet.getByte();
 	
 	current_player_ = player;
@@ -67,6 +67,9 @@ void Game::process(Connection& connection, Packet& packet) {
 }
 
 void Game::logic() {
+	// See if any Players should be disconnected
+	disconnect();
+	
 	for (auto& player : players_)
 		player.move();
 		
@@ -179,35 +182,42 @@ void Game::load() {
 	Base::client().runWarm();
 }
 
-void Game::disconnected(const Connection& connection) {
-	// Protect game state by main_sync
-	lock_guard<mutex> lock(g_main_sync);
+void Game::disconnect() {
+	lock_guard<mutex> lock(disconnects_mutex_);
 	
-	// Is the connection even online?
-	auto* player = getPlayer(connection);
-	
-	if (player == nullptr)
-		return;
+	while (!disconnects_.empty()) {
+		auto& kill_peer = disconnects_.front();
+		auto* player = getPlayer(kill_peer.second);
 		
-	Log(DEBUG) << "Removing player #" << player->getID() << endl;
-	
-	// Propagate the disconnection status to the clients
-	auto packet = PacketCreator::remove(player);
-	Base::network().sendToAllExceptUnsafe(packet, { connection.getSocket() });
-	
-	// Remove in server
-	players_.erase(remove_if(players_.begin(), players_.end(), [&connection] (auto& finder) {
-		return finder.getConnectionID() == connection.getUniqueID();
-	}));
+		if (player == nullptr) {
+			disconnects_.pop_front();
+			continue;
+		}
+		
+		auto packet = PacketCreator::remove(player);
+		Base::network().sendToAllExcept(packet, { kill_peer.first });
+		
+		// Remove in server
+		players_.erase(remove_if(players_.begin(), players_.end(), [&kill_peer] (auto& finder) {
+			return finder.getConnectionID() == kill_peer.second;
+		}));
+		
+		disconnects_.pop_front();
+	}
+}
+
+void Game::disconnected(const Connection& connection) {
+	lock_guard<mutex> lock(disconnects_mutex_);
+	disconnects_.push_back({ connection.getSocket(), connection.getUniqueID() });
 }
 
 void Game::addPlayer(const Player& player) {
 	players_.push_back(player);
 }
 
-Player* Game::getPlayer(const Connection& connection) {
-	auto iterator = find_if(players_.begin(), players_.end(), [&connection] (auto& player) {
-		return player.getConnectionID() == connection.getUniqueID();
+Player* Game::getPlayer(size_t connection_id) {
+	auto iterator = find_if(players_.begin(), players_.end(), [&connection_id] (auto& player) {
+		return player.getConnectionID() == connection_id;
 	});
 	
 	if (iterator == players_.end())

@@ -55,7 +55,7 @@ private:
 	std::vector<TemporaryObject>& getObjectsOnMap(int map_id);
 	
 	void addPlayer(const Player& player);
-	Player* getPlayer(const Connection& connection);
+	Player* getPlayer(size_t connection_id);
 	std::vector<Player*> getPlayersOnMap(const std::vector<int>& except_ids, int map_id);
 	
 	void handleLogin();
@@ -68,6 +68,8 @@ private:
 	void handleActivate();
 	void handleChat();
 	
+	void disconnect();
+	
 	std::vector<Player> players_;
 	std::vector<Map> maps_;
 	std::vector<NPC> reference_npcs_;
@@ -79,6 +81,10 @@ private:
 	Packet* current_packet_;
 	
 	Timer last_forced_logic_;
+	
+	// Keep track of any Players to disconnect <socket_id, connection_id>
+	std::deque<std::pair<int, size_t>> disconnects_;
+	std::mutex disconnects_mutex_;
 };
 
 #endif
