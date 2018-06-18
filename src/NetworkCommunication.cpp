@@ -620,12 +620,16 @@ EventPipe::~EventPipe() {
 }
 
 void EventPipe::setPipe() {
+    lock_guard<mutex> lock(event_mutex_);
+    
     if(write(mPipes[1], "0", 1) < 0) {
         Log(ERROR) << "Could not write to pipe, errno = " << errno << '\n';
     }
 }
 
 void EventPipe::resetPipe() {
+    lock_guard<mutex> lock(event_mutex_);
+    
     unsigned char buffer;
 
     while(read(mPipes[0], &buffer, 1) == 1) {
@@ -633,5 +637,7 @@ void EventPipe::resetPipe() {
 }
 
 int EventPipe::getSocket() {
+    lock_guard<mutex> lock(event_mutex_);
+    
     return mPipes[0];
 }

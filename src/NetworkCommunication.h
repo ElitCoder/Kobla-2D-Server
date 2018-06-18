@@ -25,6 +25,7 @@ public:
     
 private:
     int mPipes[2];
+    std::mutex event_mutex_;
 };
 
 class Connection;
