@@ -38,11 +38,16 @@ void receiveThread(NetworkCommunication &networkCommunication) {
 vector<string> NetworkCommunication::getStats() {
     lock_guard<mutex> connection_guard(mConnectionsMutex);
     lock_guard<mutex> incoming_guard(mIncomingMutex);
-    lock_guard<mutex> outgoing_guard(mOutgoingMutex);
+    
+    for (auto* lock : mOutgoingMutex)
+        lock->lock();
     
     string connections =    "Number of connections: " + to_string(mConnections.size());
     string incoming =       "Number of incoming packets in queue: " + to_string(mIncomingPackets.size());
-    string outgoing =       "Number of outgoing packets in queue: " + to_string(mOutgoingPackets.size());
+    string outgoing =       "Number of outgoing packets in queue: ";
+    
+    for (auto& queue : mOutgoingPackets)
+        outgoing +=         "(" + to_string(queue.size()) + ")";
     
     vector<string> lines = { connections, incoming, outgoing };
     
@@ -52,11 +57,14 @@ vector<string> NetworkCommunication::getStats() {
         for (auto& peer : mConnections) {
             auto& connection = peer.second;
             
-            values += to_string(connection.getSocket()) + ": " + to_string(connection.waitingForRealProcessing()) + ", ";
+            values += to_string(connection.getSocket()) + ": " + to_string(connection.waitingForRealProcessing()) + " ";
         }
         
         lines.push_back(values);
     }
+    
+    for (auto* lock : mOutgoingMutex)
+        lock->unlock();
     
     return lines;
 }
@@ -83,11 +91,11 @@ static void statsThread(NetworkCommunication& network) {
     }
 }
 
-void sendThread(NetworkCommunication &networkCommunication) {
+void sendThread(NetworkCommunication &networkCommunication, int thread_id) {
     signal(SIGPIPE, SIG_IGN);
 
     while(true) {
-        auto& packet = networkCommunication.waitForOutgoingPackets();
+        auto& packet = networkCommunication.waitForOutgoingPackets(thread_id);
         
         int sent = send(packet.first, packet.second.getData() + packet.second.getSent(), packet.second.getSize() - packet.second.getSent(), 0);
         
@@ -118,7 +126,7 @@ void sendThread(NetworkCommunication &networkCommunication) {
         }
         
         if(removePacket) {
-            networkCommunication.removeOutgoingPacket();
+            networkCommunication.removeOutgoingPacket(thread_id);
         }
     }
     
@@ -247,8 +255,10 @@ NetworkCommunication::NetworkCommunication() {
 
 NetworkCommunication::~NetworkCommunication() {
     lock_guard<mutex> incoming_guard(mIncomingMutex);
-    lock_guard<mutex> outgoing_guard(mOutgoingMutex);
     lock_guard<mutex> connection_guard(mConnectionsMutex);
+    
+    for (auto* lock : mOutgoingMutex)
+        lock->lock();
     
     for_each(mConnections.begin(), mConnections.end(), [] (auto& connection_peer) {
         connection_peer.first->lock();
@@ -258,29 +268,46 @@ NetworkCommunication::~NetworkCommunication() {
         delete connection_peer.first;
     });
     
-    mIncomingPackets.clear();
-    mOutgoingPackets.clear();
-    mConnections.clear();
-    
     // Detach threads, preventing the destructor to SIGABRT the whole program
     mAcceptThread.detach();
     mReceiveThread.detach();
-    mSendThread.detach();
     mStatsThread.detach();
+    
+    for (auto& thread : mSendThread)
+        thread.detach();
+    
+    for (auto* lock : mOutgoingMutex) {
+        lock->unlock();
+        delete lock;
+    }
+        
+    for (auto* cv : mOutgoingCV)
+        delete cv;
 }
 
 // Same as old constructor
-void NetworkCommunication::start(unsigned short port, int wait_incoming) {
+void NetworkCommunication::start(unsigned short port, int wait_incoming, int num_sending_threads) {
     wait_incoming_ = wait_incoming;
+    num_sending_threads_ = num_sending_threads;
     
     if(!setupServer(mSocket, port)) {
         return;
     }
+
+    for (int i = 0; i < num_sending_threads; i++) {
+        mOutgoingCV.push_back(new condition_variable);
+        mOutgoingMutex.push_back(new mutex);
+        mOutgoingPackets.emplace_back();
+    }
     
     mAcceptThread = thread(acceptThread, ref(*this));
     mReceiveThread = thread(receiveThread, ref(*this));
-    mSendThread = thread(sendThread, ref(*this));
     mStatsThread = thread(statsThread, ref(*this));
+    
+    mSendThread.resize(num_sending_threads);
+    
+    for (int i = 0; i < num_sending_threads; i++)
+        mSendThread.at(i) = thread(sendThread, ref(*this), i);
 }
 
 void NetworkCommunication::setFileDescriptorsAccept(fd_set &readSet, fd_set &errorSet) {
@@ -467,17 +494,43 @@ int NetworkCommunication::getSocket() const {
     return mSocket;
 }
 
-pair<int, Packet>& NetworkCommunication::waitForOutgoingPackets() {
+pair<int, Packet>& NetworkCommunication::waitForOutgoingPackets(int thread_id) {
+    unique_lock<mutex> lock(*mOutgoingMutex.at(thread_id));
+    mOutgoingCV.at(thread_id)->wait(lock, [this, &thread_id] { return !mOutgoingPackets.at(thread_id).empty(); });
+    
+    return mOutgoingPackets.at(thread_id).front();
+    
+    #if 0
     unique_lock<mutex> lock(mOutgoingMutex);
-    mOutgoingCV.wait(lock, [this] { return !mOutgoingPackets.empty(); });
+    mOutgoingCV.wait(lock, [this] {
+        if (mOutgoingPackets.empty())
+            return false;
+            
+        for (size_t i = 0; i < mOutgoingPackets.size(); i++)
+            if (mOutgoingPackets.at(i).first % thread_id == 0)
+                return true;
+                
+        return false;
+    });
     
     return mOutgoingPackets.front();
+    #endif
 }
 
 void NetworkCommunication::addOutgoingPacket(const int fd, const Packet &packet) {
+    auto index = fd % num_sending_threads_;
+    
+    //Log(DEBUG) << "index " << index << " fd " << fd << " num_sending_threads_ " << num_sending_threads_ << endl;
+    
+    lock_guard<mutex> guard(*mOutgoingMutex.at(index));
+    mOutgoingPackets.at(index).push_back({ fd, packet });
+    mOutgoingCV.at(index)->notify_one();
+    
+    #if 0
     lock_guard<mutex> guard(mOutgoingMutex);
     mOutgoingPackets.push_back({fd, packet});
-    mOutgoingCV.notify_one();
+    mOutgoingCV.notify_all();
+    #endif
 }
 
 void NetworkCommunication::send(const Connection* connection, const Packet& packet) {
@@ -485,6 +538,10 @@ void NetworkCommunication::send(const Connection* connection, const Packet& pack
         return;
         
     addOutgoingPacket(connection->getSocket(), packet);
+}
+
+void NetworkCommunication::send(int fd, const Packet& packet) {
+    addOutgoingPacket(fd, packet);
 }
 
 int NetworkCommunication::getConnectionSocket(size_t unique_id) {
@@ -514,16 +571,16 @@ void NetworkCommunication::sendUnique(size_t id, const Packet& packet) {
     addOutgoingPacket(fd, packet);
 }
 
-void NetworkCommunication::removeOutgoingPacket() {
-    lock_guard<mutex> guard(mOutgoingMutex);
+void NetworkCommunication::removeOutgoingPacket(int thread_id) {
+    lock_guard<mutex> guard(*mOutgoingMutex.at(thread_id));
     
-    if(mOutgoingPackets.empty()) {
+    if(mOutgoingPackets.at(thread_id).empty()) {
         Log(ERROR) << "Trying to pop when outgoingPackets is empty\n";
         
         return;
     }
     
-    mOutgoingPackets.pop_front();
+    mOutgoingPackets.at(thread_id).pop_front();
 }
 
 pair<std::mutex*, Connection>* NetworkCommunication::getConnectionAndLock(const int fd) {
@@ -540,6 +597,19 @@ pair<std::mutex*, Connection>* NetworkCommunication::getConnectionAndLock(const 
     position->first->lock();
     
     return &*position;
+}
+
+size_t NetworkCommunication::getConnectionID(int fd) {
+    lock_guard<mutex> lock(mConnectionsMutex);
+    
+    auto position = find_if(mConnections.begin(), mConnections.end(), [&fd] (pair<mutex*, Connection> &connectionPair) {        
+        return connectionPair.second == fd;
+    });
+    
+    if (position == mConnections.end())
+        throw exception();
+        
+    return position->second.getUniqueID();
 }
 
 void NetworkCommunication::unlockConnection(pair<mutex*, Connection> &connectionPair) {
@@ -580,6 +650,14 @@ pair<int, Packet>& NetworkCommunication::waitForProcessingPackets() {
 }
 
 void NetworkCommunication::removeProcessingPacket() {
+    // Set Connection to successfully processed Packet
+    auto connection = getConnectionAndLock(mIncomingPackets.front().first);
+    
+    if (connection != nullptr) {
+        connection->second.finishRealProcessing();
+        unlockConnection(*connection);
+    }
+    
     lock_guard<mutex> guard(mIncomingMutex);
     
     if(mIncomingPackets.empty()) {
@@ -587,8 +665,9 @@ void NetworkCommunication::removeProcessingPacket() {
         
         return;
     }
-    
+        
     mIncomingPackets.pop_front();
+    
 }
 
 EventPipe::EventPipe() {

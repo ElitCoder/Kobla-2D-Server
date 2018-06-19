@@ -22,12 +22,18 @@ using namespace std;
 
 extern mutex g_main_sync;
 
-void Game::process(Connection& connection, Packet& packet) {
-	auto* player = connection.isVerified() ? getPlayer(connection.getUniqueID()) : nullptr;
+//void Game::process(Connection& connection, Packet& packet) {
+void Game::process(pair<int, Packet>& incoming_packet, size_t connection_id) {
+	auto& fd = incoming_packet.first;
+	auto& packet = incoming_packet.second;
+	//auto* player = connection.isVerified() ? getPlayer(connection.getUniqueID()) : nullptr;
+	auto* player = getPlayer(connection_id);
 	auto header = packet.getByte();
 	
 	current_player_ = player;
-	current_connection_ = &connection;
+	//current_connection_ = &connection;
+	current_connection_id_ = connection_id;
+	current_fd_ = fd;
 	current_packet_ = &packet;
 	
 	switch(header) {
@@ -62,7 +68,9 @@ void Game::process(Connection& connection, Packet& packet) {
 	}
 	
 	current_player_ = nullptr;
-	current_connection_ = nullptr;
+	//current_connection_ = nullptr;
+	current_fd_ = -1;
+	current_connection_id_ = 0;
 	current_packet_ = &packet;
 }
 
@@ -183,14 +191,16 @@ void Game::load() {
 }
 
 void Game::disconnect() {
-	lock_guard<mutex> lock(disconnects_mutex_);
+	disconnects_mutex_.lock();
+	auto disconnects = disconnects_;
+	disconnects_mutex_.unlock();
 	
-	while (!disconnects_.empty()) {
-		auto& kill_peer = disconnects_.front();
+	while (!disconnects.empty()) {
+		auto& kill_peer = disconnects.front();
 		auto* player = getPlayer(kill_peer.second);
 		
 		if (player == nullptr) {
-			disconnects_.pop_front();
+			disconnects.pop_front();
 			continue;
 		}
 		
@@ -202,7 +212,7 @@ void Game::disconnect() {
 			return finder.getConnectionID() == kill_peer.second;
 		}));
 		
-		disconnects_.pop_front();
+		disconnects.pop_front();
 	}
 }
 
@@ -377,14 +387,14 @@ void Game::handleLogin() {
 	auto success = Base::database()->login(username, password);
 	auto answer = PacketCreator::answerLogin(success);
 	
-	Base::network().send(current_connection_, answer);
+	Base::network().send(current_fd_, answer);
 }
 
 void Game::handleGetCharacters() {
 }
 
 void Game::handleUnknownPacket() {
-	Base::network().send(current_connection_, PacketCreator::unknown());
+	Base::network().send(current_fd_, PacketCreator::unknown());
 }
 
 void Game::handleSpawn() {
@@ -393,7 +403,7 @@ void Game::handleSpawn() {
 		
 	// Give the connection a temporary player
 	Player player;
-	player.setConnectionID(current_connection_->getUniqueID());
+	player.setConnectionID(current_connection_id_);
 	
 	// Randomize position since it's not saved
 	auto position = getMap(player.getMapID()).getSpawnPoint();
@@ -401,22 +411,22 @@ void Game::handleSpawn() {
 	
 	Log(DEBUG) << "Spawning player at " << position.front() << " " << position.back() << endl;
 	
-	Log(DEBUG) << "Player got connection ID " << current_connection_->getUniqueID() << endl;
+	Log(DEBUG) << "Player got connection ID " << current_connection_id_ << endl;
 	
 	addPlayer(player);
 	
 	auto answer = PacketCreator::spawn(player);
-	Base::network().send(current_connection_, answer);
+	Base::network().send(current_fd_, answer);
 	
 	auto other = PacketCreator::addPlayer(&player);
-	Base::network().sendToAllExcept(other, { current_connection_->getSocket() });
+	Base::network().sendToAllExcept(other, { current_fd_ });
 	
 	// Add the already spawned players
 	auto players = getPlayersOnMap({ player.getID() }, player.getMapID());
 	
 	for_each(players.begin(), players.end(), [this] (auto* other) {
 		auto add_player_packet = PacketCreator::addPlayer(other);
-		Base::network().send(current_connection_, add_player_packet);
+		Base::network().send(current_fd_, add_player_packet);
 	});
 	
 	// Add NPCs
@@ -424,7 +434,7 @@ void Game::handleSpawn() {
 	
 	for_each(npcs.begin(), npcs.end(), [this] (auto& other) {
 		auto add_player_packet = PacketCreator::addPlayer(&other);
-		Base::network().send(current_connection_, add_player_packet);
+		Base::network().send(current_fd_, add_player_packet);
 	});
 	
 	// Add monsters
@@ -432,7 +442,7 @@ void Game::handleSpawn() {
 	
 	for_each(monsters.begin(), monsters.end(), [this] (auto& other) {
 		auto add_player_packet = PacketCreator::addPlayer(&other);
-		Base::network().send(current_connection_, add_player_packet);
+		Base::network().send(current_fd_, add_player_packet);
 	});
 	
 	// Add TemporaryObjects
@@ -440,7 +450,7 @@ void Game::handleSpawn() {
 	
 	for_each(objects.begin(), objects.end(), [this] (auto& other) {
 		auto add_player_packet = PacketCreator::shoot(other);
-		Base::network().send(current_connection_, add_player_packet);
+		Base::network().send(current_fd_, add_player_packet);
 	});
 }
 
@@ -465,7 +475,7 @@ void Game::handleMove() {
 		direction = current_player_->getMovingDirection();
 	
 	current_player_->changeMoveStatus(moving, x, y, direction);
-	updateMovement(current_player_, { current_connection_->getSocket() });
+	updateMovement(current_player_, { current_fd_ });
 }
 
 void Game::handleShoot() {

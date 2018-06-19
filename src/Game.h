@@ -19,7 +19,8 @@ class Object;
 
 class Game {
 public:
-	void process(Connection& connection, Packet& packet);
+	//void process(Connection& connection, Packet& packet);
+	void process(std::pair<int, Packet>& incoming_packet, size_t connection_id);
 	void logic();
 	void load();
 	
@@ -77,7 +78,9 @@ private:
 	std::vector<Action> reference_actions_;
 	
 	Player* current_player_;
-	Connection* current_connection_;
+	//Connection* current_connection_;
+	size_t current_connection_id_ = 0;
+	int current_fd_ = -1;
 	Packet* current_packet_;
 	
 	Timer last_forced_logic_;

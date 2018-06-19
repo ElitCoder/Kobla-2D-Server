@@ -38,7 +38,7 @@ public:
     NetworkCommunication();
     ~NetworkCommunication();
     
-    void start(unsigned short port, int wait_incoming);
+    void start(unsigned short port, int wait_incoming, int num_sending_threads);
     
     void setFileDescriptorsAccept(fd_set &readSet, fd_set &errorSet);
     void setFileDescriptorsReceive(fd_set &readSet, fd_set &errorSet);
@@ -48,13 +48,15 @@ public:
     
     int getSocket() const;
     int getConnectionSocket(size_t unique_id);
+    size_t getConnectionID(int fd);
     std::pair<std::mutex*, Connection>* getConnectionAndLock(const int fd);
     void unlockConnection(std::pair<std::mutex*, Connection> &connectionPair);
     
-    std::pair<int, Packet>& waitForOutgoingPackets();
-    void removeOutgoingPacket();
+    std::pair<int, Packet>& waitForOutgoingPackets(int thread_id);
+    void removeOutgoingPacket(int thread_id);
     void addOutgoingPacket(const int fd, const Packet &packet);
     void send(const Connection* connection, const Packet& packet);
+    void send(int fd, const Packet& packet);
     void sendUnique(size_t id, const Packet& packet);
     
     std::pair<int, Packet>& waitForProcessingPackets();
@@ -73,20 +75,22 @@ private:
     int mSocket;
     EventPipe mPipe;
     
-    std::thread mReceiveThread, mSendThread, mAcceptThread, mStatsThread;
+    std::thread mReceiveThread, mAcceptThread, mStatsThread;
+    std::vector<std::thread> mSendThread;
     
     std::mutex mIncomingMutex;
     std::condition_variable mIncomingCV;
     std::deque<std::pair<int, Packet>> mIncomingPackets;
     
-    std::mutex mOutgoingMutex;
-    std::condition_variable mOutgoingCV;
-    std::deque<std::pair<int, Packet>> mOutgoingPackets;
+    std::vector<std::mutex*> mOutgoingMutex;
+    std::vector<std::condition_variable*> mOutgoingCV;
+    std::vector<std::deque<std::pair<int, Packet>>> mOutgoingPackets;
     
     std::mutex mConnectionsMutex;
     std::list<std::pair<std::mutex*, Connection>> mConnections;
     
     int wait_incoming_;
+    int num_sending_threads_ = 1;
 };
 
 #endif

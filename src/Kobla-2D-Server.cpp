@@ -53,12 +53,30 @@ static void process() {
 	Base::game().load();
 	
 	Log(DEBUG) << "Starting network\n";
-	Base::network().start(port, PACKET_WAIT_TIME);
+	Base::network().start(port, PACKET_WAIT_TIME, Base::settings().get<int>("sending_threads", 1));
 	
 	thread sync_thread(logic);
 
 	while (true) {
 		auto& fd_packet = Base::network().waitForProcessingPackets();
+		size_t connection_id = 0;
+		
+		try {
+			connection_id = Base::network().getConnectionID(fd_packet.first);
+		} catch (...) {
+			Log(WARNING) << "Could not retrieve connection_id, trashing packet\n";
+			
+			Base::network().removeProcessingPacket();
+			continue;
+		}
+		
+		g_main_sync.lock();
+		Base::game().process(fd_packet, connection_id);
+		g_main_sync.unlock();
+		
+		Base::network().removeProcessingPacket();
+		
+		#if 0
 		auto* connection_pair = Base::network().getConnectionAndLock(fd_packet.first);
 		
 		if (connection_pair == nullptr) {
@@ -76,12 +94,15 @@ static void process() {
 		connection_pair->second.finishRealProcessing();
 		Base::network().unlockConnection(*connection_pair);
 		Base::network().removeProcessingPacket();
+		#endif
 	}
 	
 	// Shutdown
 	Base::destroyDatabase();
 	
 	sync_thread.detach();
+	
+	Log(INFORMATION) << "Shutting down Server\n";
 }
 
 int main() {

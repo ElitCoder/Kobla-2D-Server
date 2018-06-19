@@ -23,8 +23,12 @@ else
 		build
 		
 		cd bin/
-		# for debugging
+		# for full debugging
 		#valgrind --track-origins=yes ./Kobla-2D-Server-Rebased
+		# for faster debugging
+		#valgrind ./Kobla-2D-Server-Rebased
+		# helgrind
+		#valgrind --tool=helgrind ./Kobla-2D-Server-Rebased
 		# normal use
 		./Kobla-2D-Server-Rebased
 		cd ../
