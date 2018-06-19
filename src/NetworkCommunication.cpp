@@ -354,13 +354,97 @@ bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, u
     }
         
     lock_guard<mutex> guard(mConnectionsMutex);
+    
+    #if 0
+    vector<size_t> remove_connections;
+    
+    #pragma omp parallel for
+    for (size_t i = 0; i < mConnections.size(); i++) {
+        auto* connection_lock = mConnections.at(i).first;
+        auto& connection = mConnections.at(i).second;
         
+        // Don't let the client choke the server
+        if (connection.waitingForRealProcessing() > NetworkConstants::MAX_WAITING_PACKETS_PER_CLIENT)
+            continue;
+            
+        if (FD_ISSET(connection.getSocket(), &errorSet)) {
+            Log(WARNING) << "errorSet was set in connection\n";
+            
+            #pragma omp critical
+            {
+                remove_connections.push_back(connection.getUniqueID());
+            }
+            
+            continue;
+        }
+        
+        if (FD_ISSET(connection.getSocket(), &readSet)) {
+            int received = recv(connection.getSocket(), buffer, BUFFER_SIZE, 0);
+            
+            if(received <= 0) {
+                if(received == 0) {
+                    Log(INFORMATION) << "Connection #" << connection.getUniqueID() << " disconnected\n";
+                    
+                    #pragma omp critical
+                    {
+                        remove_connections.push_back(connection.getUniqueID());
+                    }
+                    
+                    continue;
+                } else {
+                    if(errno == EWOULDBLOCK || errno == EAGAIN) {
+                        Log(WARNING) << "EWOULDBLOCK activated\n";
+                    } else {
+                        Log(WARNING) << "Connection #" << connection.getUniqueID() << " failed with errno = " << errno << '\n';
+                        
+                        #pragma omp critical
+                        {
+                            remove_connections.push_back(connection.getUniqueID());
+                        }
+                        
+                        continue;
+                    }
+                }
+            } else {
+                assemblePacket(buffer, received, connection);
+            }
+        }
+    }
+    
+    for (auto& remove_id : remove_connections) {
+        auto position = find_if(mConnections.begin(), mConnections.end(), [&remove_id] (auto& connection_peer) { return connection_peer.second.getUniqueID() == remove_id; });
+        
+        if (position == mConnections.end())
+            continue;
+            
+        auto* lock = position->first;
+        auto& connection = position->second;
+        
+        lock->lock();
+        Base::game().disconnected(connection);
+        
+        if (close(connection.getSocket()) < 0)
+            Log(ERROR) << "close() got errno = " << errno << endl;
+        lock->unlock();
+        
+        delete lock;
+    }
+    
+    if (!remove_connections.empty()) {
+        mConnections.erase(remove_if(mConnections.begin(), mConnections.end(), [&remove_connections] (auto& connection_peer) {
+            auto position = find_if(remove_connections.begin(), remove_connections.end(), [&connection_peer] (auto& id) { return connection_peer.second.getUniqueID() == id; });
+            
+            return position != remove_connections.end();
+        }));
+    }
+    #endif
+    
     for(auto& connectionPair : mConnections) {
         bool removeConnection = false;
         mutex *connectionMutex = connectionPair.first;      
         Connection &connection = connectionPair.second;
         
-        // Don't let the client choke the server
+        
         if (connection.waitingForRealProcessing() > NetworkConstants::MAX_WAITING_PACKETS_PER_CLIENT) {
             //Log(DEBUG) << "Buffer filled " << connection.waitingForRealProcessing() << "\n";
             
