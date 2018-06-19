@@ -20,7 +20,7 @@ class Object;
 class Game {
 public:
 	//void process(Connection& connection, Packet& packet);
-	void process(std::pair<int, Packet>& incoming_packet, size_t connection_id);
+	void process(int fd, size_t connection_id, Packet& packet);
 	void logic();
 	void load();
 	

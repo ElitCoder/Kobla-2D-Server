@@ -2,8 +2,9 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
-#include <deque>
+#include <list>
 #include <mutex>
+#include <memory>
 
 class Packet;
 class PartialPacket;
@@ -24,21 +25,20 @@ public:
     
     bool isVerified() const;
     
-    size_t waitingForRealProcessing();
-    void finishRealProcessing();
-    void addRealProcessing();
+    size_t packetsWaiting();
+    void reducePacketsWaiting();
+    void increasePacketsWaiting();
     
     size_t getUniqueID() const;
     
 private:
     int socket_;
-    std::deque<PartialPacket> in_queue_;
+    std::list<PartialPacket> in_queue_;
     
-    size_t waiting_processing_;
-    // TODO: Change this, will be slowdowns with multiple connections
-    static std::mutex waiting_processing_mutex_;
+    size_t waiting_processing_ = 0;
+    std::shared_ptr<std::mutex> waiting_processing_mutex_;
     
-    size_t unique_id_;
+    size_t unique_id_ = 0;
 };
 
 #endif

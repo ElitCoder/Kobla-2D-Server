@@ -12,7 +12,7 @@ Config Base::settings_;
 NetworkCommunication Base::network_;
 Game Base::game_;
 
-Database* Base::database_ = nullptr;
+shared_ptr<Database> Base::database_;
 
 ClientData Base::client_;
 
@@ -28,7 +28,7 @@ Game& Base::game() {
 	return game_;
 }
 
-Database* Base::database() {
+shared_ptr<Database>& Base::database() {
 	return database_;
 }
 
@@ -38,16 +38,9 @@ ClientData& Base::client() {
 
 void Base::createDatabase(int type) {
 	switch (type) {
-		case DATABASE_TYPE_FILE: database_ = new DatabaseFile;
+		case DATABASE_TYPE_FILE: database_ = make_shared<DatabaseFile>();
 			break;
 			
 		default: Log(WARNING) << "Unknown type of Database " << type << endl;
 	}
-}
-
-void Base::destroyDatabase() {
-	if (database_ == nullptr)
-		return;
-		
-	delete database_;
 }

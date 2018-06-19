@@ -2,6 +2,8 @@
 #ifndef BASE_H
 #define BASE_H
 
+#include <memory>
+
 class NetworkCommunication;
 class Game;
 class Database;
@@ -13,11 +15,10 @@ public:
 	static Config& settings();
 	static NetworkCommunication& network();
 	static Game& game();
-	static Database* database();
+	static std::shared_ptr<Database>& database();
 	static ClientData& client();
 	
 	static void createDatabase(int type);
-	static void destroyDatabase();
 	
 private:
 	static Config settings_;
@@ -25,7 +26,7 @@ private:
 	static Game game_;
 	
 	// Database is an abstract class to enable different types
-	static Database* database_;
+	static std::shared_ptr<Database> database_;
 	
 	static ClientData client_;
 };

@@ -1,7 +1,9 @@
 # Network
 port: 11000
 stats: 0
+stats_delay: 4000
 sending_threads: 4
+receiving_threads: 4
 
 # Game settings
 player_base_damage: 2

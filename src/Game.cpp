@@ -22,16 +22,21 @@ using namespace std;
 
 extern mutex g_main_sync;
 
-//void Game::process(Connection& connection, Packet& packet) {
-void Game::process(pair<int, Packet>& incoming_packet, size_t connection_id) {
-	auto& fd = incoming_packet.first;
-	auto& packet = incoming_packet.second;
-	//auto* player = connection.isVerified() ? getPlayer(connection.getUniqueID()) : nullptr;
+void Game::process(int fd, size_t connection_id, Packet& packet) {
 	auto* player = getPlayer(connection_id);
 	auto header = packet.getByte();
 	
+	// player is allowed to be nullptr if we'r requesting a login, requesting characters or spawning
+	if (player == nullptr) {
+		switch (header) {
+			case HEADER_LOGIN: case HEADER_GET_CHARACTERS: case HEADER_SPAWN:
+				break;
+				
+			default: return;
+		}
+	}
+	
 	current_player_ = player;
-	//current_connection_ = &connection;
 	current_connection_id_ = connection_id;
 	current_fd_ = fd;
 	current_packet_ = &packet;

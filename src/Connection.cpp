@@ -8,10 +8,9 @@
 
 using namespace std;
 
-mutex Connection::waiting_processing_mutex_;
-
 Connection::Connection(const int socket) {
     socket_ = socket;
+    waiting_processing_mutex_ = make_shared<mutex>();
     
     if (fcntl(socket_, F_SETFL, O_NONBLOCK) == -1)
         Log(WARNING) << "Could not make non-blocking sockets\n";
@@ -20,9 +19,6 @@ Connection::Connection(const int socket) {
     
     if (setsockopt(socket_, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&on), sizeof(on)) < 0)
         Log(WARNING) << "Could not set TCP_NODELAY\n";
-        
-    lock_guard<mutex> lock(waiting_processing_mutex_);    
-    waiting_processing_ = 0;
     
     static size_t unique_id;
     unique_id_ = unique_id++;
@@ -78,7 +74,7 @@ void Connection::processedPacket() {
     }
     
     in_queue_.pop_front();
-    addRealProcessing();
+    increasePacketsWaiting();
 }
 
 // TODO: Implement this on a later stage
@@ -86,21 +82,21 @@ bool Connection::isVerified() const {
     return true;
 }
 
-size_t Connection::waitingForRealProcessing() {
-    lock_guard<mutex> lock(waiting_processing_mutex_);
+size_t Connection::packetsWaiting() {
+    lock_guard<mutex> lock(*waiting_processing_mutex_);
     
     return waiting_processing_;
 }
 
-void Connection::finishRealProcessing() {
-    lock_guard<mutex> lock(waiting_processing_mutex_);
+void Connection::reducePacketsWaiting() {
+    lock_guard<mutex> lock(*waiting_processing_mutex_);
     
     if (waiting_processing_ > 0)
         waiting_processing_--;
 }
 
-void Connection::addRealProcessing() {
-    lock_guard<mutex> lock(waiting_processing_mutex_);
+void Connection::increasePacketsWaiting() {
+    lock_guard<mutex> lock(*waiting_processing_mutex_);
     
     waiting_processing_++;
 }

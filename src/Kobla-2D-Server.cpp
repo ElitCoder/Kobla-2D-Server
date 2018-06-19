@@ -53,54 +53,17 @@ static void process() {
 	Base::game().load();
 	
 	Log(DEBUG) << "Starting network\n";
-	Base::network().start(port, PACKET_WAIT_TIME, Base::settings().get<int>("sending_threads", 1));
+	Base::network().start(port, Base::settings().get<int>("sending_threads", 1), Base::settings().get<int>("receiving_threads", 1));
 	
 	thread sync_thread(logic);
 
 	while (true) {
-		auto& fd_packet = Base::network().waitForProcessingPackets();
-		size_t connection_id = 0;
-		
-		try {
-			connection_id = Base::network().getConnectionID(fd_packet.first);
-		} catch (...) {
-			Log(WARNING) << "Could not retrieve connection_id, trashing packet\n";
-			
-			Base::network().removeProcessingPacket();
-			continue;
-		}
+		auto packet = Base::network().waitForProcessingPackets();
 		
 		g_main_sync.lock();
-		Base::game().process(fd_packet, connection_id);
+		Base::game().process(get<0>(packet), get<1>(packet), get<2>(packet));
 		g_main_sync.unlock();
-		
-		Base::network().removeProcessingPacket();
-		
-		#if 0
-		auto* connection_pair = Base::network().getConnectionAndLock(fd_packet.first);
-		
-		if (connection_pair == nullptr) {
-			Base::network().removeProcessingPacket();
-			
-			continue;
-		}
-		
-		// Handle packet
-		g_main_sync.lock();
-		Base::game().process(connection_pair->second, fd_packet.second);
-		g_main_sync.unlock();
-		
-		// Remove packet from processing queue
-		connection_pair->second.finishRealProcessing();
-		Base::network().unlockConnection(*connection_pair);
-		Base::network().removeProcessingPacket();
-		#endif
 	}
-	
-	// Shutdown
-	Base::destroyDatabase();
-	
-	sync_thread.detach();
 	
 	Log(INFORMATION) << "Shutting down Server\n";
 }

@@ -1,10 +1,9 @@
 CPP_FILES	:= $(wildcard src/*.cpp)
 OBJ_FILES	:= $(addprefix obj/,$(notdir $(CPP_FILES:.cpp=.o)))
 CC_FLAGS	:= -std=c++14 -Wall -Wextra -pedantic-errors
-CC_FLAGS	+= -fopenmp
 #CC_FLAGS	+= -O3
 #CC_FLAGS	+= -g
-LD_LIBS		:= -lpthread -ltmx-loader -lsfml-graphics -fopenmp
+LD_LIBS		:= -lpthread -ltmx-loader -lsfml-graphics
 
 EXECUTABLE	:= bin/Kobla-2D-Server-Rebased
 

@@ -16,54 +16,60 @@
 
 using namespace std;
 
-void receiveThread(NetworkCommunication &networkCommunication) {
+void receiveThread(NetworkCommunication &networkCommunication, int thread_id) {
     signal(SIGPIPE, SIG_IGN);
     
     fd_set readSet, errorSet;
-    unsigned char *buffer = new unsigned char[BUFFER_SIZE];
+    array<unsigned char, BUFFER_SIZE> buffer;
     
     while(true) {
-        networkCommunication.setFileDescriptorsReceive(readSet, errorSet);
+        networkCommunication.setFileDescriptorsReceive(readSet, errorSet, thread_id);
         
-        if(!networkCommunication.runSelectReceive(readSet, errorSet, buffer)) {
+        if(!networkCommunication.runSelectReceive(readSet, errorSet, buffer.data(), thread_id)) {
             break;
         }
     }
-    
-    delete[] buffer;
     
     Log(ERROR) << "Terminating receiveThread\n";
 }
 
 vector<string> NetworkCommunication::getStats() {
-    lock_guard<mutex> connection_guard(mConnectionsMutex);
-    lock_guard<mutex> incoming_guard(mIncomingMutex);
-    
-    for (auto* lock : mOutgoingMutex)
+    for (auto& lock : mConnectionsMutex)
         lock->lock();
+
+    for (auto& lock : mOutgoingMutex)
+        lock->lock();
+        
+    lock_guard<mutex> lock(mIncomingMutex);
     
-    string connections =    "Number of connections: " + to_string(mConnections.size());
+    string connections =    "Number of connections: ";
     string incoming =       "Number of incoming packets in queue: " + to_string(mIncomingPackets.size());
     string outgoing =       "Number of outgoing packets in queue: ";
     
     for (auto& queue : mOutgoingPackets)
-        outgoing +=         "(" + to_string(queue.size()) + ")";
+        outgoing +=         "(" + to_string(queue.size()) + ") ";
+
+    for (auto& queue : mConnections)
+        connections +=      "(" + to_string(queue.size()) + ")";
     
     vector<string> lines = { connections, incoming, outgoing };
     
-    if (!mConnections.empty()) {
+    for (auto& queue : mConnections) {
         string values = "";
         
-        for (auto& peer : mConnections) {
+        for (auto& peer : queue) {
             auto& connection = peer.second;
             
-            values += to_string(connection.getSocket()) + ": " + to_string(connection.waitingForRealProcessing()) + " ";
+            values += to_string(connection.getSocket()) + ": " + to_string(connection.packetsWaiting()) + " ";
         }
         
         lines.push_back(values);
     }
     
-    for (auto* lock : mOutgoingMutex)
+    for (auto& lock : mOutgoingMutex)
+        lock->unlock();
+            
+    for (auto& lock : mConnectionsMutex)
         lock->unlock();
     
     return lines;
@@ -73,7 +79,8 @@ static void statsThread(NetworkCommunication& network) {
     if (!Base::settings().get<bool>("stats", false))
         return;
         
-    auto next_sync = chrono::system_clock::now() + chrono::milliseconds(3000);
+    auto delay = Base::settings().get<int>("stats_delay", 3000);
+    auto next_sync = chrono::system_clock::now() + chrono::milliseconds(delay);
     
     while (true) {
         if ((chrono::system_clock::now() - next_sync).count() > 0) {
@@ -84,10 +91,10 @@ static void statsThread(NetworkCommunication& network) {
             for (auto& line : stats)
                 Log(INFORMATION) << line << endl;
             
-            next_sync += chrono::milliseconds(3000);
+            next_sync += chrono::milliseconds(delay);
 		}
         
-        this_thread::sleep_for(chrono::milliseconds(300));
+        this_thread::sleep_for(chrono::milliseconds(delay / 10));
     }
 }
 
@@ -97,7 +104,8 @@ void sendThread(NetworkCommunication &networkCommunication, int thread_id) {
     while(true) {
         auto& packet = networkCommunication.waitForOutgoingPackets(thread_id);
         
-        int sent = send(packet.first, packet.second.getData() + packet.second.getSent(), packet.second.getSize() - packet.second.getSent(), 0);
+        int sending = min((unsigned int)NetworkConstants::BUFFER_SIZE, packet.second.getSize() - packet.second.getSent());
+        int sent = send(packet.first, packet.second.getData() + packet.second.getSent(), sending, 0);
         
         bool removePacket = false;
         
@@ -125,9 +133,8 @@ void sendThread(NetworkCommunication &networkCommunication, int thread_id) {
             }
         }
         
-        if(removePacket) {
+        if(removePacket)
             networkCommunication.removeOutgoingPacket(thread_id);
-        }
     }
     
     Log(ERROR) << "Terminating sendThread\n";
@@ -243,71 +250,56 @@ void NetworkCommunication::moveProcessedPacketsToQueue(Connection &connection) {
     lock_guard<mutex> guard(mIncomingMutex);
     
     while(connection.hasIncomingPacket()) {
-        mIncomingPackets.push_back({connection.getSocket(), move(connection.getIncomingPacket())});
+        mIncomingPackets.push_back({ connection.getSocket(), connection.getUniqueID(), move(connection.getIncomingPacket()) });
         connection.processedPacket();
     }
     
     mIncomingCV.notify_one();
 }
 
-NetworkCommunication::NetworkCommunication() {
-}
+NetworkCommunication::NetworkCommunication() {}
 
 NetworkCommunication::~NetworkCommunication() {
-    lock_guard<mutex> incoming_guard(mIncomingMutex);
-    lock_guard<mutex> connection_guard(mConnectionsMutex);
-    
-    for (auto* lock : mOutgoingMutex)
-        lock->lock();
-    
-    for_each(mConnections.begin(), mConnections.end(), [] (auto& connection_peer) {
-        connection_peer.first->lock();
-        close(connection_peer.second.getSocket());
-        connection_peer.first->unlock();
-        
-        delete connection_peer.first;
-    });
-    
-    // Detach threads, preventing the destructor to SIGABRT the whole program
-    mAcceptThread.detach();
-    mReceiveThread.detach();
-    mStatsThread.detach();
-    
-    for (auto& thread : mSendThread)
-        thread.detach();
-    
-    for (auto* lock : mOutgoingMutex) {
-        lock->unlock();
-        delete lock;
+    // Disconnect Clients
+    for (auto& queue : mConnections) {
+        for (auto& connection_peer : queue)
+            close(connection_peer.second.getSocket());
     }
-        
-    for (auto* cv : mOutgoingCV)
-        delete cv;
 }
 
 // Same as old constructor
-void NetworkCommunication::start(unsigned short port, int wait_incoming, int num_sending_threads) {
-    wait_incoming_ = wait_incoming;
+void NetworkCommunication::start(unsigned short port, int num_sending_threads, int num_receiving_threads) {
     num_sending_threads_ = num_sending_threads;
+    num_receiving_threads_ = num_receiving_threads;
     
     if(!setupServer(mSocket, port)) {
         return;
     }
 
     for (int i = 0; i < num_sending_threads; i++) {
-        mOutgoingCV.push_back(new condition_variable);
-        mOutgoingMutex.push_back(new mutex);
+        mOutgoingCV.push_back(make_shared<condition_variable>());
+        mOutgoingMutex.push_back(make_shared<mutex>());
         mOutgoingPackets.emplace_back();
     }
     
+    mPipe.resize(num_receiving_threads);
+    mConnections.resize(num_receiving_threads);
+    
+    for (int i = 0; i < num_receiving_threads; i++)
+        mConnectionsMutex.push_back(make_shared<mutex>());
+    
     mAcceptThread = thread(acceptThread, ref(*this));
-    mReceiveThread = thread(receiveThread, ref(*this));
     mStatsThread = thread(statsThread, ref(*this));
     
     mSendThread.resize(num_sending_threads);
     
     for (int i = 0; i < num_sending_threads; i++)
         mSendThread.at(i) = thread(sendThread, ref(*this), i);
+        
+    mReceiveThread.resize(num_receiving_threads);
+    
+    for (int i = 0; i < num_receiving_threads; i++)
+        mReceiveThread.at(i) = thread(receiveThread, ref(*this), i);
 }
 
 void NetworkCommunication::setFileDescriptorsAccept(fd_set &readSet, fd_set &errorSet) {
@@ -318,140 +310,49 @@ void NetworkCommunication::setFileDescriptorsAccept(fd_set &readSet, fd_set &err
     FD_SET(mSocket, &errorSet);
 }
 
-void NetworkCommunication::setFileDescriptorsReceive(fd_set &readSet, fd_set &errorSet) {
+void NetworkCommunication::setFileDescriptorsReceive(fd_set &readSet, fd_set &errorSet, int thread_id) {
     FD_ZERO(&readSet);
     FD_ZERO(&errorSet);
     
-    FD_SET(mPipe.getSocket(), &readSet);
-    FD_SET(mPipe.getSocket(), &errorSet);
+    FD_SET(mPipe.at(thread_id).getSocket(), &readSet);
+    FD_SET(mPipe.at(thread_id).getSocket(), &errorSet);
     
-    lock_guard<mutex> guard(mConnectionsMutex);
+    lock_guard<mutex> guard(*mConnectionsMutex.at(thread_id));
     
-    for_each(mConnections.begin(), mConnections.end(), [&readSet, &errorSet] (auto& connectionPair) {
+    for_each(mConnections.at(thread_id).begin(), mConnections.at(thread_id).end(), [&readSet, &errorSet] (auto& connectionPair) {
         FD_SET(connectionPair.second.getSocket(), &readSet);
         FD_SET(connectionPair.second.getSocket(), &errorSet);
     });
 }
 
-bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, unsigned char *buffer) {    
+bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, unsigned char *buffer, int thread_id) {    
     if(select(FD_SETSIZE, &readSet, NULL, &errorSet, NULL) == 0) {
         Log(ERROR) << "select() returned 0 when there's no timeout\n";
         
         return false;
     }
     
-    if(FD_ISSET(mPipe.getSocket(), &errorSet)) {
+    if(FD_ISSET(mPipe.at(thread_id).getSocket(), &errorSet)) {
         Log(ERROR) << "errorSet was set in pipe, errno = " << errno << '\n';
         
         return false;
     }
     
-    if(FD_ISSET(mPipe.getSocket(), &readSet)) {
+    if(FD_ISSET(mPipe.at(thread_id).getSocket(), &readSet)) {
         Log(DEBUG) << "Pipe was activated\n";
         
-        mPipe.resetPipe();
+        mPipe.at(thread_id).resetPipe();
         return true;
     }
         
-    lock_guard<mutex> guard(mConnectionsMutex);
+    lock_guard<mutex> guard(*mConnectionsMutex.at(thread_id));
     
-    #if 0
-    vector<size_t> remove_connections;
-    
-    #pragma omp parallel for
-    for (size_t i = 0; i < mConnections.size(); i++) {
-        auto* connection_lock = mConnections.at(i).first;
-        auto& connection = mConnections.at(i).second;
-        
-        // Don't let the client choke the server
-        if (connection.waitingForRealProcessing() > NetworkConstants::MAX_WAITING_PACKETS_PER_CLIENT)
-            continue;
-            
-        if (FD_ISSET(connection.getSocket(), &errorSet)) {
-            Log(WARNING) << "errorSet was set in connection\n";
-            
-            #pragma omp critical
-            {
-                remove_connections.push_back(connection.getUniqueID());
-            }
-            
-            continue;
-        }
-        
-        if (FD_ISSET(connection.getSocket(), &readSet)) {
-            int received = recv(connection.getSocket(), buffer, BUFFER_SIZE, 0);
-            
-            if(received <= 0) {
-                if(received == 0) {
-                    Log(INFORMATION) << "Connection #" << connection.getUniqueID() << " disconnected\n";
-                    
-                    #pragma omp critical
-                    {
-                        remove_connections.push_back(connection.getUniqueID());
-                    }
-                    
-                    continue;
-                } else {
-                    if(errno == EWOULDBLOCK || errno == EAGAIN) {
-                        Log(WARNING) << "EWOULDBLOCK activated\n";
-                    } else {
-                        Log(WARNING) << "Connection #" << connection.getUniqueID() << " failed with errno = " << errno << '\n';
-                        
-                        #pragma omp critical
-                        {
-                            remove_connections.push_back(connection.getUniqueID());
-                        }
-                        
-                        continue;
-                    }
-                }
-            } else {
-                assemblePacket(buffer, received, connection);
-            }
-        }
-    }
-    
-    for (auto& remove_id : remove_connections) {
-        auto position = find_if(mConnections.begin(), mConnections.end(), [&remove_id] (auto& connection_peer) { return connection_peer.second.getUniqueID() == remove_id; });
-        
-        if (position == mConnections.end())
-            continue;
-            
-        auto* lock = position->first;
-        auto& connection = position->second;
-        
-        lock->lock();
-        Base::game().disconnected(connection);
-        
-        if (close(connection.getSocket()) < 0)
-            Log(ERROR) << "close() got errno = " << errno << endl;
-        lock->unlock();
-        
-        delete lock;
-    }
-    
-    if (!remove_connections.empty()) {
-        mConnections.erase(remove_if(mConnections.begin(), mConnections.end(), [&remove_connections] (auto& connection_peer) {
-            auto position = find_if(remove_connections.begin(), remove_connections.end(), [&connection_peer] (auto& id) { return connection_peer.second.getUniqueID() == id; });
-            
-            return position != remove_connections.end();
-        }));
-    }
-    #endif
-    
-    for(auto& connectionPair : mConnections) {
+    for(auto& connection_peer : mConnections.at(thread_id)) {
         bool removeConnection = false;
-        mutex *connectionMutex = connectionPair.first;      
-        Connection &connection = connectionPair.second;
+        auto& connection = connection_peer.second;
         
-        
-        if (connection.waitingForRealProcessing() > NetworkConstants::MAX_WAITING_PACKETS_PER_CLIENT) {
-            //Log(DEBUG) << "Buffer filled " << connection.waitingForRealProcessing() << "\n";
-            
+        if (connection.packetsWaiting() > NetworkConstants::MAX_WAITING_PACKETS_PER_CLIENT)
             continue;
-        } else {
-            //Log(DEBUG) << "BUFFER OKAY\n";
-        }
         
         if(FD_ISSET(connection.getSocket(), &errorSet)) {
             Log(WARNING) << "errorSet was set in connection\n";
@@ -485,27 +386,16 @@ bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, u
             else {
                 assemblePacket(buffer, received, connection);
             }
-            
-            //Log(DEBUG) << "Received " << received << " bytes\n";
         }
         
         if(removeConnection) {
-            lock_guard<mutex> removeGuard(*connectionMutex);
-            
             // Remove from game
             Base::game().disconnected(connection);
             
-            if(close(connection.getSocket()) < 0) {
+            if (close(connection.getSocket()) < 0)
                 Log(ERROR) << "close() got errno = " << errno << endl;
-            }
             
-            mConnections.erase(remove_if(mConnections.begin(), mConnections.end(), [&connection] (pair<mutex*, Connection> &connectionPair) {
-                return connectionPair.second == connection;
-            }));
-        }
-        
-        if(removeConnection) {
-            delete connectionMutex;
+            mConnections.at(thread_id).erase(connection_peer.first);
             
             break;
         }
@@ -515,27 +405,23 @@ bool NetworkCommunication::runSelectReceive(fd_set &readSet, fd_set &errorSet, u
 }
 
 void NetworkCommunication::sendToAllExcept(const Packet &packet, const std::vector<int> &except) {
-    lock_guard<mutex> guard(mConnectionsMutex);
-    
-    for_each(mConnections.begin(), mConnections.end(), [&packet, &except, this] (pair<mutex*, Connection> &connectionPair) {
-        if(find_if(except.begin(), except.end(), [&connectionPair] (const int fd) { return connectionPair.second == fd; }) != except.end()) {
-            return;
-        }
-                
-        addOutgoingPacket(connectionPair.second.getSocket(), packet);
+    // Go through all receiving threads to find the Clients
+    for (size_t i = 0; i < mConnections.size(); i++) {
+        lock_guard<mutex> lock(*mConnectionsMutex.at(i));
+        auto& connections = mConnections.at(i);
         
-        /*
-        lock_guard<mutex> sendingGuard(mOutgoingMutex);
-        mOutgoingPackets.push_back({connectionPair.second.getSocket(), packet});
-        */
-    });
+        for (auto& connection_peer : connections) {
+            if (!except.empty())
+                if (find_if(except.begin(), except.end(), [&connection_peer] (auto fd) { return connection_peer.second == fd; }) != except.end())
+                    continue;
+            
+            addOutgoingPacket(connection_peer.second.getSocket(), packet);
+        }
+    }
 }
 
 void NetworkCommunication::sendToAll(const Packet& packet) {
-    lock_guard<mutex> guard(mConnectionsMutex);
-    
-    for (auto& peer : mConnections)
-        send(&peer.second, packet);
+    sendToAllExcept(packet, {});
 }
 
 bool NetworkCommunication::runSelectAccept(fd_set &readSet, fd_set &errorSet) {
@@ -560,15 +446,19 @@ bool NetworkCommunication::runSelectAccept(fd_set &readSet, fd_set &errorSet) {
             return false;
         }
         
+        int index = newSocket % num_receiving_threads_;
+        
         {
-            lock_guard<mutex> guard(mConnectionsMutex);
-            mConnections.push_back({ new mutex, Connection(newSocket) });
+            lock_guard<mutex> guard(*mConnectionsMutex.at(index));
             
-            Log(INFORMATION) << "Connection #" << mConnections.back().second.getUniqueID() << " added\n";
-            Log(DEBUG) << "Socket ID " << mConnections.back().second.getSocket() << endl;
+            Connection connection(newSocket);
+            mConnections.at(index).insert({ connection.getUniqueID(), connection });
+            
+            Log(INFORMATION) << "Connection #" << connection.getUniqueID() << " added\n";
+            Log(DEBUG) << "Socket ID " << connection.getSocket() << endl;
         }
         
-        mPipe.setPipe();
+        mPipe.at(index).setPipe();
     }
     
     return true;
@@ -583,45 +473,14 @@ pair<int, Packet>& NetworkCommunication::waitForOutgoingPackets(int thread_id) {
     mOutgoingCV.at(thread_id)->wait(lock, [this, &thread_id] { return !mOutgoingPackets.at(thread_id).empty(); });
     
     return mOutgoingPackets.at(thread_id).front();
-    
-    #if 0
-    unique_lock<mutex> lock(mOutgoingMutex);
-    mOutgoingCV.wait(lock, [this] {
-        if (mOutgoingPackets.empty())
-            return false;
-            
-        for (size_t i = 0; i < mOutgoingPackets.size(); i++)
-            if (mOutgoingPackets.at(i).first % thread_id == 0)
-                return true;
-                
-        return false;
-    });
-    
-    return mOutgoingPackets.front();
-    #endif
 }
 
 void NetworkCommunication::addOutgoingPacket(const int fd, const Packet &packet) {
     auto index = fd % num_sending_threads_;
-    
-    //Log(DEBUG) << "index " << index << " fd " << fd << " num_sending_threads_ " << num_sending_threads_ << endl;
-    
+        
     lock_guard<mutex> guard(*mOutgoingMutex.at(index));
     mOutgoingPackets.at(index).push_back({ fd, packet });
     mOutgoingCV.at(index)->notify_one();
-    
-    #if 0
-    lock_guard<mutex> guard(mOutgoingMutex);
-    mOutgoingPackets.push_back({fd, packet});
-    mOutgoingCV.notify_all();
-    #endif
-}
-
-void NetworkCommunication::send(const Connection* connection, const Packet& packet) {
-    if (connection == nullptr)
-        return;
-        
-    addOutgoingPacket(connection->getSocket(), packet);
 }
 
 void NetworkCommunication::send(int fd, const Packet& packet) {
@@ -629,18 +488,17 @@ void NetworkCommunication::send(int fd, const Packet& packet) {
 }
 
 int NetworkCommunication::getConnectionSocket(size_t unique_id) {
-    lock_guard<mutex> guard(mConnectionsMutex);
-    
-    auto iterator = find_if(mConnections.begin(), mConnections.end(), [&unique_id] (auto& peer) {
-        auto& connection = peer.second;
+    for (size_t i = 0; i < mConnections.size(); i++) {
+        lock_guard<mutex> lock(*mConnectionsMutex.at(i));
+        auto& queue = mConnections.at(i);
         
-        return connection.getUniqueID() == unique_id;
-    });
-    
-    if (iterator == mConnections.end())
-        return -1;
+        auto iterator = queue.find(unique_id);
         
-    return iterator->second.getSocket();
+        if (iterator != queue.end())
+            return iterator->second.getSocket();
+    }
+    
+    return -1;
 }
 
 void NetworkCommunication::sendUnique(size_t id, const Packet& packet) {
@@ -667,94 +525,43 @@ void NetworkCommunication::removeOutgoingPacket(int thread_id) {
     mOutgoingPackets.at(thread_id).pop_front();
 }
 
-pair<std::mutex*, Connection>* NetworkCommunication::getConnectionAndLock(const int fd) {
-    lock_guard<mutex> guard(mConnectionsMutex);
+tuple<int, size_t, Packet> NetworkCommunication::waitForProcessingPackets() {
+    tuple<int, size_t, Packet> packet;
     
-    auto position = find_if(mConnections.begin(), mConnections.end(), [fd] (pair<mutex*, Connection> &connectionPair) {        
-        return connectionPair.second == fd;
-    });
-    
-    if(position == mConnections.end()) {
-        return nullptr;
+    {
+        unique_lock<mutex> lock(mIncomingMutex);
+        mIncomingCV.wait(lock, [this] { return !mIncomingPackets.empty(); });
+        
+        // Grab Packet
+        packet = mIncomingPackets.front();
+        mIncomingPackets.pop_front();
     }
     
-    position->first->lock();
+    // Set Connection to successfully processed Packet thus decreasing waiting Packets counter
+    auto id = get<1>(packet);
     
-    return &*position;
-}
-
-size_t NetworkCommunication::getConnectionID(int fd) {
-    lock_guard<mutex> lock(mConnectionsMutex);
-    
-    auto position = find_if(mConnections.begin(), mConnections.end(), [&fd] (pair<mutex*, Connection> &connectionPair) {        
-        return connectionPair.second == fd;
-    });
-    
-    if (position == mConnections.end())
-        throw exception();
+    for (size_t i = 0; i < mConnections.size(); i++) {
+        lock_guard<mutex> lock(*mConnectionsMutex.at(i));
+        auto& queue = mConnections.at(i);
         
-    return position->second.getUniqueID();
-}
-
-void NetworkCommunication::unlockConnection(pair<mutex*, Connection> &connectionPair) {
-    if(connectionPair.first == nullptr) {
-        Log(ERROR) << "Trying to unlock mutex which is nullptr\n";
+        auto iterator = queue.find(id);
         
-        return;
+        if (iterator == queue.end())
+            continue;
+            
+        iterator->second.reducePacketsWaiting();
     }
     
-    connectionPair.first->unlock();
+    return packet;
 }
 
 /*
-pair<int, Packet>& NetworkCommunication::waitForProcessingPackets() {
-    unique_lock<mutex> lock(mIncomingMutex);
-    mIncomingCV.wait(lock, [this] { return !mIncomingPackets.empty(); });
-    
-    return mIncomingPackets.front();
-}
+    EventPipe
 */
 
-// TODO: Make this multithreaded: return packet instead of pointer and DO NOT keep the packet in the queue
-pair<int, Packet>& NetworkCommunication::waitForProcessingPackets() {
-    unique_lock<mutex> lock(mIncomingMutex);
-    mIncomingCV.wait(lock, [this] { return !mIncomingPackets.empty(); });
-    
-    return mIncomingPackets.front();
-    
-    /*
-    unique_lock<mutex> lock(mIncomingMutex);
-    
-    if(mIncomingCV.wait_for(lock, chrono::milliseconds(wait_incoming_), [this] { return !mIncomingPackets.empty(); })) {
-        return &mIncomingPackets.front();
-    }
-    
-    return nullptr;
-    */
-}
-
-void NetworkCommunication::removeProcessingPacket() {
-    // Set Connection to successfully processed Packet
-    auto connection = getConnectionAndLock(mIncomingPackets.front().first);
-    
-    if (connection != nullptr) {
-        connection->second.finishRealProcessing();
-        unlockConnection(*connection);
-    }
-    
-    lock_guard<mutex> guard(mIncomingMutex);
-    
-    if(mIncomingPackets.empty()) {
-        Log(ERROR) << "Trying to pop_front when incomingPackets is empty\n";
-        
-        return;
-    }
-        
-    mIncomingPackets.pop_front();
-    
-}
-
 EventPipe::EventPipe() {
+    event_mutex_ = make_shared<mutex>();
+    
     if(pipe(mPipes) < 0) {
         Log(ERROR) << "Failed to create pipe, won't be able to wake threads, errno = " << errno << '\n';
     }
@@ -765,34 +572,31 @@ EventPipe::EventPipe() {
 }
 
 EventPipe::~EventPipe() {
-    if(mPipes[0] >= 0) {
+    if (mPipes[0] >= 0)
         close(mPipes[0]);
-    }
     
-    if(mPipes[1] >= 0) {
+    if (mPipes[1] >= 0)
         close(mPipes[1]);
-    }
 }
 
 void EventPipe::setPipe() {
-    lock_guard<mutex> lock(event_mutex_);
+    lock_guard<mutex> lock(*event_mutex_);
     
-    if(write(mPipes[1], "0", 1) < 0) {
+    if (write(mPipes[1], "0", 1) < 0)
         Log(ERROR) << "Could not write to pipe, errno = " << errno << '\n';
-    }
 }
 
 void EventPipe::resetPipe() {
-    lock_guard<mutex> lock(event_mutex_);
+    lock_guard<mutex> lock(*event_mutex_);
     
     unsigned char buffer;
 
-    while(read(mPipes[0], &buffer, 1) == 1) {
-    }
+    while(read(mPipes[0], &buffer, 1) == 1)
+        ;
 }
 
 int EventPipe::getSocket() {
-    lock_guard<mutex> lock(event_mutex_);
+    lock_guard<mutex> lock(*event_mutex_);
     
     return mPipes[0];
 }

@@ -5,9 +5,9 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <deque>
 #include <vector>
 #include <list>
+#include <unordered_map>
 
 enum NetworkConstants {
     BUFFER_SIZE = 4096,
@@ -26,7 +26,7 @@ public:
     
 private:
     int mPipes[2];
-    std::mutex event_mutex_;
+    std::shared_ptr<std::mutex> event_mutex_;
 };
 
 class Connection;
@@ -38,29 +38,24 @@ public:
     NetworkCommunication();
     ~NetworkCommunication();
     
-    void start(unsigned short port, int wait_incoming, int num_sending_threads);
+    void start(unsigned short port, int num_sending_threads, int num_receiving_threads);
     
     void setFileDescriptorsAccept(fd_set &readSet, fd_set &errorSet);
-    void setFileDescriptorsReceive(fd_set &readSet, fd_set &errorSet);
+    void setFileDescriptorsReceive(fd_set &readSet, fd_set &errorSet, int thread_id);
     
     bool runSelectAccept(fd_set &readSet, fd_set &errorSet);
-    bool runSelectReceive(fd_set &readSet, fd_set &errorSet, unsigned char *buffer);
+    bool runSelectReceive(fd_set &readSet, fd_set &errorSet, unsigned char *buffer, int thread_id);
     
     int getSocket() const;
     int getConnectionSocket(size_t unique_id);
-    size_t getConnectionID(int fd);
-    std::pair<std::mutex*, Connection>* getConnectionAndLock(const int fd);
-    void unlockConnection(std::pair<std::mutex*, Connection> &connectionPair);
     
     std::pair<int, Packet>& waitForOutgoingPackets(int thread_id);
     void removeOutgoingPacket(int thread_id);
     void addOutgoingPacket(const int fd, const Packet &packet);
-    void send(const Connection* connection, const Packet& packet);
     void send(int fd, const Packet& packet);
     void sendUnique(size_t id, const Packet& packet);
     
-    std::pair<int, Packet>& waitForProcessingPackets();
-    void removeProcessingPacket();
+    std::tuple<int, size_t, Packet> waitForProcessingPackets();
     
     void sendToAll(const Packet& packet);
     void sendToAllExcept(const Packet &packet, const std::vector<int> &except);
@@ -73,24 +68,25 @@ private:
     void moveProcessedPacketsToQueue(Connection &connection);
     
     int mSocket;
-    EventPipe mPipe;
+    std::vector<EventPipe> mPipe;
     
-    std::thread mReceiveThread, mAcceptThread, mStatsThread;
+    std::thread mAcceptThread, mStatsThread;
     std::vector<std::thread> mSendThread;
+    std::vector<std::thread> mReceiveThread;
     
     std::mutex mIncomingMutex;
     std::condition_variable mIncomingCV;
-    std::deque<std::pair<int, Packet>> mIncomingPackets;
+    std::list<std::tuple<int, size_t, Packet>> mIncomingPackets;
     
-    std::vector<std::mutex*> mOutgoingMutex;
-    std::vector<std::condition_variable*> mOutgoingCV;
-    std::vector<std::deque<std::pair<int, Packet>>> mOutgoingPackets;
+    std::vector<std::shared_ptr<std::mutex>> mOutgoingMutex;
+    std::vector<std::shared_ptr<std::condition_variable>> mOutgoingCV;
+    std::vector<std::list<std::pair<int, Packet>>> mOutgoingPackets;
     
-    std::mutex mConnectionsMutex;
-    std::list<std::pair<std::mutex*, Connection>> mConnections;
+    std::vector<std::shared_ptr<std::mutex>> mConnectionsMutex;
+    std::vector<std::unordered_map<size_t, Connection>> mConnections;
     
-    int wait_incoming_;
-    int num_sending_threads_ = 1;
+    int num_sending_threads_    = 1;
+    int num_receiving_threads_  = 1;
 };
 
 #endif
