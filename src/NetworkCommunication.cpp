@@ -250,7 +250,7 @@ void NetworkCommunication::moveProcessedPacketsToQueue(Connection &connection) {
     lock_guard<mutex> guard(mIncomingMutex);
     
     while(connection.hasIncomingPacket()) {
-        mIncomingPackets.push_back({ connection.getSocket(), connection.getUniqueID(), move(connection.getIncomingPacket()) });
+        mIncomingPackets.push_back(make_tuple(connection.getSocket(), connection.getUniqueID(), move(connection.getIncomingPacket())));
         connection.processedPacket();
     }
     
