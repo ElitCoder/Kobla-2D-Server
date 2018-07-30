@@ -3,15 +3,15 @@ OBJ_FILES	:= $(addprefix obj/,$(notdir $(CPP_FILES:.cpp=.o)))
 CC_FLAGS	:= -std=c++14 -Wall -Wextra -pedantic-errors
 #CC_FLAGS	+= -O3
 #CC_FLAGS	+= -g
-LD_LIBS		:= -lpthread -ltmx-loader -lsfml-graphics
+LD_LIBS		:= -lpthread -ltmx-loader -lsfml-graphics -lstdc++ -lm
 
 EXECUTABLE	:= bin/Kobla-2D-Server-Rebased
 
 $(EXECUTABLE): $(OBJ_FILES)
-	g++ $(LD_FLAGS) -o $@ $^ $(LD_LIBS)
+	zapcc $(LD_FLAGS) -o $@ $^ $(LD_LIBS)
 
 obj/%.o: src/%.cpp
-	g++ $(CC_FLAGS) -c -o $@ $<
+	zapcc $(CC_FLAGS) -c -o $@ $<
 	
 clean:
 	rm -f obj/* $(EXECUTABLE)
