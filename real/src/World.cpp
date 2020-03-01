@@ -120,7 +120,7 @@ void Client::Spawn(char *b)
 				log(ERR, "[void Client::Spawn(char*)] [In party]\n");
 
 			LD(GAME, "Spawning player: [%s] [%s] [Name: %s] [Level: %d] [Map: %d].\n", this->username.c_str(), this->password.c_str(), tp->name, tp->level, tp->mapId->id);
-			
+
 			this->p->pt = NULL;
 
 			this->GetBuffsOnline();
@@ -793,7 +793,7 @@ void Client::ChangeMap(char *b, bool serversided, int map, int x, int y)
 					borr2.addBool(this->p->mapId->pk);
 					borr2.addBool(this->p->mapId->weaponAllowed);
 					borr2.addLongInt(m->tzone.at(i).toMapX);
-					
+
 					if(m->tzone.at(i).toMapY != 1337)
 						borr2.addLongInt(m->tzone.at(i).toMapY);
 					else
@@ -849,7 +849,7 @@ void Client::PlayerPosition(float x, float y, int param)
 	this->p->y = y;
 
 	Packet pak = Packet();
-	
+
 	pak.addHeader(0x11);
 	pak.addLongInt(this->p->getId());
 	pak.addLongInt((int)x);
@@ -872,7 +872,7 @@ void Client::Unspawn(int param)
 		pak.addHeader(0x12);
 		pak.addInt(0);
 		pak.addInt(0);
-		
+
 		pak.ready();
 		this->AddPacket(pak, 0);
 	}
@@ -965,8 +965,11 @@ void Client::SpawnForMap(int map)
 						{
 							if(c->p->pt != this->p->pt)
 							{
-								if(getConnection() != c->getConnection()
+								if (getConnection().getSocket() != c->getConnection().getSocket()) {
 									c->AddPacket(pak, 0);
+								}
+								//if(getConnection() != c->getConnection()
+								//	c->AddPacket(pak, 0);
 							}
 						}
 					}
@@ -1039,7 +1042,7 @@ void Client::SpawnForMap(int map)
 						{
 							if(c->p->pt == this->p->pt)
 							{
-								if(getConnection() != c->getConnection())
+								if(getConnection().getSocket() != c->getConnection().getSocket())
 									c->AddPacket(pak2, 0);
 							}
 						}
@@ -1169,7 +1172,7 @@ void Client::SpawnForMap(int map)
 			pakn.addString(npc.at(i)->name);
 
 			pakn.addInt(npc.at(i)->menu.size());
-			
+
 			for(unsigned int y = 0; y < npc.at(i)->menu.size(); y++)
 				pakn.addString(npc.at(i)->menu.at(y).text_);
 
@@ -1277,7 +1280,7 @@ float CalculateMana(Client *c)
 void Client::SavePlayer(int PARAM)
 {
 	char slots[10];
-	_itoa_s(this->p->slot, slots, 10);
+	_itoa_s(this->p->slot, slots, 10, strlen(slots));
 
 	string charp = "Data/Character/";
 	charp += this->p->owner;
@@ -1303,7 +1306,7 @@ void Client::SavePlayer(int PARAM)
 		}
 
 		if(this->p->pt != NULL)
-		{								
+		{
 			for(unsigned int r = 0; r < this->p->pt->members.size(); r++)
 			{
 				if(this->p->pt->members.at(r)->mb->p->getId() == this->p->getId())
@@ -1350,7 +1353,7 @@ void Client::SavePlayer(int PARAM)
 	ofstream o(charp.c_str());
 
 	o << this->p->name << endl << this->p->level << endl << this->p->power << endl << this->p->agility << endl << (int)this->p->x << endl << (int)this->p->y << endl << this->p->mapId->id << endl << this->p->exp << endl << this->p->magic << endl << this->p->powerpoints << endl << this->p->pkpoints << endl << this->p->access << endl;
-	
+
 	for(int i = 0; i < 25; i++)
 	{
 		if(this->p->inv[i] != NULL)
@@ -1376,7 +1379,7 @@ void Client::SavePlayer(int PARAM)
 	}
 
 	o << this->p->buffs.size() << endl;
-	
+
 	for(unsigned int i = 0; i < this->p->buffs.size(); i++)
 		o << this->p->buffs.at(i)->effect << " " << this->p->buffs.at(i)->value << " " << this->p->buffs.at(i)->endTime << endl;
 
@@ -1583,7 +1586,7 @@ void Client::MonsterAttack(int id)
 					blocks = 1.0f;
 
 				float blockornot = RandomFloat(1.0f, blocks);
-				
+
 				if((int)(critornot + 0.5f) == 1)
 				{
 					mAttack *= RandomFloat(1.5f, 2.5f);
@@ -1634,7 +1637,7 @@ void Client::MonsterAttack(int id)
 					blocks2 = 1.0f;
 
 				float blockornot2 = RandomFloat(1.0f, blocks2);
-				
+
 				if((int)(critornot2 + 0.5f) == 1)
 					type = 1;
 
@@ -1712,7 +1715,7 @@ void Client::UpdatePosition(char *p)
 	pak.addLongInt((int)this->p->y);
 
 	pak.ready();
-	SendAllOnMap(pak, 0, this->p->mapId->id, this->sock);
+	SendAllOnMap(pak, 0, this->p->mapId->id, this->getConnection());
 }
 
 void Client::IsOnline(bool status)
@@ -1737,7 +1740,7 @@ void Client::Quit()
 			}
 		}
 	}
-	
+
 	this->RemoveAllFollowers();
 
 	this->ingame = false;
@@ -2261,9 +2264,10 @@ void Client::Chat(char *msg)
 
 			sscanf_s(msg, "/dc %s", &name, 20);
 
-			if(strcmp(name, this->p->name) == 0)
+			//if(strcmp(name, this->p->name) == 0)
+			if (string(name) == this->p->name)
 				SystemChat(this, CUSTOM, NULL, "You cannot disconnect yourself!");
-			
+
 			else
 			{
 				Client *c = GetClientByPlayerName(name);
@@ -2295,7 +2299,7 @@ void Client::Chat(char *msg)
 
 			pak.addHeader(0x57);
 			pak.addBool(this->p->botActive);
-			
+
 			if(this->p->mapId->pk)
 				pak.addInt(2);
 
@@ -2499,7 +2503,8 @@ void Client::Chat(char *msg)
 			if(!this->p->godMode)
 				this->p->godMode = true;
 
-			this->SkillAttackAoE(&GetMonstersInRange(this->p->mapId->id, (int)this->p->x, (int)this->p->y, this->p->meW, this->p->meH, this->p->mapId->xSize, this->p->mapId->ySize), 5, 1, STRENGTH);
+			auto monsters = GetMonstersInRange(this->p->mapId->id, (int)this->p->x, (int)this->p->y, this->p->meW, this->p->meH, this->p->mapId->xSize, this->p->mapId->ySize);
+			this->SkillAttackAoE(&monsters, 5, 1, STRENGTH);
 
 			this->p->godMode = lolborr;
 		}
@@ -2877,7 +2882,7 @@ void Client::Attack(int id, int type, int param, int hits, char *b, bool serv, i
 						float pAtk = pAttack;
 
 						if(pAtk > 0)
-						{		
+						{
 							float atkMin = (pAtk - 4.0f);
 							float atkMax = (pAtk + 4.0f);
 
@@ -3385,7 +3390,7 @@ void Client::AddExp(long amount)
 									{
 										if(c->p->mapId->id == this->p->mapId->id)
 										{
-											if(this->sock != c->GetSocket())
+											if(this->getConnection().getSocket() != c->getConnection().getSocket())
 												SystemChat(c, CUSTOM, NULL, (char*)lvlMsg.c_str());
 										}
 									}
@@ -3651,7 +3656,7 @@ void Client::PKAttack(int id, int type, int param, int hits, int plus, bool poss
 						log(DEBUG, "Player attack: %4.2f Target defence: %4.2f Final attack: %4.2f.\n", pAttack, tDefence, pAtk);
 
 					if(pAtk > 0)
-					{		
+					{
 						float atkMin = (pAtk - 4.0f);
 						float atkMax = (pAtk + 4.0f);
 
@@ -3685,7 +3690,7 @@ void Client::PKAttack(int id, int type, int param, int hits, int plus, bool poss
 
 							if(type == 1)
 								type = 3;
-							
+
 							else
 								type = 2;
 						}
@@ -3753,7 +3758,7 @@ void Client::PKAttack(int id, int type, int param, int hits, int plus, bool poss
 						{
 							if(type == 1)
 								type = 3;
-							
+
 							else
 								type = 2;
 						}
@@ -3946,7 +3951,7 @@ void SystemChat(Client *_Client, int _Param, Client *_Client2, const string& cus
 
 		case PKATTACKSME:
 			{
-				strcpy_s(msg, _Client2->p->name);
+				strcpy_s(msg, _Client2->p->name.c_str());
 				strcat_s(msg, " attacks you!");
 			break;
 			}
@@ -3956,7 +3961,7 @@ void SystemChat(Client *_Client, int _Param, Client *_Client2, const string& cus
 				char tHp[10] = "";
 
 				strcpy_s(msg, "Attacked ");
-				strcat_s(msg, _Client2->p->name);
+				strcat_s(msg, _Client2->p->name.c_str());
 				strcat_s(msg, " HP left: ");
 
 				_itoa_s((int)_Client2->p->chp, tHp, 10, 10);
@@ -3968,7 +3973,7 @@ void SystemChat(Client *_Client, int _Param, Client *_Client2, const string& cus
 		case PKKILLED:
 			{
 				strcpy_s(msg, "You killed ");
-				strcat_s(msg, _Client2->p->name);
+				strcat_s(msg, _Client2->p->name.c_str());
 				strcat_s(msg, ".");
 			break;
 			}
@@ -3976,7 +3981,7 @@ void SystemChat(Client *_Client, int _Param, Client *_Client2, const string& cus
 		case PKKILLEDBY:
 			{
 				strcpy_s(msg, "You were killed by ");
-				strcat_s(msg, _Client2->p->name);
+				strcat_s(msg, _Client2->p->name.c_str());
 				strcat_s(msg, ".");
 			break;
 			}
@@ -3984,14 +3989,14 @@ void SystemChat(Client *_Client, int _Param, Client *_Client2, const string& cus
 		case PKINFECTPOISON:
 			{
 				strcpy_s(msg, "You poisoned ");
-				strcat_s(msg, _Client2->p->name);
+				strcat_s(msg, _Client2->p->name.c_str());
 				strcat_s(msg, "!");
 			break;
 			}
 
 		case WASPKINFECTPOISON:
 			{
-				strcpy_s(msg, _Client2->p->name);
+				strcpy_s(msg, _Client2->p->name.c_str());
 				strcat_s(msg, " poisoned you!");
 			break;
 			}
@@ -3999,7 +4004,7 @@ void SystemChat(Client *_Client, int _Param, Client *_Client2, const string& cus
 		case PKSLOWSPEED:
 			{
 				strcpy_s(msg, "You slowed down ");
-				strcat_s(msg, _Client2->p->name);
+				strcat_s(msg, _Client2->p->name.c_str());
 				strcat_s(msg, "!");
 			break;
 			}
@@ -4007,12 +4012,12 @@ void SystemChat(Client *_Client, int _Param, Client *_Client2, const string& cus
 		case WASPKSLOWSPEED:
 			{
 				strcpy_s(msg, "You were slowed down by ");
-				strcat_s(msg, _Client2->p->name);
+				strcat_s(msg, _Client2->p->name.c_str());
 				strcat_s(msg, "!");
 			break;
 			}
 
-		case CUSTOM: strcpy_s(msg, _Custom);
+		case CUSTOM: strcpy_s(msg, custom.c_str());
 			break;
 
 		case TELEPORTED:
@@ -4093,7 +4098,7 @@ void Client::AddStat(char *b)
 		else
 		{
 			log(ERR, "[void Client::AddStat(char*)] [Invalid param] [%d]\n", type);
-			
+
 			return;
 		}
 
@@ -4143,7 +4148,7 @@ Client *GetClientByName(char *name, int &result)
 	{
 		if(ac.at(i)->ingame)
 		{
-			if(strcmp(name, ac.at(i)->p->name) == 0)
+			if(strcmp(name, ac.at(i)->p->name.c_str()) == 0)
 			{
 				ret = ac.at(i);
 
@@ -4156,7 +4161,7 @@ Client *GetClientByName(char *name, int &result)
 	{
 		for(unsigned int i = 0; i < pvector.size(); i++)
 		{
-			if(strcmp(name, pvector.at(i)->name) == 0)
+			if(strcmp(name, pvector.at(i)->name.c_str()) == 0)
 			{
 				result = 1;
 
@@ -4176,7 +4181,7 @@ Client *GetClientByPlayerName(const string& name)
 		{
 			if (name == ac.at(i)->p->name)
 				return ac.at(i);
-				
+
 			/*
 			if(strcmp(name, ac.at(i)->p->name) == 0)
 				return ac.at(i);
@@ -4189,7 +4194,7 @@ Client *GetClientByPlayerName(const string& name)
 
 void Client::SendFriendInvite(int charId, const char *name)
 {
-	if(charId == this->p->getId() || strcmp(name, this->p->name) == 0)
+	if(charId == this->p->getId() || strcmp(name, this->p->name.c_str()) == 0)
 		SystemChat(this, CUSTOM, NULL, "You can not add yourself as a friend?");
 
 	else
@@ -4294,9 +4299,9 @@ void Client::SendTradeInvite(int charId)
 
 void Client::SendInvite(const string& name_string)
 {
-	const char* name = name_string.c_str();
-	
-	if(strcmp(name, this->p->name) == 0)
+	char* name = strdup(name_string.c_str());
+
+	if(strcmp(name, this->p->name.c_str()) == 0)
 	{
 		SystemChat(this, CUSTOM, NULL, "You can not invite yourself.");
 	}
@@ -4416,7 +4421,7 @@ void Client::AcceptFriendInvite(char *b)
 		{
 			char full[100] = "";
 
-			strcpy_s(full, this->p->name);
+			strcpy_s(full, this->p->name.c_str());
 			strcat_s(full, " refused to be your friend.");
 
 			SystemChat(inviteFrom, CUSTOM, NULL, full);
@@ -4500,7 +4505,7 @@ void Client::AcceptTradeInvite(char *b)
 		{
 			char full[100] = "";
 
-			strcpy_s(full, this->p->name);
+			strcpy_s(full, this->p->name.c_str());
 			strcat_s(full, " refused to trade with you.");
 
 			SystemChat(inviteFrom, CUSTOM, NULL, full);
@@ -4529,8 +4534,10 @@ void Client::AcceptInvite(char *b)
 
 	else
 	{
-		if(sta == 1)
-			inviteFrom->InviteToParty(this->p->name);
+		if(sta == 1) {
+			auto *dup = strdup(this->p->name.c_str());
+			inviteFrom->InviteToParty(dup);
+		}
 
 		else if(sta == 2)
 		{
@@ -4541,7 +4548,7 @@ void Client::AcceptInvite(char *b)
 
 			SystemChat(inviteFrom, CUSTOM, NULL, full);
 		}
-	}		
+	}
 }
 
 void Client::Friend(int id)
@@ -4656,7 +4663,7 @@ void Client::CancelTrade(bool error)
 	pak.addHeader(0x73);
 
 	pak.ready();
-	
+
 	this->AddPacket(pak, 0);
 
 	if(error)
@@ -4707,7 +4714,7 @@ void Client::InviteToParty(char *name)
 				pm2->online = true;
 				pm2->setTimer = false;
 
-				pm->name_ = p->name_;
+				pm->name_ = this->p->name;
 				pm2->name_ = target->p->name;
 
 				//strcpy_s(pm->name, this->p->name);
@@ -4744,7 +4751,7 @@ void Client::InviteToParty(char *name)
 				pak2.addInt(1);
 				pak2.addString(target->p->name);
 				pak2.addInt(target->p->level);
-				
+
 				pak2.ready();
 				this->AddPacket(pak2, 0);
 
@@ -4759,7 +4766,7 @@ void Client::InviteToParty(char *name)
 					if(this->p->pt->members.size() < 6)
 					{
 						PartyMember *pm = new PartyMember();
-						
+
 						pm->mb = target;
 						pm->online = true;
 						pm->setTimer = false;
@@ -5779,7 +5786,7 @@ void Client::SpecialAttack(int id, int type, int param)
 							this->SkillAttackAoEPK(&GetPlayersInRange(c->p->mapId->id, (int)c->p->x, (int)c->p->y, c->p->meW, c->p->meH, mains->aoerange, mains->aoerange, this->p->getId()), mains->basedmg * 2 + plusdmg, mains->id, mains->basedOn);
 
 						this->SkillAttackAoE(&GetMonstersInRange(c->p->mapId->id, (int)c->p->x, (int)c->p->y, c->p->meW, c->p->meH, mains->aoerange, mains->aoerange), mains->basedmg + plusdmg, mains->id, mains->basedOn);
-						*/	
+						*/
 					}
 
 					else
@@ -5827,13 +5834,13 @@ void Client::SpecialAttack(int id, int type, int param)
 					/*
 					switch(param)
 					{
-						case 2: 
+						case 2:
 							{
 								c->AddBuff(POISON, this->GetSkill(param)->lvl, ((this->GetSkill(param)->lvl * 2) + 10), this->p->getId());
 							break;
 							}
 
-						case 3: 
+						case 3:
 							{
 								c->AddBuff(SLOWSPEED, this->GetSkill(param)->lvl, ((this->GetSkill(param)->lvl * 2) + 10), this->p->getId());
 							break;
@@ -5991,13 +5998,13 @@ void Client::SpecialAttack(int id, int type, int param)
 					/*
 					switch(param)
 					{
-						case 2: 
+						case 2:
 							{
 								m->AddMonsterBuff(POISON, this->GetSkill(param)->lvl, ((this->GetSkill(param)->lvl * 2) + 10), this->p->getId());
 							break;
 							}
 
-						case 3: 
+						case 3:
 							{
 								m->AddMonsterBuff(SLOWSPEED, this->GetSkill(param)->lvl, ((this->GetSkill(param)->lvl * 2) + 10), this->p->getId());
 							break;
@@ -6204,7 +6211,7 @@ void Client::RemoveAllFollowers()
 					idMap = mobs.at(r)->mapId->id;
 
 					mobs.at(r)->move.start(true);
-				
+
 					pf.addLongInt(mobs.at(r)->pid);
 
 					if(debugs)
@@ -6470,7 +6477,7 @@ void Client::SkillAttackAoE(std::vector<Monster*> *vec, int baseDamage, int skil
 
 			pakUns.addHeader(0x46);
 			pakUns.addLongInt(unsUns.size());
-			
+
 			for(unsigned int i = 0; i < unsUns.size(); i++)
 				pakUns.addLongInt(unsUns.at(i));
 
@@ -6486,7 +6493,7 @@ void Client::SkillAttackAoE(std::vector<Monster*> *vec, int baseDamage, int skil
 
 			pakFol.addHeader(0x47);
 			pakFol.addLongInt(folFol.size());
-			
+
 			for(unsigned int i = 0; i < folFol.size(); i++)
 			{
 				pakFol.addLongInt(folFol.at(i).int1);
@@ -7091,7 +7098,7 @@ bool Monster::GoBack()
 	}
 
 	else
-	{	
+	{
 		if(this->bx > this->x)
 			this->x += nor;
 
@@ -7454,7 +7461,7 @@ void Client::Ping(char *b)
 	Packet pak = Packet();
 
 	pak.addHeader(0x59);
-	
+
 	pak.ready();
 	this->AddPacket(pak, 0);
 
@@ -8283,7 +8290,7 @@ void Client::DoneTrade(int s)
 					this->FinishTrade(cp);
 			}
 		}
-		
+
 		else if(s == 2)
 			this->CancelTrade(true);
 	}
@@ -8609,7 +8616,7 @@ void Client::AddKillExp(long am, long toparty)
 		long expDone = 0;
 
 		int pInParty = 0;
-		
+
 		for(unsigned int i = 0; i < this->p->pt->members.size(); i++)
 		{
 			Client *c = this->p->pt->members.at(i)->mb;
@@ -9048,7 +9055,7 @@ void Client::UpdateFriends(bool on)
 	pak.addLongInt(0);
 	pak.addLongInt(this->p->getId());
 	pak.addBool(on);
-	
+
 	pak.ready();
 
 	for(unsigned int i = 0; i < this->p->friends.size(); i++)
@@ -9157,7 +9164,7 @@ void Client::RemoveFriend(const char *name)
 
 			pak.ready();
 			this->AddPacket(pak, 0);
-			
+
 			LD(GAME, "Remove friend: [Name: %s] [Name: %s].\n", this->p->name, name);
 
 			break;

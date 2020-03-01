@@ -34,7 +34,7 @@ public:
 
 		this->price = c.price;
 		this->minlvl = c.minlvl;
-		
+
 		this->itemName = c.itemName;
 
 		this->evalue = c.evalue;
@@ -61,7 +61,7 @@ class Drop
 public:
 	Drop()
 	{
-		this->drop = false;
+		this->drop = nullptr;
 
 		this->owner = 0;
 		this->autodelete = 0;
